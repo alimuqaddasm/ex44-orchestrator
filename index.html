@@ -727,7 +727,7 @@ body{background:var(--page-bg);margin:0}
   </div>
   </div></sc-if>
   <sc-if value="{{isHow}}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:20px">
-  <section style="display:flex;flex-direction:column;gap:8px;padding-top:6px"><h1 style="margin:0;font:600 28px/1.1 var(--id);letter-spacing:-.025em">How it works</h1><p style="margin:0;font-size:15px;color:var(--ink2);max-width:720px">The manual. Every button on the page, what it does, in plain words. For now the buttons show what they will do; they reach EX-44 with the next step.</p></section>
+  <section style="display:flex;flex-direction:column;gap:8px;padding-top:6px"><h1 style="margin:0;font:600 28px/1.1 var(--id);letter-spacing:-.025em">How it works</h1><p style="margin:0;font-size:15px;color:var(--ink2);max-width:720px">The manual. Every button on the page, what it does, in plain words. Every button sends a request to EX-44, which carries it out within the minute.</p></section>
   <div class="mman">
     <nav class="mindex" aria-label="Manual sections">
       <sc-for list="{{manual}}" as="m" hint-placeholder-count="8"><a href="#{{m.id}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.d}}"></path></svg>{{m.title}}</a></sc-for>
@@ -864,9 +864,12 @@ body{background:var(--page-bg);margin:0}
    Test cases show only with ?test=1 in the address. */
 (function(){
 "use strict";
-const OWNER = "alimuqaddasm", REPO = "ex44-state", KEY = "workmap.key", FILES = ["feed.json", "held.json", "layers.json", "alerts.json", "tafweez.json"];
+const OWNER = "alimuqaddasm", REPO = "ex44-state", NOTES = "hub-notes", KEY = "ex44home.key", OLDKEY = "workmap.key", FILES = ["feed.json", "held.json", "layers.json", "alerts.json", "tafweez.json"];
 const TEST = /[?&]test=1\b/.test(location.search);
-const getKey = () => { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } };
+// The home's own key (ex44-home: ex44-state and hub-notes) is asked for once and kept in this browser only.
+// Until it is given, the Work Map key is tried, if this browser has one.
+const own = () => { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } };
+const getKey = () => { try { return own() || localStorage.getItem(OLDKEY) || ""; } catch (e) { return ""; } };
 const setKey = v => { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); } catch (e) {} };
 const LIVE = window.__LIVE = { ok: false, test: TEST, loading: true, jobs: [], held: [], tickets: [], bins: [], accts: [], skills: [], repos: [], branches: [],
   lv: { greet: "Hello, Ali.", sub: "Reading the live feed…", age: "", axis: ["", "", "", "", ""], dayNote: "", heldWhy: "", branchNote: "", driveNote: "", nSkills: 0 } };
@@ -910,18 +913,19 @@ function build(d, now){
     tags: j.prot ? [["protected", "lock"], ["not moved", "no"], ["wakes at " + j.a + " reset", "clock"]] : [["at a limit", "clock"], ["move is yours", "you"]],
     title: j.a + " ran out of time while this chat " + (j.ask ? "waited for you." : "worked."), whyLab: "What happens next", wi: "next",
     why: j.prot ? "Protected, so it is not moved. It wakes when " + j.a + " resets." : "It waits for the reset, or for you to move it to an account with room.",
-    primary: j.prot ? "Open the chat" : "Move it", secondary: "Wait for reset", age: j.age, agew: "0%" }));
+    primary: "Continue when free", secondary: "Wait for reset", req1: { action: "send-when-free", target: j.n, text: "continue" }, age: j.age, agew: "0%" }));
   heldList.filter(h => h.mark === "clash").forEach(h => T.push({ id: "c-" + h.job, k: "clash", kind: "Clash", chat: h.job, acct: jb(h.job).a || "sc21", proj: h.repo || "",
     tags: [["main and this job", "clash"], ["you pick", "you"]], title: "Two versions met while putting " + h.job + " into main.", whyLab: "Why it stopped", wi: "why",
     why: "Main and this job changed the same file. Only you pick.", primary: "Show both sides", secondary: "Later", age: h.age || "", agew: "0%" }));
   (alerts.alerts || []).filter(a => a.status !== "done").forEach(a => { const c = (a.chats || [])[0] || {};
     T.push({ id: "g-" + a.id, k: "go", kind: a.kind === "private" ? "Privacy warning" : "Needs your GO", chat: c.name || ("alert " + a.id), acct: c.from || "sc21", proj: a.project || "",
       tags: [["alert " + a.id, "you"]], title: String(a.text || "").replace(/^[A-Z]+ \d+:\s*/, ""), whyLab: "What it costs", wi: "cost",
-      why: "Answer on EX-44 for now; the buttons here act from the next step.", primary: "Yes", secondary: "No", age: ago(a.created, now), agew: "0%" }); });
+      why: a.kind === "private" ? "Fix it in that repo; Seen only clears it here." : "Yes or No goes to EX-44, which carries it out within the minute.", primary: a.kind === "private" ? "Seen" : "Yes", secondary: a.kind === "private" ? "Later" : "No",
+      req1: a.kind === "private" ? null : { action: "approve", alert: a.id }, req2: a.kind === "private" ? null : { action: "refuse", alert: a.id }, age: ago(a.created, now), agew: "0%" }); });
   Object.keys(tf).forEach(n => { const t = tf[n] || {}, j = byName[n]; if (!j) return;
     T.push({ id: "f-" + n, k: "tafweez", kind: "TAFWEEZ", chat: n, acct: j.account, proj: group(j), tags: [[(t.checks || 0) + " checks passed", "ok"], ["archive is yours", "you"]],
       title: "Everything is done and checked. Nothing waits on you.", whyLab: "Your call", wi: "next", why: "Only you decide whether to archive it.",
-      primary: "Archive", secondary: "Not yet", age: ago(t.at, now), agew: "0%" }); });
+      primary: "Archive", secondary: "Not yet", req1: { action: "archive", target: n }, age: ago(t.at, now), agew: "0%" }); });
   // the last 24 hours: one bin per half hour, a chat counted where its status last changed, coloured by what it is now
   const start = now - 24 * 3600e3, bins = [];
   for (let i = 0; i < 48; i++) bins.push({ work: 0, wait: 0, bad: 0, done: 0 });
@@ -983,8 +987,8 @@ async function load(){
     await Promise.all(FILES.map(async f => { try { out[f] = await readOne(f, key); } catch (e) { if (f === "feed.json" || e.status === 401) throw e; out[f] = null; } }));
     build(out, Date.now()); hideConnect(); redraw();
   } catch (e) {
-    if (e.status === 401) { setKey(""); showConnect("GitHub did not accept this key (it may have run out). Make a new one and paste it here."); }
-    else if (e.status === 404) showConnect("This key cannot open ex44-state. Add ex44-state to the key (read only), or paste a key that has it.");
+    if (e.status === 401) { if (own()) setKey(""); showConnect("GitHub did not accept this key (it may have run out). Paste your ex44-home key here."); }
+    else if (e.status === 404) showConnect(own() ? "This key cannot open ex44-state. Paste your ex44-home key (ex44-state and hub-notes)." : "Paste your ex44-home key once. This browser keeps it; nothing else does.");
     else { LIVE.lv.age = "Live feed: could not read it just now (" + (e.message || "no network") + "). Trying again in a minute."; LIVE.lv.ageOld = true; redraw(); }
   } finally { busy = false; }
 }
@@ -993,13 +997,87 @@ function showConnect(msg){
   if (!b) { b = document.createElement("div"); b.id = "connect"; document.body.appendChild(b);
     b.innerHTML = '<form class="cbox" autocomplete="off"><h2>Connect the live feed</h2>'
       + '<p>This page is public, but the state of EX-44 is not. It reads the private repo <b>ex44-state</b> with your own GitHub key, which stays in this browser only.</p>'
-      + '<p>Use the same key as Work Map and Reading Mode if it can read ex44-state. Otherwise make a fine-grained key on GitHub: repository access ex44-state, permission Contents: read.</p>'
+      + '<p>Paste your <b>ex44-home</b> key (repositories ex44-state and hub-notes, Contents read and write). It is asked for once; buttons use it to send your requests to EX-44.</p>'
       + '<p class="cerr" role="alert"></p><input type="password" id="ckey" placeholder="Paste the key" aria-label="GitHub key"><div class="crow"><button type="submit">Connect</button></div></form>';
     b.querySelector("form").addEventListener("submit", e => { e.preventDefault(); const v = b.querySelector("#ckey").value.trim(); if (!v) return; setKey(v); b.querySelector(".cerr").textContent = "Reading…"; load(); }); }
   b.querySelector(".cerr").textContent = msg || ""; b.hidden = false;
 }
 function hideConnect(){ const b = document.getElementById("connect"); if (b) b.hidden = true; }
-window.__ex44live = { load, build, forget: () => { setKey(""); showConnect(""); } };
+// ---------- actions (P8.4): one request file per action in hub-notes/requests; EX-44 (tools/actions.py, every
+// minute) checks it was made by Ali's account and is under 30 minutes old, runs it and logs the result in
+// requests/log.json, which this page reads to turn "sent" into "done". Nothing here acts on the machine directly.
+const ME = "alimuqaddasm";
+let me;
+async function whoAmI(){
+  if (me !== undefined) return me;
+  try { const r = await fetch("https://api.github.com/user", { headers: { Authorization: "Bearer " + getKey(), Accept: "application/vnd.github+json" } }); me = r.ok ? (await r.json()).login : null; } catch (e) { me = null; }
+  return me;
+}
+const b64 = s => { const b = new TextEncoder().encode(s); let o = ""; for (let i = 0; i < b.length; i += 0x8000) o += String.fromCharCode.apply(null, b.subarray(i, i + 0x8000)); return btoa(o); };
+const notesUrl = p => "https://api.github.com/repos/" + OWNER + "/" + NOTES + "/contents/" + p;
+async function put(q){
+  for (let i = 0; ; i++) {
+    const r = await fetch(notesUrl("requests/" + q.id + ".json"), { method: "PUT", headers: { Authorization: "Bearer " + getKey(), Accept: "application/vnd.github+json", "Content-Type": "application/json" },
+      body: JSON.stringify({ message: ("Home action: " + q.action + " " + (q.target || q.alert || "")).trim(), content: b64(JSON.stringify(q, null, 1) + "\n"), branch: "main" }) });
+    if (r.ok) return;
+    if ((r.status === 409 || r.status === 422) && i < 4) { await new Promise(x => setTimeout(x, 1200 * (i + 1))); continue; }
+    const e = new Error("GitHub said " + r.status); e.status = r.status; throw e;
+  }
+}
+async function readLog(){
+  const r = await fetch(notesUrl("requests/log.json") + "?t=" + Date.now(), { cache: "no-store", headers: { Authorization: "Bearer " + getKey(), Accept: "application/vnd.github.raw+json" } });
+  return r.ok ? r.json() : [];
+}
+let seq = 0;
+const newId = () => new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "-" + Math.random().toString(36).slice(2, 6) + (seq++ % 36).toString(36);
+async function file(reqs){
+  if ((await whoAmI()) !== ME) return { status: "refused", reason: "actions need your own GitHub key (" + ME + ")" };
+  const ids = [];
+  try { for (const q of reqs) { Object.assign(q, { id: newId(), made: new Date().toISOString().slice(0, 19) + "Z" }); await put(q); ids.push(q.id); } }
+  catch (e) { if (e.status === 403 || e.status === 404) showConnect("This key cannot write to hub-notes. Paste your ex44-home key."); return { status: "refused", reason: "not sent: " + (e.message || e) }; }
+  const end = Date.now() + 180000;
+  while (Date.now() < end) {
+    await new Promise(x => setTimeout(x, 8000));
+    let log = []; try { log = await readLog(); } catch (e) {}
+    const got = ids.map(id => log.find(l => l.id === id)).filter(Boolean);
+    if (got.length === ids.length) {
+      const bad = got.find(g => g.status !== "done");
+      setTimeout(load, 1500);
+      return bad ? { status: bad.status, reason: bad.reason || "" } : { status: "done", reason: got.length > 1 ? got.length + " done" : (got[0].reason || "") };
+    }
+  }
+  return { status: "waiting", reason: "EX-44 has not answered yet; see What you pressed later" };
+}
+// The page's button texts, read back into requests. A ticket carries its own (req1 for the main button, req2 for the second).
+function reqs(text, tid, comp){
+  const st = comp ? comp.state : {}, T = LIVE.tickets || [];
+  if (tid && /^h-/.test(tid)) return text.startsWith("Save into main:") ? [{ action: "save", target: tid.slice(2) }] : { local: true };
+  if (tid && /^q-/.test(tid)) return text.startsWith("Send go:") ? [{ action: "send", target: tid.slice(2), text: "go", mode: "plain" }] : { local: true };
+  if (tid) { const t = T.find(x => x.id === tid);
+    if (!t) return { local: true };                      // a test card
+    const r = text.startsWith(t.primary + ":") ? t.req1 : t.req2; return r ? [Object.assign({}, r)] : { local: true }; }
+  let m;
+  if ((m = /^Send "(.+)" to (\S+) when it is free$/.exec(text))) return [{ action: "send-when-free", target: m[2], text: m[1] }];
+  if ((m = /^Send "(.+)" to (\S+)$/.exec(text))) return [{ action: "send", target: m[2], text: m[1], mode: "plain" }];
+  if ((m = /^Press Enter in (\S+)$/.exec(text))) return [{ action: "key", target: m[1], key: "enter" }];
+  if ((m = /^Save (\S+) into main/.exec(text))) return [{ action: "save", target: m[1] }];
+  if ((m = /^Hold (\S+)$/.exec(text))) return [{ action: "hold", target: m[1] }];
+  if ((m = /^Release (\S+)$/.exec(text))) return [{ action: "release", target: m[1] }];
+  if ((m = /^Quiet (on|off) for (\S+)$/.exec(text))) return [{ action: "quiet", target: m[2], on: m[1] === "on" }];
+  if ((m = /^Move (\S+) to (\w+)$/.exec(text))) return [{ action: "move", target: m[1], to: m[2] }];
+  if ((m = /^Lift protection on (\S+)$/.exec(text))) return [{ action: "unprotect", target: m[1] }];
+  if ((m = /^Protect (\S+)$/.exec(text))) return [{ action: "protect", target: m[1] }];
+  if ((m = /^Close (\S+)$/.exec(text))) return [{ action: "close", target: m[1] }];
+  if ((m = /^Launch (\S+) on (\w+)$/.exec(text))) { const v = id => ((document.getElementById(id) || {}).value || "").trim();
+    return [{ action: "launch", target: m[1], account: m[2], repo: v("lf-repo"), brief: v("lf-brief"), parent: v("lf-par") || null,
+      role: st.lrole || "worker", model: (st.lmodel || "Sonnet 5.5").split(" ")[0].toLowerCase(), effort: ({ low: "low", med: "medium", high: "high" })[st.leff || "med"], flow: st.lflow || "flowing" }]; }
+  if ((m = /^Save all \d+ \(held work\)$/.exec(text))) { const js = (LIVE.held || []).map(h => h[0]);
+    return window.confirm("Save all " + js.length + " held jobs into main now?\n\n" + js.join(", ")) ? js.map(n => ({ action: "save", target: n })) : { local: true, cancel: true }; }
+  if (/^Archive all \(finished\)$/.test(text)) { const js = T.filter(t => t.k === "tafweez").map(t => t.chat);
+    return window.confirm("Archive all " + js.length + " finished chats?\n\n" + js.join(", ")) ? js.map(n => ({ action: "archive", target: n })) : { local: true, cancel: true }; }
+  return null;
+}
+window.__ex44live = { load, build, reqs, file, forget: () => { setKey(""); showConnect(""); } };
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(); });
 setInterval(() => { if (!document.hidden) load(); }, 60000);
 setTimeout(load, 0);
@@ -1018,13 +1096,25 @@ window.DCLogic = DCLogic;
 
 class Component extends DCLogic {
   act(text, apply, tid){
+    // P8.4: the button's words become a request to EX-44 (live.js). Sent at once with 5 seconds to undo, then filed;
+    // Done (or why not) when EX-44's log shows it, within about a minute.
+    const LX = window.__ex44live, rq = LX ? LX.reqs(text, tid, this) : null;
+    if (!rq) { this.flash("This button has no action on EX-44."); return; }
+    if (rq.cancel) return;
     const id = "a" + Date.now() + Math.random().toString(36).slice(2,6), at = new Date().toTimeString().slice(0,5);
     this.setState({ log: [{id, text, st:"sent", at}].concat(this.state.log), toastT: {id, text, tid}, sent: tid ? Object.assign({}, this.state.sent, {[tid]: true}) : this.state.sent });
     this._t = this._t || {};
-    this._t[id] = setTimeout(() => {
+    const mark = (st, why) => this.setState({ log: this.state.log.map(l => l.id === id ? Object.assign({}, l, {st, why: why || ""}) : l) });
+    this._t[id] = setTimeout(async () => {
       const t = this.state.toastT;
-      this.setState({ toastT: t && t.id === id ? null : t, log: this.state.log.map(l => l.id === id ? Object.assign({}, l, {st:"working"}) : l) });
-      setTimeout(() => { if (apply) apply(); this.setState({ log: this.state.log.map(l => l.id === id ? Object.assign({}, l, {st:"done"}) : l) }); }, 1500);
+      this.setState({ toastT: t && t.id === id ? null : t });
+      if (rq.local) { if (apply) apply(); mark("done", "on this page only"); return; }
+      mark("working");
+      const res = await LX.file(rq);
+      if (res.status === "done") { if (apply) apply(); mark("done"); }
+      else if (res.status === "waiting") mark("waiting", res.reason);
+      else { mark("failed", res.status + (res.reason ? ": " + res.reason : "")); this.flash("Not done: " + (res.reason || res.status));
+        if (tid) { const s2 = Object.assign({}, this.state.sent); delete s2[tid]; this.setState({ sent: s2 }); } }
     }, 5000);
   }
   undo(){ const t = this.state.toastT; if (!t) return; clearTimeout(this._t[t.id]); const sent = Object.assign({}, this.state.sent); if (t.tid) delete sent[t.tid];
@@ -1082,7 +1172,7 @@ class Component extends DCLogic {
     const openChat = n => () => this.setState({ sel: n, pal: false, launch: false, moveOpen: false });
     const setJ = (n, o) => this.setState({ jo: Object.assign({}, this.state.jo, {[n]: Object.assign({}, this.state.jo[n] || {}, o)}) });
     const HELD = LV.held || [];
-    const REALQ = ALLJ.filter(j => j.ask && !j.test && j.st === "wait" && !T.some(t => t.chat === j.n)).map(j => ({ id:"q-"+j.n, k:"question", kind:"Question", chat:j.n, acct:j.a, proj:j.g, lock:j.prot, tags: j.prot ? [["asks you","ask"],["protected","lock"]] : [["asks you","ask"]], title:j.ask, whyLab:"Last said", whyIcon:W.why, why:j.last || "No note line yet.", primary:"Answer", secondary:"Later", age:j.age || "", agew:"0%" }));
+    const REALQ = ALLJ.filter(j => j.ask && !j.test && j.st === "wait" && !T.some(t => t.chat === j.n)).map(j => ({ id:"q-"+j.n, k:"question", kind:"Question", chat:j.n, acct:j.a, proj:j.g, lock:j.prot, tags: j.prot ? [["asks you","ask"],["protected","lock"]] : [["asks you","ask"]], title:j.ask, whyLab:"Last said", whyIcon:W.why, why:j.last || "No note line yet.", primary:"Send go", secondary:"Later", age:j.age || "", agew:"0%" }));
     const HELDN = HELD.length;
     const TGI = { lock:["M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3","var(--g2)","var(--ink2)"], no:["M5 5l14 14M19 5 5 19","var(--g2)","var(--ink2)"], clock:["M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2","var(--g2)","var(--ink2)"], clash:["M6 3v12M18 9v12M6 15a6 6 0 0 0 6 6M18 9a6 6 0 0 0-6-6","var(--bad-d)",C.bad], doc:["M6 3h9l4 4v14H6zM14 3v5h5","var(--g2)","var(--ink2)"], you:["M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0","var(--amber-d)",C.amber], ok:["M20 6 9 17l-5-5","var(--ok-d)",C.ok], held:["M9 5v14M15 5v14","var(--held-d)",C.held], ask:["M8.5 9a3.5 3.5 0 1 1 5 3.2c-.9.4-1.5 1.2-1.5 2.1V15M12 19h.01","var(--amber-d)",C.amber] };
     const mkTags = list => (list || []).map(([t, k]) => ({ t, d:TGI[k][0], bg:TGI[k][1], fg:TGI[k][2] }));
@@ -1094,7 +1184,7 @@ class Component extends DCLogic {
       sentShown: !!this.state.sent[t.id], notSent: !this.state.sent[t.id],
       send: () => this.act(t.primary + ": " + t.chat, () => this.setState(t.id.startsWith("h-") ? { savedHeld: Object.assign({}, this.state.savedHeld, {[t.chat]: true}) } : { done: Object.assign({}, this.state.done, {[t.id]: true}) }), t.id),
       later: () => this.act(t.secondary + ": " + t.chat, () => this.setState({ done: Object.assign({}, this.state.done, {[t.id]: true}) }), t.id),
-      open: t.id === "t6" ? () => this.setState({ qf: "held" }) : (jb(t.chat) ? openChat(t.chat) : () => this.flash("On the real page this opens " + t.chat + " in Claude.")) }); });
+      open: t.id === "t6" ? () => this.setState({ qf: "held" }) : (jb(t.chat) ? openChat(t.chat) : () => this.flash("Open " + t.chat + " in the Claude app, under its account.")) }); });
     const KORD = ["limit","clash","go","question","held","tafweez"], KNAME = { limit:"Usage limits", clash:"Clashes", go:"GO requests", question:"Questions", held:"Held work", tafweez:"Finished" };
     const gIsOpen = k => (k in (stt.gopen || {})) ? stt.gopen[k] : !["held","tafweez"].includes(k);
     const setG = (k, v) => this.setState({ gopen: Object.assign({}, this.state.gopen || {}, {[k]: v}) });
@@ -1207,11 +1297,11 @@ class Component extends DCLogic {
       dr = Object.assign({ on:true, a:sj.a, hue:HUE[sj.a], dot:STL[sj.st][1], stl:STL[sj.st][0], stbg:STL[sj.st][2],
         chips: [(ROLEX[sj.n] || sj.role) ? (ROLEX[sj.n] || sj.role) + (sj.par ? " of " + sj.par : "") : "", sj.br ? (held ? "held" : "flowing") : "no branch", sj.q ? "quiet" : "", sj.prot ? "protected" : "", sj.test ? "test case" : ""].filter(Boolean), mdl: MDL(sj.model)[0], mcls: MDL(sj.model)[1], eff: EFF(sj.eff)[0], ecls: EFF(sj.eff)[1], dt: dsplit(sj.last).dt, yr: dsplit(sj.last).yr,
         hasAsk: !!sj.ask, ask: sj.ask, last: dsplit(sj.last).rest || "No note line yet.",
-        answers: [{label:"Yes, go", cls:"btn you", run: () => this.act("Send \"go\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Yes to option 1", cls:"btn", run: () => this.act("Send \"yes to option 1\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Open the chat", cls:"btn ghost", run: () => this.flash("On the real page this opens " + n + " in Claude.")}],
+        answers: [{label:"Yes, go", cls:"btn you", run: () => this.act("Send \"go\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Yes to option 1", cls:"btn", run: () => this.act("Send \"yes to option 1\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Open the chat", cls:"btn ghost", run: () => this.flash("Open " + n + " in the Claude app, under its account.")}],
         facts: [["Account", sj.a], ["Project", sj.g], ["Repo", sj.repo || "none"], ["Branch", sj.br || "none"], ["Into main", sj.br ? (held ? "Held" + (sj.pc ? ": " + sj.pc + " pieces waiting" : "") : "Flowing: clean pieces go in by themselves") : "No branch"], ["For", sj.age || "now"]].map(([k, v]) => ({k, v})),
         phrases: PH.map(ph => ({ label: ph, run: () => this.act("Send \"" + ph + "\" to " + n) })),
         sendPhrase: () => { const el = document.getElementById("ph"); const v = el ? el.value : "go"; this.act("Send \"" + v + "\" to " + n); },
-        openChat: () => this.flash("On the real page this opens " + n + " in Claude. Opening it from here comes with the next step."),
+        openChat: () => this.flash("Open " + n + " in the Claude app, under its account."),
         enter: () => this.act("Press Enter in " + n), whenFree: () => this.act("Send \"go\" to " + n + " when it is free"),
         hasBranch: !!sj.br, save: () => this.act("Save " + n + " into main", () => setJ(n, {pc:0})),
         hold: () => this.act((held ? "Release " : "Hold ") + n, () => setJ(n, {flow: held ? "flowing" : "held"})), holdLabel: held ? "Release (let it flow)" : "Hold",
@@ -1253,8 +1343,8 @@ class Component extends DCLogic {
       if (jb(name)) return this.setState({ lerr: "A chat called " + name + " already exists. Pick another name." });
       const nj = { n:name, a:this.state.lacct || "sc21", st:"work", g: v("lf-repo") || "Chats with no repo", repo: v("lf-repo") || null, br: "job/" + name, flow: this.state.lflow || "flowing", pc:0, prot:false, q:false, role: this.state.lrole || "worker", par: v("lf-par") || null, last: v("lf-brief") || "Just launched; reading the brief.", ask:"", age:"0 m", model: ({ "Opus 5.5":"opus-5-5", "Fable 5.2":"fable-5-2" })[this.state.lmodel] || "sonnet-5-5", eff: ({ low:"low", med:"medium", high:"high" })[this.state.leff || "med"], test:true };
       this.setState({ launch:false, lerr:"" }); this.act("Launch " + name + " on " + nj.a, () => this.setState({ extra: this.state.extra.concat([nj]), view: "chats" })); } };
-    const LOGS = { sent:["Sent, undo still open","var(--amber-d)",C.amber,"M22 2 11 13M22 2l-7 20-4-9-9-4z"], working:["EX-44 is working on it","var(--blue-d)",C.blue,"M21 12a9 9 0 1 1-6.2-8.6"], done:["Done","var(--ok-d)",C.ok,"M20 6 9 17l-5-5"], undone:["Undone","var(--g2)","var(--ink3)","M3 7v6h6M3 13a9 9 0 1 0 3-7"] };
-    const logList = stt.log.slice(0, 8).map(l => ({ text:l.text, at:l.at, st:LOGS[l.st][0], bg:LOGS[l.st][1], fg:LOGS[l.st][2], icon:LOGS[l.st][3] }));
+    const LOGS = { sent:["Sent, undo still open","var(--amber-d)",C.amber,"M22 2 11 13M22 2l-7 20-4-9-9-4z"], working:["EX-44 is working on it","var(--blue-d)",C.blue,"M21 12a9 9 0 1 1-6.2-8.6"], done:["Done","var(--ok-d)",C.ok,"M20 6 9 17l-5-5"], undone:["Undone","var(--g2)","var(--ink3)","M3 7v6h6M3 13a9 9 0 1 0 3-7"], failed:["Did not go through","var(--bad-d)",C.bad,"M6 6l12 12M18 6 6 18"], waiting:["Waiting on EX-44","var(--amber-d)",C.amber,"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2"] };
+    const logList = stt.log.slice(0, 8).map(l => ({ text:l.text + (l.why ? " (" + l.why + ")" : ""), at:l.at, st:LOGS[l.st][0], bg:LOGS[l.st][1], fg:LOGS[l.st][2], icon:LOGS[l.st][3] }));
     const ids = ["day","needs","accts","log","board","held","branches","drive","t1","t2","t3","t4","t5","t6"].concat(allGroups.map(g => g.id));
     const anyOpen = ids.some(i => !shut[i]);
     const foldAll = () => { const o = {}; ids.forEach(i => o[i] = anyOpen); this.setState({ shut: o }); };
@@ -1291,7 +1381,7 @@ class Component extends DCLogic {
       held: heldRows,
       branches: LV.branches || [],
       sktabs, skills, skgroups,
-      manual: [{"id": "m-top", "title": "The top bar", "intro": "Always there, on every tab.", "d": "M3 6h18M3 12h18M3 18h18", "bg": "var(--g2)", "fg": "var(--ink2)", "items": [{"ui": "The tabs", "x": "Home, Chats, Truth layers, Skills and How it works. Each one is a page of its own. Tap to switch.", "cls": "mui"}, {"ui": "Find a chat or run a command", "x": "Opens the command box: type a chat name, a tab or an action like save, then press Enter.", "cls": "mui"}, {"ui": "Ctrl K", "x": "Opens the same command box from anywhere. The / key does it too.", "cls": "mui key"}, {"ui": "Sun or moon", "x": "Switches between light and dark.", "cls": "mui"}, {"ui": "Fold all", "x": "Shuts every card on the page so only the titles show. Tap again to open them all.", "cls": "mui"}, {"ui": "Launch", "x": "Opens the form to start a new chat on the account you pick.", "cls": "mui you"}]}, {"id": "m-home", "title": "Home", "intro": "What needs you, what is running, what is stuck.", "d": "M4 11 12 4l8 7v9h-5v-6H9v6H4z", "bg": "var(--amber-d)", "fg": "var(--amber)", "items": [{"ui": "The four numbers", "x": "The four numbers. The small tags under each say what is inside, at a glance.", "cls": "mui"}, {"ui": "The last 24 hours", "x": "A bar for every half hour: how many chats changed. Colour shows what they are now: stuck, waiting, working, done.", "cls": "mui"}, {"ui": "Needs you", "x": "Everything that waits for you, one card each. The tabs above the cards filter by kind: questions, limits, clash, GO, TAFWEEZ, held.", "cls": "mui"}, {"ui": "Fold all (in Needs you)", "x": "Shuts or opens all the cards in Needs you at once.", "cls": "mui"}, {"ui": "Show all", "x": "Shows every card, not only one of each kind.", "cls": "mui"}, {"ui": "What you pressed", "x": "Your last presses, each going from sent to working to done.", "cls": "mui"}]}, {"id": "m-cards", "title": "A card in Needs you", "intro": "One thing waiting for you.", "d": "M4 5h16v14H4zM8 9h8M8 13h5", "bg": "var(--amber-d)", "fg": "var(--amber)", "items": [{"ui": "Tags under the title", "x": "The chat, its project, and short facts like protected or wakes at reset, so you know at a glance.", "cls": "mui"}, {"ui": "Yellow button", "x": "The main answer, for example GO, Yes or Save into main. It sends at once.", "cls": "mui you"}, {"ui": "Second button", "x": "The other answer, for example Later or Not now.", "cls": "mui"}, {"ui": "Open the chat", "x": "Opens the chat's side panel with everything about it.", "cls": "mui"}, {"ui": "Undo", "x": "After any press a bar appears at the bottom for 5 seconds. Tap Undo there and nothing is sent.", "cls": "mui"}, {"ui": "Arrow on the right", "x": "Folds or opens just this card.", "cls": "mui"}]}, {"id": "m-chats", "title": "Chats", "intro": "Every chat, grouped by project.", "d": "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z", "bg": "var(--blue-d)", "fg": "var(--blue)", "items": [{"ui": "Account cards", "x": "Tap an account to see only its chats everywhere on the page. Tap again, or Show all accounts, to see all.", "cls": "mui"}, {"ui": "Find a chat or a word", "x": "Type to keep only the chats whose name, last line or question has that word.", "cls": "mui"}, {"ui": "Status filter", "x": "Open, Working, Waiting, Done or All: filters the list by what each chat is doing.", "cls": "mui"}, {"ui": "Fold all groups", "x": "Shuts or opens every project group at once.", "cls": "mui"}, {"ui": "A row", "x": "Tap any chat to open its side panel.", "cls": "mui"}]}, {"id": "m-panel", "title": "A chat's side panel", "intro": "Everything about one chat, and what you can tell it.", "d": "M15 3h6v18h-6zM3 7h9M3 12h9M3 17h9", "bg": "var(--blue-d)", "fg": "var(--blue)", "items": [{"ui": "It asks you", "x": "Its question, with buttons to answer straight away.", "cls": "mui"}, {"ui": "Ready phrase list", "x": "Pick a ready phrase (go, continue, stop, save, publish, show me, quiet mode, yes to option 1, 2 or 3), then press Send.", "cls": "mui"}, {"ui": "Type anything", "x": "Free text. Write your own message and press Send.", "cls": "mui"}, {"ui": "Open the chat", "x": "On the real page this opens the chat itself in Claude.", "cls": "mui"}, {"ui": "Save into main", "x": "Puts this chat's finished work into main, the master copy.", "cls": "mui"}, {"ui": "Hold or Release", "x": "Hold keeps its work off main until you say save. Release lets it flow in by itself.", "cls": "mui"}, {"ui": "Quiet on", "x": "The chat stays silent until a chunk ends, a blocker comes, or TAFWEEZ.", "cls": "mui"}, {"ui": "Move to", "x": "Shows the other accounts with their logos. Tap one to move the chat there.", "cls": "mui"}, {"ui": "Protect or Lift protection", "x": "A protected chat cannot be moved or closed. Lifting asks for a second tap.", "cls": "mui"}, {"ui": "Close chat", "x": "Ends the chat. Asks for a second tap. Off for protected chats.", "cls": "mui"}, {"ui": "J and K", "x": "Next and previous chat. Esc closes the panel.", "cls": "mui key"}]}, {"id": "m-truth", "title": "Truth layers", "intro": "Where each piece of work really is.", "d": "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5", "bg": "var(--held-d)", "fg": "var(--held)", "items": [{"ui": "Held off main", "x": "Jobs whose finished work waits for your save, biggest first.", "cls": "mui"}, {"ui": "Save", "x": "Puts that job's pieces into main.", "cls": "mui"}, {"ui": "Show all", "x": "Shows every held job, not only the top 10.", "cls": "mui"}, {"ui": "Branches with work not in main", "x": "Branches that hold something main does not have, and what each one is.", "cls": "mui"}]}, {"id": "m-skills", "title": "Skills", "intro": "The 70 skills, by group.", "d": "M12 3v4M12 17v4M3 12h4M17 12h4", "bg": "var(--ok-d)", "fg": "var(--ok)", "items": [{"ui": "A skill chip", "x": "Point at it (or tap it on a phone) to see when to use it and its sample job.", "cls": "mui"}, {"ui": "Group tabs", "x": "Show only one group, like Lesson decks or Fiqh.", "cls": "mui"}, {"ui": "Find a skill", "x": "Type to keep only skills with that word.", "cls": "mui"}]}],
+      manual: [{"id": "m-top", "title": "The top bar", "intro": "Always there, on every tab.", "d": "M3 6h18M3 12h18M3 18h18", "bg": "var(--g2)", "fg": "var(--ink2)", "items": [{"ui": "The tabs", "x": "Home, Chats, Truth layers, Skills and How it works. Each one is a page of its own. Tap to switch.", "cls": "mui"}, {"ui": "Find a chat or run a command", "x": "Opens the command box: type a chat name, a tab or an action like save, then press Enter.", "cls": "mui"}, {"ui": "Ctrl K", "x": "Opens the same command box from anywhere. The / key does it too.", "cls": "mui key"}, {"ui": "Sun or moon", "x": "Switches between light and dark.", "cls": "mui"}, {"ui": "Fold all", "x": "Shuts every card on the page so only the titles show. Tap again to open them all.", "cls": "mui"}, {"ui": "Launch", "x": "Opens the form to start a new chat on the account you pick.", "cls": "mui you"}]}, {"id": "m-home", "title": "Home", "intro": "What needs you, what is running, what is stuck.", "d": "M4 11 12 4l8 7v9h-5v-6H9v6H4z", "bg": "var(--amber-d)", "fg": "var(--amber)", "items": [{"ui": "The four numbers", "x": "The four numbers. The small tags under each say what is inside, at a glance.", "cls": "mui"}, {"ui": "The last 24 hours", "x": "A bar for every half hour: how many chats changed. Colour shows what they are now: stuck, waiting, working, done.", "cls": "mui"}, {"ui": "Needs you", "x": "Everything that waits for you, one card each. The tabs above the cards filter by kind: questions, limits, clash, GO, TAFWEEZ, held.", "cls": "mui"}, {"ui": "Fold all (in Needs you)", "x": "Shuts or opens all the cards in Needs you at once.", "cls": "mui"}, {"ui": "Show all", "x": "Shows every card, not only one of each kind.", "cls": "mui"}, {"ui": "What you pressed", "x": "Your last presses, each going from sent to working to done.", "cls": "mui"}]}, {"id": "m-cards", "title": "A card in Needs you", "intro": "One thing waiting for you.", "d": "M4 5h16v14H4zM8 9h8M8 13h5", "bg": "var(--amber-d)", "fg": "var(--amber)", "items": [{"ui": "Tags under the title", "x": "The chat, its project, and short facts like protected or wakes at reset, so you know at a glance.", "cls": "mui"}, {"ui": "Yellow button", "x": "The main answer, for example GO, Yes or Save into main. It sends at once.", "cls": "mui you"}, {"ui": "Second button", "x": "The other answer, for example Later or Not now.", "cls": "mui"}, {"ui": "Open the chat", "x": "Opens the chat's side panel with everything about it.", "cls": "mui"}, {"ui": "Undo", "x": "After any press a bar appears at the bottom for 5 seconds. Tap Undo there and nothing is sent.", "cls": "mui"}, {"ui": "Arrow on the right", "x": "Folds or opens just this card.", "cls": "mui"}]}, {"id": "m-chats", "title": "Chats", "intro": "Every chat, grouped by project.", "d": "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z", "bg": "var(--blue-d)", "fg": "var(--blue)", "items": [{"ui": "Account cards", "x": "Tap an account to see only its chats everywhere on the page. Tap again, or Show all accounts, to see all.", "cls": "mui"}, {"ui": "Find a chat or a word", "x": "Type to keep only the chats whose name, last line or question has that word.", "cls": "mui"}, {"ui": "Status filter", "x": "Open, Working, Waiting, Done or All: filters the list by what each chat is doing.", "cls": "mui"}, {"ui": "Fold all groups", "x": "Shuts or opens every project group at once.", "cls": "mui"}, {"ui": "A row", "x": "Tap any chat to open its side panel.", "cls": "mui"}]}, {"id": "m-panel", "title": "A chat's side panel", "intro": "Everything about one chat, and what you can tell it.", "d": "M15 3h6v18h-6zM3 7h9M3 12h9M3 17h9", "bg": "var(--blue-d)", "fg": "var(--blue)", "items": [{"ui": "It asks you", "x": "Its question, with buttons to answer straight away.", "cls": "mui"}, {"ui": "Ready phrase list", "x": "Pick a ready phrase (go, continue, stop, save, publish, show me, quiet mode, yes to option 1, 2 or 3), then press Send.", "cls": "mui"}, {"ui": "Type anything", "x": "Free text. Write your own message and press Send.", "cls": "mui"}, {"ui": "Open the chat", "x": "Shows its account: open it in the Claude app there.", "cls": "mui"}, {"ui": "Save into main", "x": "Puts this chat's finished work into main, the master copy.", "cls": "mui"}, {"ui": "Hold or Release", "x": "Hold keeps its work off main until you say save. Release lets it flow in by itself.", "cls": "mui"}, {"ui": "Quiet on", "x": "The chat stays silent until a chunk ends, a blocker comes, or TAFWEEZ.", "cls": "mui"}, {"ui": "Move to", "x": "Shows the other accounts with their logos. Tap one to move the chat there.", "cls": "mui"}, {"ui": "Protect or Lift protection", "x": "A protected chat cannot be moved or closed. Lifting asks for a second tap.", "cls": "mui"}, {"ui": "Close chat", "x": "Ends the chat. Asks for a second tap. Off for protected chats.", "cls": "mui"}, {"ui": "J and K", "x": "Next and previous chat. Esc closes the panel.", "cls": "mui key"}]}, {"id": "m-truth", "title": "Truth layers", "intro": "Where each piece of work really is.", "d": "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5", "bg": "var(--held-d)", "fg": "var(--held)", "items": [{"ui": "Held off main", "x": "Jobs whose finished work waits for your save, biggest first.", "cls": "mui"}, {"ui": "Save", "x": "Puts that job's pieces into main.", "cls": "mui"}, {"ui": "Show all", "x": "Shows every held job, not only the top 10.", "cls": "mui"}, {"ui": "Branches with work not in main", "x": "Branches that hold something main does not have, and what each one is.", "cls": "mui"}]}, {"id": "m-skills", "title": "Skills", "intro": "The 70 skills, by group.", "d": "M12 3v4M12 17v4M3 12h4M17 12h4", "bg": "var(--ok-d)", "fg": "var(--ok)", "items": [{"ui": "A skill chip", "x": "Point at it (or tap it on a phone) to see when to use it and its sample job.", "cls": "mui"}, {"ui": "Group tabs", "x": "Show only one group, like Lesson decks or Fiqh.", "cls": "mui"}, {"ui": "Find a skill", "x": "Type to keep only skills with that word.", "cls": "mui"}]}],
       how:[
         {t:"The home",x:"One screen answers three things: what needs you, what is running, what is stuck. Needs you sits on top; every chat lives on the Chats tab.",d:I.home.d,bg:"var(--amber-d)",fg:C.amber},
         {t:"Last said",x:"Each chat shows its last finished piece and what it asks you, from its own job note. Raw screen text never comes here, so no source text rides along.",d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",bg:"var(--tn)",fg:"var(--ink2)"},
