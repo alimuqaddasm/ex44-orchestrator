@@ -187,6 +187,14 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .mindex a{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:7px;color:var(--ink2);text-decoration:none;font-size:14px}
 .ex .mindex a:hover{background:var(--g2);color:var(--ink)}
 .ex .mrow{display:grid;grid-template-columns:minmax(150px,240px) minmax(0,1fr);gap:16px;align-items:start;padding:12px 18px;border-top:1px solid var(--line)}
+.ex .mhead{display:flex;align-items:center;gap:12px;padding:16px 18px 12px;flex-wrap:wrap}
+.ex .mfind{margin-left:auto;width:240px;max-width:100%;box-sizing:border-box}
+.ex .mgrp{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:10px 18px 8px;border-top:1px solid var(--line);background:var(--g1);font-size:13px;font-weight:600;color:var(--ink2)}
+.ex .mterm{font-size:14px;font-weight:600;color:var(--ink)}
+.ex .drow{display:flex;flex-direction:column;gap:6px;padding:12px 18px;border-top:1px solid var(--line)}
+.ex .dpick{display:inline-flex;align-items:center;min-height:22px;padding:2px 8px;border-radius:6px;background:var(--ok-d);color:var(--ok);font-size:13px;font-weight:500}
+.ex .dcom{margin:0;padding:6px 10px;border-left:2px solid var(--amber);background:var(--amber-d);border-radius:0 6px 6px 0;font-size:14px;line-height:1.5;color:var(--ink)}
+@media (max-width:760px){.ex .mfind{margin-left:0;width:100%}}
 .ex .mui{display:inline-flex;align-items:center;gap:6px;justify-self:start;min-height:28px;max-width:100%;box-sizing:border-box;padding:5px 10px;line-height:1.3;white-space:normal;overflow-wrap:anywhere;border:1px solid var(--line2);border-radius:7px;background:var(--g1);font:500 13px/1 var(--f);color:var(--ink);}
 .ex .mui.key{font-family:var(--m);font-size:12px}
 .ex .mui.you{background:var(--you);color:var(--you-ink);border-color:var(--you)}
@@ -727,10 +735,11 @@ body{background:var(--page-bg);margin:0}
   </div>
   </div></sc-if>
   <sc-if value="{{isHow}}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:20px">
-  <section style="display:flex;flex-direction:column;gap:8px;padding-top:6px"><h1 style="margin:0;font:600 28px/1.1 var(--id);letter-spacing:-.025em">How it works</h1><p style="margin:0;font-size:15px;color:var(--ink2);max-width:720px">The manual. Every button on the page, what it does, in plain words. Every button sends a request to EX-44, which carries it out within the minute.</p></section>
+  <section style="display:flex;flex-direction:column;gap:8px;padding-top:6px"><h1 style="margin:0;font:600 28px/1.1 var(--id);letter-spacing:-.025em">How it works</h1><p style="margin:0;font-size:15px;color:var(--ink2);max-width:720px">The manual. Every button on the page, what it does, in plain words. Every button sends a request to EX-44, which carries it out within the minute. Below it, every word the system uses and every decision you made.</p></section>
   <div class="mman">
     <nav class="mindex" aria-label="Manual sections">
       <sc-for list="{{manual}}" as="m" hint-placeholder-count="8"><a href="#{{m.id}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{m.d}}"></path></svg>{{m.title}}</a></sc-for>
+      <a href="#m-words"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"></path></svg>Words and parts</a><a href="#m-dec"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Your decisions</a>
     </nav>
     <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
       <sc-for list="{{manual}}" as="m" hint-placeholder-count="8">
@@ -744,6 +753,38 @@ body{background:var(--page-bg);margin:0}
           </sc-for>
         </section>
       </sc-for>
+      <section class="panel" id="m-words">
+        <div class="mhead">
+          <span class="tile" style="background:var(--blue-d);color:var(--blue)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"></path></svg></span>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><h2 style="margin:0;font-size:16px;font-weight:600">Words and parts</h2><span class="lab" style="font-size:13px">{{hw.note}}</span></div>
+          <label class="srch mfind"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="hwq" type="search" placeholder="Find a word" aria-label="Find a word" value="{{hw.q}}" onInput="{{hw.set}}"></label>
+        </div>
+        <sc-if value="{{hw.none}}" hint-placeholder-val="{{ false }}"><div class="mrow"><span class="lab">{{hw.empty}}</span></div></sc-if>
+        <sc-for list="{{hw.groups}}" as="g" hint-placeholder-count="3">
+          <div class="mgrp"><span>{{g.name}}</span><span class="lab">{{g.n}}</span></div>
+          <sc-for list="{{g.items}}" as="c" hint-placeholder-count="4">
+            <div class="mrow"><span class="mterm">{{c.term}}</span><span style="font-size:14px;line-height:1.5;color:var(--ink2)">{{c.body}}</span></div>
+          </sc-for>
+        </sc-for>
+      </section>
+      <section class="panel" id="m-dec">
+        <div class="mhead">
+          <span class="tile" style="background:var(--ok-d);color:var(--ok)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg></span>
+          <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><h2 style="margin:0;font-size:16px;font-weight:600">Your decisions</h2><span class="lab" style="font-size:13px">{{dc.note}}</span></div>
+          <label class="srch mfind"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input id="dcq" type="search" placeholder="Find a decision" aria-label="Find a decision" value="{{dc.q}}" onInput="{{dc.set}}"></label>
+        </div>
+        <sc-if value="{{dc.none}}" hint-placeholder-val="{{ false }}"><div class="mrow"><span class="lab">{{dc.empty}}</span></div></sc-if>
+        <sc-for list="{{dc.rounds}}" as="r" hint-placeholder-count="3">
+          <div class="mgrp"><span>{{r.name}}</span><span class="lab">{{r.n}}, {{r.day}}</span></div>
+          <sc-for list="{{r.items}}" as="d" hint-placeholder-count="4">
+            <div class="drow">
+              <span style="font-size:14px;line-height:1.45;color:var(--ink)">{{d.title}}</span>
+              <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span class="dpick">{{d.pick}}</span><span class="lab">{{d.when}}</span></div>
+              <sc-if value="{{d.hasComment}}" hint-placeholder-val="{{ true }}"><p class="dcom">{{d.comment}}</p></sc-if>
+            </div>
+          </sc-for>
+        </sc-for>
+      </section>
     </div>
   </div>
   </div></sc-if>
@@ -861,6 +902,7 @@ body{background:var(--page-bg);margin:0}
 /* EX-44 Home, live data (P8.3). Reads the private repo ex44-state with the viewer's own GitHub key, kept in this
    browser only (the same key Work Map and Reading Mode use on this site). The page holds no data of its own.
    Every minute it reads feed.json, held.json, layers.json, alerts.json and tafweez.json again and redraws.
+   The How it works cards and Ali's decisions (howitworks.json, decisions.json, P9.1) change rarely: read at the start and every 10 minutes.
    Test cases show only with ?test=1 in the address. */
 (function(){
 "use strict";
@@ -871,7 +913,7 @@ const TEST = /[?&]test=1\b/.test(location.search);
 const own = () => { try { return localStorage.getItem(KEY) || ""; } catch (e) { return ""; } };
 const getKey = () => { try { return own() || localStorage.getItem(OLDKEY) || ""; } catch (e) { return ""; } };
 const setKey = v => { try { v ? localStorage.setItem(KEY, v) : localStorage.removeItem(KEY); } catch (e) {} };
-const LIVE = window.__LIVE = { ok: false, test: TEST, loading: true, jobs: [], held: [], tickets: [], bins: [], accts: [], skills: [], repos: [], branches: [],
+const LIVE = window.__LIVE = { ok: false, test: TEST, loading: true, jobs: [], held: [], tickets: [], bins: [], accts: [], skills: [], repos: [], branches: [], howitworks: [], decisions: [],
   lv: { greet: "Hello, Ali.", sub: "Reading the live feed…", age: "", axis: ["", "", "", "", ""], dayNote: "", heldWhy: "", branchNote: "", driveNote: "", nSkills: 0 } };
 const redraw = () => { if (window.__ex44 && window.__ex44.draw) window.__ex44.draw(); };
 
@@ -978,13 +1020,15 @@ async function readOne(name, key, signal){
   if (!r.ok) { const e = new Error("GitHub said " + r.status); e.status = r.status; throw e; }
   return r.json();
 }
-let busy = false;
+let busy = false, slow = 0;
+const SLOW = [["howitworks.json", "cards", "howitworks"], ["decisions.json", "decisions", "decisions"]];
 async function load(){
   const key = getKey(); if (!key) { showConnect(""); return; }
   if (busy) return; busy = true;
   try {
     const out = {};
     await Promise.all(FILES.map(async f => { try { out[f] = await readOne(f, key); } catch (e) { if (f === "feed.json" || e.status === 401) throw e; out[f] = null; } }));
+    if (!(slow++ % 10)) await Promise.all(SLOW.map(async ([f, k, field]) => { try { LIVE[field] = (await readOne(f, key))[k] || []; } catch (e) { if (e.status === 401) throw e; } }));
     build(out, Date.now()); hideConnect(); redraw();
   } catch (e) {
     if (e.status === 401) { if (own()) setKey(""); showConnect("GitHub did not accept this key (it may have run out). Paste your ex44-home key here."); }
@@ -1401,6 +1445,27 @@ class Component extends DCLogic {
         : a.stuck ? { lim:a.stuck + " stuck", limc:C.bad, limbg:"var(--bad-d)", limIcon:I.limit.d } : { lim:"Room to work", limc:C.ok, limbg:"var(--ok-d)", limIcon:"M20 6 9 17l-5-5" })).map(a => Object.assign(a, { on: af===a.tag ? "true" : "false", selbg: af===a.tag ? "var(--g2)" : "transparent", pick: () => this.setState({ acct: af===a.tag ? null : a.tag }) })),
       log: logList
     };
+    // P9.1: Words and parts (cards merged by term; a manual row of the same name wins) and Ali's decisions, newest first
+    const HWC = LV.howitworks || [];
+    const DEC = LV.decisions || [];
+    const nrm = s => (s || "").toLowerCase().replace(/\s+/g, " ").trim();
+    const UI = new Set(OUT.manual.reduce((a, s) => a.concat((s.items || []).map(it => nrm(it.ui))), []));
+    const seenT = new Set(), HWU = HWC.filter(c => { const k = nrm(c.term); if (UI.has(k) || seenT.has(k)) return false; seenT.add(k); return true; });
+    const hq = nrm(stt.hwq), hwF = HWU.filter(c => !hq || nrm(c.term + " " + c.body + " " + c.group).includes(hq));
+    const hgs = []; hwF.forEach(c => { let g = hgs.find(x => x.name === c.group); if (!g) hgs.push(g = { name: c.group, items: [] }); g.items.push({ term: c.term, body: c.body }); });
+    hgs.forEach(g => g.n = g.items.length === 1 ? "1 card" : g.items.length + " cards");
+    OUT.hw = { n: HWU.length, q: stt.hwq || "", set: e => this.setState({ hwq: e.target.value }), groups: hgs, none: !hwF.length,
+      empty: HWU.length ? "No card has that word." : "No cards yet.",
+      note: (hq ? hwF.length + " of " : "") + HWU.length + " cards, one idea each, by group. The home's own buttons are in the manual above." };
+    const RN = r => /^r(\d+)$/.test(r) ? "Round " + r.slice(1) : r === "plan" ? "The plan" : /^p\d/.test(r) ? "Step " + r.slice(1).replace("-", ".") : (r || "Other");
+    const day = s => { const d = new Date(s); return isNaN(d) ? "" : d.getUTCDate() + " " + ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()]; };
+    const dq = nrm(stt.dcq), dcF = DEC.slice().sort((a, b) => (b.at || "").localeCompare(a.at || "")).filter(d => !dq || nrm(d.title + " " + d.label + " " + d.comment + " " + RN(d.round) + " " + d.id).includes(dq));
+    const rds = []; dcF.forEach(d => { let r = rds.find(x => x.key === d.round); if (!r) rds.push(r = { key: d.round, name: RN(d.round), day: day(d.at), items: [] });
+      r.items.push({ title: d.title, pick: "You chose " + (d.choice ? d.choice + ": " : "") + (d.label || "no label"), when: day(d.at) + ", " + (d.at || "").slice(11, 16) + " UTC", comment: d.comment, hasComment: !!(d.comment || "").trim() }); });
+    rds.forEach(r => r.n = r.items.length === 1 ? "1 decision" : r.items.length + " decisions");
+    OUT.dc = { n: DEC.length, q: stt.dcq || "", set: e => this.setState({ dcq: e.target.value }), rounds: rds, none: !dcF.length,
+      empty: DEC.length ? "No decision has that word." : "No decisions yet.",
+      note: (dq ? dcF.length + " of " : "") + DEC.length + " answers you gave on the tune-up page, newest round first. " + DEC.filter(d => (d.comment || "").trim()).length + " carry your comment, shown under your choice." };
     giveLogos(OUT, 0);
     return OUT;
   }
