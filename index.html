@@ -170,7 +170,8 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .cell2{font-size:13px;line-height:1.4;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0;overflow-wrap:anywhere}
 .ex .cell2.two{display:block}
 .ex .cell2 .ln1,.ex .cell2 .ln2{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ex .cell2 .ln2{font-size:12px;color:var(--ink3);margin-top:2px}
+.ex .cell2 .ln2{font-size:12px;color:var(--ink3);margin-top:3px}
+.ex .cell2 .ln2 .dtag{height:18px;font-size:11px;padding:0 6px;margin-right:6px}
 /* round 12: tags, skill chips, manual */
 .ex .acct .lg{width:16px;height:16px;flex:none}
 .ex .acct.lg2 .lg,.ex .acct.lg .lg{width:20px;height:20px}
@@ -615,7 +616,7 @@ body{background:var(--page-bg);margin:0}
               <span class="nm" style="display:flex;align-items:center;gap:6px;min-width:0"><span class="{{r.mcls}}">{{r.mdl}}</span><span class="{{r.ecls}}">{{r.eff}}</span><span class="id" style="overflow:hidden;text-overflow:ellipsis"><span class="pre">{{r.pre}}</span>{{r.tail}}</span><sc-if value="{{r.role}}" hint-placeholder-val="{{ false }}"><span class="rtag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="5" r="2.5"></circle><circle cx="5" cy="19" r="2.5"></circle><circle cx="19" cy="19" r="2.5"></circle><path d="M12 7.5v4M12 11.5 6.5 17M12 11.5l5.5 5.5"></path></svg>{{r.role}}</span></sc-if><sc-if value="{{r.lock}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24" role="img" aria-label="protected" style="color:var(--ink3);flex:none"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor" opacity=".16"></rect><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.75"></path></svg></sc-if></span>
               <span><span class="acct" style="--h:{{r.hue}}"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><g transform="rotate({{r.lg.r}} 16 16)"><path d="M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z" fill="{{r.lg.l}}"></path><circle cx="23.25" cy="8.75" r="6.75" fill="{{r.lg.dk}}"></circle><rect x="2" y="16.5" width="13.5" height="13.5" rx="2.5" fill="{{r.lg.dk}}"></rect><path d="M16.5 16.5H30A13.5 13.5 0 0 1 16.5 30Z" fill="{{r.lg.m}}"></path></g></svg><span class="anm">{{r.acct}}</span></span></span>
               <span><span class="pill" style="background:{{r.mainbg}};color:{{r.mainfg}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.mainIcon}}"></path></svg>{{r.main}}</span></span>
-              <span class="cell2 two" title="{{r.doingFull}}"><span class="ln1"><sc-if value="{{r.dt}}" hint-placeholder-val="{{ false }}"><span class="dtag">{{r.dt}}</span><span class="dtag y">{{r.yr}}</span></sc-if>{{r.doing}}</span><sc-if value="{{r.note}}" hint-placeholder-val="{{ false }}"><span class="ln2">Note: {{r.note}}</span></sc-if></span>
+              <span class="cell2 two" title="{{r.doingFull}}"><span class="ln1"><sc-if value="{{r.dtTop}}" hint-placeholder-val="{{ false }}"><span class="dtag">{{r.dt}}</span><span class="dtag y">{{r.yr}}</span></sc-if>{{r.doing}}</span><sc-if value="{{r.low}}" hint-placeholder-val="{{ false }}"><span class="ln2"><span class="dtag">{{r.when}}</span>{{r.note2}}</span></sc-if></span>
               <span class="cell2" title="{{r.asks}}"><sc-if value="{{r.hasAsk}}" hint-placeholder-val="{{ false }}"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-right:8px;vertical-align:1px"></span></sc-if>{{r.asks}}</span>
               <span class="num" style="font-size:13px;color:var(--ink3);text-align:right">{{r.age}}</span>
             </button>
@@ -1255,6 +1256,7 @@ class Component extends DCLogic {
     if (p && p.sel) this.state.sel = p.sel; if (p && p.panel === "launch") this.state.launch = true; if (p && p.panel === "palette") this.state.pal = true; }
   renderVals() {
     const LV = window.__LIVE || {}, LN = LV.nums || {};
+    const ageMin = a => { const t = String(a || ""), d = /(\d+) days?/.exec(t), h = /(\d+) h/.exec(t), m = /(\d+) m\b/.exec(t); return (d ? +d[1] * 1440 : 0) + (h ? +h[1] * 60 : 0) + (m ? +m[1] : 0); };
     const theme = this.state.theme || this.props.theme || "dark";
     const view = this.state.view || this.props.tab || "home";
     const shut = this.state.shut;
@@ -1323,7 +1325,7 @@ class Component extends DCLogic {
     const nqOrder = KORD.flatMap(k => nqItems.filter(t => t.k === k));
     const nqGroups = KORD.map(k => { const its = nqItems.filter(t => t.k === k); if (!its.length) return null; const open = gIsOpen(k), all = !!(stt.gall || {})[k], cap = 8;
       const bulk = k === "held" ? "Save all " + its.length : k === "tafweez" ? "Archive all" : "";
-      return { k, name: KNAME[k], n: its.length, oldest: its.reduce((a, t) => (/day/.test(t.age) ? t.age : a), its[0].age), bg: K[k].bg, fg: K[k].fg, d: I[k].d, f: I[k].f,
+      return { k, name: KNAME[k], n: its.length, oldest: its.reduce((a, t) => (ageMin(t.age) > ageMin(a) ? t.age : a), its[0].age), bg: K[k].bg, fg: K[k].fg, d: I[k].d, f: I[k].f,
         exp: open ? "true" : "false", rot: open ? "none" : "rotate(-90deg)", body: open ? "body" : "body shut", toggle: () => setG(k, !open),
         items: all ? its : its.slice(0, cap), more: its.length > cap ? (all ? "Show fewer" : "Show all " + its.length) : "", moreRun: () => this.setState({ gall: Object.assign({}, this.state.gall || {}, {[k]: !all}) }),
         bulk, bulkRun: () => this.act(bulk + " (" + KNAME[k].toLowerCase() + ")", () => { if (k === "held") this.setState({ savedHeld: Object.assign({}, this.state.savedHeld, Object.fromEntries(its.map(t => [t.chat, true]))) }); else this.setState({ done: Object.assign({}, this.state.done, Object.fromEntries(its.map(t => [t.id, true]))) }); }) };
@@ -1355,7 +1357,8 @@ class Component extends DCLogic {
     const R = (name,st,acct,main,n,doing0,asks,age,o) => {
       const m = M[main](n); o = o||{}; const nd = dsplit(doing0), ds = o.said ? { dt: o.saidT || "", yr: o.saidD || "", rest: o.said } : nd, doing = ds.rest, md = MDL(o.model), ef = EFF(o.eff);
       const note = o.said ? nd.rest : "";   // P8.8: line 1 is the chat's real last message, line 2 its job note line
-      return Object.assign({ name, st, acct, hue:HUE[acct], doing, note, doingFull: o.said ? o.said + (note ? "  |  Note: " + note : "") : doing0, dt: ds.dt, yr: ds.yr, mdl: md[0], mcls: md[1], eff: ef[0], ecls: ef[1], role: o.role || "", asks: asks||"", hasAsk: !!asks, age, lock: !!o.lock, dot:S[st][0], dotcls:S[st][1], main:m[0], mainbg:m[1], mainfg:m[2], mainIcon:m[3], cls: o.kid ? "row kid":"row" }, split(name));
+      return Object.assign({ name, st, acct, hue:HUE[acct], doing, note, doingFull: o.said ? o.said + (note ? "  |  Note: " + note : "") : doing0, dt: ds.dt, yr: ds.yr, dtTop: !o.said && !!ds.dt, low: !!o.said,
+        when: o.saidD === "today" ? o.saidT : (o.saidD || "") + (o.saidT ? " " + o.saidT : ""), note2: note ? "Note: " + note : "", mdl: md[0], mcls: md[1], eff: ef[0], ecls: ef[1], role: o.role || "", asks: asks||"", hasAsk: !!asks, age, lock: !!o.lock, dot:S[st][0], dotcls:S[st][1], main:m[0], mainbg:m[1], mainfg:m[2], mainIcon:m[3], cls: o.kid ? "row kid":"row" }, split(name));
     };
     const GO = ["EX-44 tune-up","Tauheed","Adl"];
     const gmap = {}; ALLJ.forEach(j => { (gmap[j.g] = gmap[j.g] || []).push(j); });
