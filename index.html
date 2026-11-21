@@ -1292,7 +1292,7 @@ const HTML = `
         <div class="psec needs-db"><h3>Notes</h3>
           <div class="line"><button id="notesBtn" type="button" aria-pressed="false">Notes</button></div>
           <div class="line"><label class="tg"><input type="checkbox" id="onlyNotes"> Only folders with notes</label><button id="openNotes" type="button">Open all notes</button></div>
-          <div class="help" id="noteHelp">Click "+ note" on any row to say what should change there. Notes save as you go, in this browser only on this mock-up. Amber = open, blue = Claude asked you something (answer it in the note), green = done.</div>
+          <div class="help" id="noteHelp">Click "+ note" on any row to say what should change there. Notes save as you go, in this browser only: they do not reach EX-44 or other browsers. Amber = open, blue = Claude asked you something (answer it in the note), green = done.</div>
         </div>
         <div class="psec"><h3>Tree</h3>
           <div class="line"><label class="tg"><input type="checkbox" id="showHidden" checked> Show hidden</label><button id="collapse" type="button">Collapse all</button></div>
@@ -1371,6 +1371,9 @@ function ico(name, size, cls) {
   const s = document.createElement("span"); if (cls) s.className = cls; s.append(icoCache[key].cloneNode(true)); return s;
 }
 
+// The machine's own path prefixes are NOT in this page: they come with the private scan (ov.prefix, set by tools/mapd.py) and are
+// read in init(). Without them (an old scan) every prefix is empty and paths show as labels only.
+let WSROOT = '', SRVIDX = '', HOMEALI = '';
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
 // A small notes store with the same calls the live page used, kept in this browser (localStorage only).
@@ -1431,6 +1434,7 @@ function create(opts) {
 }
 
 function init(RAW, root, app) {
+if (RAW.ov && RAW.ov.prefix) { WSROOT = RAW.ov.prefix.ws || ''; SRVIDX = RAW.ov.prefix.srv || ''; HOMEALI = RAW.ov.prefix.home || ''; }
 const $ = id => root.getElementById(id);
 const T = RAW.tree, OV = RAW.ov;
 const SCANNED = OV.when;
@@ -1509,8 +1513,8 @@ function dirTags(d) {
 }
 function realPath(p) {
   const s = p.split(BS);
-  if (s[1] === 'Workspace') return ['/srv/ws', ...s.slice(2)].join('/');
-  if (s[1] === 'Elsewhere on EX-44') return [s[2] === 'srv-index' ? '/srv/index' : '/home/ali', ...s.slice(3)].join('/');
+  if (s[1] === 'Workspace') return [WSROOT, ...s.slice(2)].join('/');
+  if (s[1] === 'Elsewhere on EX-44') return [s[2] === 'srv-index' ? SRVIDX : HOMEALI, ...s.slice(3)].join('/');
   if (s[1] === 'Storage Box') return 'storagebox:' + s.slice(2).join('/');
   return 'EX-44';
 }
@@ -1624,9 +1628,9 @@ function noteBtn(w, path, kind) {
 const chunks = new Map(); let focusDoc = null; let focusPick = store.get('ex44map-focus') || 'auto';
 function mapPath(p) {
   p = String(p || '').replace(/\/+$/, '');
-  if (p === '/srv/ws' || p.startsWith('/srv/ws/')) return 'EX-44/Workspace' + p.slice(7);
-  if (p === '/srv/index' || p.startsWith('/srv/index/')) return 'EX-44/Elsewhere on EX-44/srv-index' + p.slice(10);
-  if (p === '/home/ali' || p.startsWith('/home/ali/')) return 'EX-44/Elsewhere on EX-44/home-ali' + p.slice(9);
+  if (WSROOT && (p === WSROOT || p.startsWith(WSROOT + '/'))) return 'EX-44/Workspace' + p.slice(WSROOT.length);
+  if (SRVIDX && (p === SRVIDX || p.startsWith(SRVIDX + '/'))) return 'EX-44/Elsewhere on EX-44/srv-index' + p.slice(SRVIDX.length);
+  if (HOMEALI && (p === HOMEALI || p.startsWith(HOMEALI + '/'))) return 'EX-44/Elsewhere on EX-44/home-ali' + p.slice(HOMEALI.length);
   if (p.startsWith('storagebox:')) return ('EX-44/Storage Box/' + p.slice(11)).replace(/\/+$/, '');
   return p.startsWith('EX-44') ? p : 'EX-44/Workspace/' + p.replace(/^\/+/, '');
 }
@@ -2460,7 +2464,7 @@ function renderOverview() {
   const top = sect('How files move', `Everything on EX-44, where each file also lives, and which way it moves. Measured ${OV.when}. Click any row below to see it in the tree.`);
   const intro = el('div', 'ointro'); intro.append(flowSvg()); top.append(intro); box.append(top);
 
-  const d = OV.disk; const s1 = sect('1. What EX-44 has', `Disk: ${fmt(d.used)} used of ${fmt(d.size)}, ${fmt(d.free)} free. The workspace /srv/ws holds ${n0(ws.c)} files (${fmt(ws.s)}).`);
+  const d = OV.disk; const s1 = sect('1. What EX-44 has', `Disk: ${fmt(d.used)} used of ${fmt(d.size)}, ${fmt(d.free)} free. The workspace holds ${n0(ws.c)} files (${fmt(ws.s)}).`);
   const bar = el('div', 'dbar'); const used = el('span'); used.style.width = pct(d.used, d.size); bar.append(used); s1.append(bar);
   const rows1 = ws.d.slice().sort((a, b) => b.s - a.s).map(t => trow([t.n, WHAT[t.n] || '', n0(t.c), fmt(t.s), pct(t.k[0], t.c), pct(t.k[2], t.c), pct(t.ko, t.c)], () => goTree(t.path)));
   for (const t of dirMap.get('EX-44/Elsewhere on EX-44').d.d) rows1.push(trow([realPath(t.path), t.n === 'srv-index' ? 'The live library index (index.marefat.uk). Never touched without your GO.' : 'Claude account folders and settings (shown two levels deep).', n0(t.c), fmt(t.s), pct(t.k[0], t.c), '', ''], () => goTree(t.path)));
@@ -2474,7 +2478,7 @@ function renderOverview() {
   s2.append(el('p', 'sub', 'In the backup: ' + OV.backup_roots.join(' · ') + ' (secrets, caches and the live SQLite files are left out; safe copies of the SQLite files go in instead).'));
   box.append(s2);
 
-  const s3 = sect('3. Where each and every file exists', 'Every file in the tree carries marks for where else it lives. Counts are for /srv/ws. Click one to show only those files in the tree.');
+  const s3 = sect('3. Where each and every file exists', 'Every file in the tree carries marks for where else it lives. Counts are for the workspace. Click one to show only those files in the tree.');
   const rows3 = LAYERS.filter(L => L[2] !== -1).map(L => trow([el('span', 'fl fl-' + L[0], L[2] === -2 ? 'only' : L[0]), L[1], L[3], n0(L[2] === -2 ? ws.ko : k[L[2]]), pct(L[2] === -2 ? ws.ko : k[L[2]], ws.c)], () => goTree('EX-44/Workspace', L[0])));
   s3.append(tbl(['Mark', 'Meaning', 'In plain words', 'Files', 'Share'], rows3)); box.append(s3);
 
@@ -2491,14 +2495,14 @@ function renderOverview() {
   const s5 = sect('5. Which parts push or pull to which repo', 'Every working copy pushes to and pulls from its own GitHub repo. "In the tree": the repo\'s folder inside IoUT is its one working copy. "Job copy": a job\'s own copy on its job branch. Untracked: files in the folder that git does not hold (ignored or new), so they live only on EX-44 unless Drive or the backup has them.');
   const shelf = OV.repos.filter(r => r.path.startsWith('_old-copies/'));
   const rp = OV.repos.filter(r => !r.path.startsWith('_old-copies/')).sort((a, b) => a.path.localeCompare(b.path));
-  const where = r => r.path.startsWith('IoUT/') ? 'in the tree' : r.path.startsWith('_jobs/') ? 'job copy' : r.kind === 'worktree' ? 'extra copy' : 'clone';
+  const where = r => r.path.startsWith('IoUT/') ? 'in the tree' : r.path.split('/')[0] === '_jobs' ? 'job copy' : r.kind === 'worktree' ? 'extra copy' : 'clone';
   s5.append(tbl(['Repo on GitHub', 'Working copy on EX-44', 'Kind', 'Branch', 'In git', 'Untracked', 'la57 list', 'On la57', 'Last commit'],
     rp.map(r => trow([r.remote, r.path + (r.linked.length ? '  (link: _repo/' + r.linked.join(', _repo/') + ')' : ''), where(r), r.branch, n0(r.tracked), n0(r.untracked), r.la57list ? 'yes' : '', r.la57 ? n0(r.la57) : '', r.last], () => goTree(mapPath(r.path), 'G')))));
   if (shelf.length) s5.append(el('p', 'sub', `Also ${shelf.length} old working copies sit on the shelf in _old-copies. They are not used: ` + shelf.map(r => r.remote.split('/').pop()).join(', ') + '.'));
   box.append(s5);
 
   const l57 = rp.filter(r => r.la57list || r.la57);
-  const s6 = sect('6. Which parts are common with la57', `la57 gets files two ways. First, the la57 branch of ${l57.length} repos: la57 pulls it every hour. Second, la57's own folders are the Drive mentor tree (Drive desktop), so files marked D are the files la57 also has. In /srv/ws: ${n0(k[1])} files are on a la57 branch, ${n0(k[2])} are on Drive.`);
+  const s6 = sect('6. Which parts are common with la57', `la57 gets files two ways. First, the la57 branch of ${l57.length} repos: la57 pulls it every hour. Second, la57's own folders are the Drive mentor tree (Drive desktop), so files marked D are the files la57 also has. In the workspace: ${n0(k[1])} files are on a la57 branch, ${n0(k[2])} are on Drive.`);
   s6.append(tbl(['Repo', 'Working copy', 'Files in git', 'On the la57 branch', 'Share'], l57.map(r => trow([r.remote.split('/').pop(), r.path, n0(r.tracked), n0(r.la57), pct(r.la57, r.tracked)], () => goTree(mapPath(r.path), 'L')))));
   box.append(s6);
 
