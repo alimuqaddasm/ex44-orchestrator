@@ -1146,6 +1146,7 @@ async function readLog(){
   return r.ok ? r.json() : [];
 }
 let seq = 0;
+const FAST = { until: 0 };
 const newId = () => new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "-" + Math.random().toString(36).slice(2, 6) + (seq++ % 36).toString(36);
 async function file(reqs){
   if ((await whoAmI()) !== ME) return { status: "refused", reason: "actions need your own GitHub key (" + ME + ")" };
@@ -1153,8 +1154,9 @@ async function file(reqs){
   try { for (const q of reqs) { Object.assign(q, { id: newId(), made: new Date().toISOString().slice(0, 19) + "Z" }); await put(q); ids.push(q.id); } }
   catch (e) { if (e.status === 403 || e.status === 404) showConnect("This key cannot write to hub-notes. Paste your ex44-home key."); return { status: "refused", reason: "not sent: " + (e.message || e) }; }
   const end = Date.now() + 180000;
+  FAST.until = Date.now() + 60000;   // P8.7: for a minute after a press, the beat is asked every second (unchanged answers are free)
   while (Date.now() < end) {
-    await new Promise(x => setTimeout(x, 3000));   // P8.7: EX-44 reads requests every 3 s, so look every 3 s
+    await new Promise(x => setTimeout(x, 1500));   // P8.7: EX-44 reads requests every 3 s; its answer is looked for every 1.5 s
     let log = []; try { log = await readLog(); } catch (e) {}
     const got = ids.map(id => log.find(l => l.id === id)).filter(Boolean);
     if (got.length === ids.length) {
@@ -1197,7 +1199,7 @@ function reqs(text, tid, comp){
 window.__ex44live = { load, build, reqs, file, forget: () => { setKey(""); showConnect(""); } };
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(true); });
 setInterval(() => { if (!document.hidden) load(); }, 5000);   // P8.7: 5 s; the old feed still reads once a minute inside load()
-setInterval(paintAge, 1000);                                   // the age line counts up by itself
+setInterval(() => { paintAge(); if (Date.now() < FAST.until && !document.hidden) load(); }, 1000);   // the age line counts up by itself; fast reads after a press
 setTimeout(() => load(true), 0);
 })();
 
