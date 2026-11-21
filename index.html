@@ -168,6 +168,9 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .dtag{background:var(--tn);color:var(--ink2);margin-right:4px;vertical-align:1px;font-family:var(--m)}
 .ex .dtag.y{color:var(--ink3)}
 .ex .cell2{font-size:13px;line-height:1.4;color:var(--ink2);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-width:0;overflow-wrap:anywhere}
+.ex .cell2.two{display:block}
+.ex .cell2 .ln1,.ex .cell2 .ln2{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex .cell2 .ln2{font-size:12px;color:var(--ink3);margin-top:2px}
 /* round 12: tags, skill chips, manual */
 .ex .acct .lg{width:16px;height:16px;flex:none}
 .ex .acct.lg2 .lg,.ex .acct.lg .lg{width:20px;height:20px}
@@ -592,7 +595,7 @@ body{background:var(--page-bg);margin:0}
         <span class="lab"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>Chat</span>
         <span class="lab"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0" stroke-linecap="round"></path></svg>Account</span>
         <span class="lab"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="6" cy="6" r="2.5"></circle><circle cx="6" cy="18" r="2.5"></circle><circle cx="18" cy="8" r="2.5"></circle><path d="M6 8.5v7M18 10.5a7 7 0 0 1-7 7H8.5"></path></svg>Into main</span>
-        <span class="lab"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"></path></svg>Doing now</span>
+        <span class="lab"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9z"></path></svg>Last message</span>
         <span class="lab" style="color:var(--amber)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M8.5 9a3.5 3.5 0 1 1 5 3.2c-.9.4-1.5 1.2-1.5 2.1V15M12 19h.01"></path></svg>Asks you</span>
         <span class="lab" style="justify-content:flex-end"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>For</span>
       </div>
@@ -612,7 +615,7 @@ body{background:var(--page-bg);margin:0}
               <span class="nm" style="display:flex;align-items:center;gap:6px;min-width:0"><span class="{{r.mcls}}">{{r.mdl}}</span><span class="{{r.ecls}}">{{r.eff}}</span><span class="id" style="overflow:hidden;text-overflow:ellipsis"><span class="pre">{{r.pre}}</span>{{r.tail}}</span><sc-if value="{{r.role}}" hint-placeholder-val="{{ false }}"><span class="rtag"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="5" r="2.5"></circle><circle cx="5" cy="19" r="2.5"></circle><circle cx="19" cy="19" r="2.5"></circle><path d="M12 7.5v4M12 11.5 6.5 17M12 11.5l5.5 5.5"></path></svg>{{r.role}}</span></sc-if><sc-if value="{{r.lock}}" hint-placeholder-val="{{ false }}"><svg width="12" height="12" viewBox="0 0 24 24" role="img" aria-label="protected" style="color:var(--ink3);flex:none"><rect x="5" y="11" width="14" height="10" rx="2" fill="currentColor" opacity=".16"></rect><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.75"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.75"></path></svg></sc-if></span>
               <span><span class="acct" style="--h:{{r.hue}}"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><g transform="rotate({{r.lg.r}} 16 16)"><path d="M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z" fill="{{r.lg.l}}"></path><circle cx="23.25" cy="8.75" r="6.75" fill="{{r.lg.dk}}"></circle><rect x="2" y="16.5" width="13.5" height="13.5" rx="2.5" fill="{{r.lg.dk}}"></rect><path d="M16.5 16.5H30A13.5 13.5 0 0 1 16.5 30Z" fill="{{r.lg.m}}"></path></g></svg><span class="anm">{{r.acct}}</span></span></span>
               <span><span class="pill" style="background:{{r.mainbg}};color:{{r.mainfg}}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="{{r.mainIcon}}"></path></svg>{{r.main}}</span></span>
-              <span class="cell2" title="{{r.doingFull}}"><sc-if value="{{r.dt}}" hint-placeholder-val="{{ false }}"><span class="dtag">{{r.dt}}</span><span class="dtag y">{{r.yr}}</span></sc-if>{{r.doing}}</span>
+              <span class="cell2 two" title="{{r.doingFull}}"><span class="ln1"><sc-if value="{{r.dt}}" hint-placeholder-val="{{ false }}"><span class="dtag">{{r.dt}}</span><span class="dtag y">{{r.yr}}</span></sc-if>{{r.doing}}</span><sc-if value="{{r.note}}" hint-placeholder-val="{{ false }}"><span class="ln2">Note: {{r.note}}</span></sc-if></span>
               <span class="cell2" title="{{r.asks}}"><sc-if value="{{r.hasAsk}}" hint-placeholder-val="{{ false }}"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-right:8px;vertical-align:1px"></span></sc-if>{{r.asks}}</span>
               <span class="num" style="font-size:13px;color:var(--ink3);text-align:right">{{r.age}}</span>
             </button>
@@ -925,6 +928,8 @@ const redraw = () => { if (window.__ex44 && window.__ex44.draw) window.__ex44.dr
 const ago = (iso, now) => { const t = Date.parse(iso || ""); if (!t) return ""; const m = Math.max(0, Math.round((now - t) / 60000));
   return m < 1 ? "just now" : m < 60 ? m + " m" : m < 1440 ? Math.floor(m / 60) + " h" + (m % 60 && m < 600 ? " " + (m % 60) + " m" : "") : Math.floor(m / 1440) + (m < 2880 ? " day" : " days"); };
 const hhmm = t => { const d = new Date(t); return String(d.getUTCHours()).padStart(2, "0") + ":" + String(d.getUTCMinutes()).padStart(2, "0"); };
+const dayOf = (iso, now) => { const t = Date.parse(iso || ""); if (!t) return ""; const d = new Date(t), n = new Date(now);
+  return d.toISOString().slice(0, 10) === n.toISOString().slice(0, 10) ? "today" : d.getUTCDate() + " " + ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()]; };
 const plural = (n, a, b) => n + " " + (n === 1 ? a : (b || a + "s"));
 
 function group(j){
@@ -936,7 +941,8 @@ function group(j){
   return r || "Chats with no repo";
 }
 function stOf(j){
-  if (j.activity === "limit" || j.status_why === "at a limit" || j.status === "paused") return "bad";
+  // P8.8: stuck only while it is true now: the screen word says limit or login (an old "paused" no longer counts).
+  if (j.activity === "limit" || j.activity === "login" || ((!j.activity || j.activity === "unknown") && j.status === "paused")) return "bad";
   // Ali, 2026-11-21: working only while the screen shows the working sign. The screen word (every 5 s) wins over
   // a status line that has not caught up yet; with no screen word (a closed chat) the status line decides, as before.
   if (j.activity === "working" || (j.status === "working" && !(j.activity && j.activity !== "closed"))) return "work";
@@ -950,11 +956,13 @@ function build(d, now){
   const heldList = (heldF.held || []).filter(h => h.mark !== "saved");
   const heldBy = {}; heldList.forEach(h => heldBy[h.job] = h);
   const jobs = live.map(j => { const st = stOf(j), L = j.lines || {}, h = heldBy[j.name];
-    const ask = st === "wait" ? (L.need || (j.activity === "asks" ? "It asks something on its screen." : "")) : "";
+    // P8.8: a question shows only while it is open now (status.py measures that); a screen question is its own last message
+    const ask = st === "wait" ? ((j.activity === "asks" && j.said) || L.need || (j.activity === "asks" ? "It asks something on its screen." : "")) : "";
+    const qAt = st === "wait" ? (j.asked_at || j.status_since || "") : "";
     return { n: j.name, a: j.account, st, g: group(j), repo: j.repo && j.repo !== "-" ? j.repo : null, br: j.branch && j.branch !== "-" ? j.branch : null,
       flow: j.flow || "held", pc: h ? h.pieces : ((j.held || {}).pieces || 0), prot: !!j.protected, q: false, role: j.role || null,
-      par: j.parent && byName[j.parent] ? j.parent : null, last: L.doing || L.need || L.done || "", doing: L.doing || "", ask, age: ago(j.status_since, now),
-      since: j.status_since || "", model: String(j.model || "").replace(/^claude-/, ""),   // the feed says claude-opus-5-5; the tags read opus..., sonnet..., fable...
+      par: j.parent && byName[j.parent] ? j.parent : null, last: L.doing || L.need || L.done || "", doing: L.doing || "", ask, age: ago(qAt || j.status_since, now),
+      since: qAt || j.status_since || "", said: j.said || "", saidAt: j.said_at || "", saidT: j.said_at ? hhmm(Date.parse(j.said_at)) : "", saidD: dayOf(j.said_at, now), model: String(j.model || "").replace(/^claude-/, ""),   // the feed says claude-opus-5-5; the tags read opus..., sonnet..., fable...
        eff: "", link: !!j.has_link, act: j.activity || "", trip: (j.trip || {}).line || "" }; });   // trip: P10.9, the six stamps   // act: the screen word (P8.7 timed check)
   const jb = n => jobs.find(j => j.n === n) || {};
   const held = heldList.slice().sort((a, b) => (b.pieces || 0) - (a.pieces || 0)).map(h => [h.job, jb(h.job).a || "sc21", h.repo || "", h.pieces || 0, h.age || ago(h.oldest, now)]);
@@ -967,7 +975,7 @@ function build(d, now){
   heldList.filter(h => h.mark === "clash").forEach(h => T.push({ id: "c-" + h.job, k: "clash", kind: "Clash", chat: h.job, acct: jb(h.job).a || "sc21", proj: h.repo || "",
     tags: [["main and this job", "clash"], ["you pick", "you"]], title: "Two versions met while putting " + h.job + " into main.", whyLab: "Why it stopped", wi: "why",
     why: "Main and this job changed the same file. Only you pick.", primary: "Show both sides", secondary: "Later", age: h.age || "", agew: "0%" }));
-  (alerts.alerts || []).filter(a => a.status !== "done").forEach(a => { const c = (a.chats || [])[0] || {};
+  (alerts.alerts || []).filter(a => a.status === "pending" || a.status === "approved").forEach(a => { const c = (a.chats || [])[0] || {};
     T.push({ id: "g-" + a.id, k: "go", kind: a.kind === "private" ? "Privacy warning" : "Needs your GO", chat: c.name || ("alert " + a.id), acct: c.from || "sc21", proj: a.project || "",
       tags: [["alert " + a.id, "you"]], title: String(a.text || "").replace(/^[A-Z]+ \d+:\s*/, ""), whyLab: "What it costs", wi: "cost",
       why: a.kind === "private" ? "Fix it in that repo; Seen only clears it here." : "Yes or No goes to EX-44, which carries it out within the minute.", primary: a.kind === "private" ? "Seen" : "Yes", secondary: a.kind === "private" ? "Later" : "No",
@@ -1011,8 +1019,8 @@ function build(d, now){
   Object.assign(LIVE, { ok: true, loading: false, jobs, held, tickets: T, bins, accts, skills, repos, branches, oldest,
     nums: { bad: nBad, work: nWork, wait: nWait, open: nOpen, pieces, heldJobs: held.length, limits: T.filter(t => t.k === "limit").length,
       clash: T.filter(t => t.k === "clash").length, go: T.filter(t => t.k === "go").length, units: units.length, nAp, nPv, sysHeld: sysHeld.length,
-      noJob: jobs.filter(j => j.st === "wait" && !j.br).length, oneQ: jobs.filter(j => j.st === "wait" && j.br && j.ask && j.ask !== "It asks something on its screen.").length,
-      screen: jobs.filter(j => j.st === "wait" && j.ask === "It asks something on its screen.").length, recentN, projects: new Set(jobs.filter(j => j.st !== "done").map(j => j.g)).size,
+      noJob: jobs.filter(j => j.st === "wait" && !j.br).length, oneQ: jobs.filter(j => j.st === "wait" && j.br && j.ask && j.act !== "asks").length,
+      screen: jobs.filter(j => j.st === "wait" && j.act === "asks").length, recentN, projects: new Set(jobs.filter(j => j.st !== "done").map(j => j.g)).size,
       acctWords: words.join(", ") },
     lv: { greet, sub: plural(nBad + T.filter(t => t.k === "clash" || t.k === "go").length, "thing is", "things are") + " stuck, " + nWait + " wait on you, " + nWork + " " + (nWork === 1 ? "is" : "are") + " working.",
       age: BEAT.mode === "new" ? ageLine(now).text : fMin == null ? "Live feed: no time in the file." : "Live feed: changed " + (fMin < 1 ? "just now" : fMin + " min ago") + " (" + hhmm(fAge) + " UTC)." + (fMin > 15 ? " That is old: the feed on EX-44 may have stopped." : " Reads again every minute."),
@@ -1286,7 +1294,7 @@ class Component extends DCLogic {
     ] : []);
     const qf = this.state.qf;
     const af = this.state.acct;
-    const TESTJOBS = [{"n": "test-limit-aw", "a": "aw", "st": "bad", "g": "Mahdaviyat", "repo": "Mahdaviyat", "br": "job/test-limit-aw", "flow": "flowing", "pc": 0, "prot": false, "q": false, "role": null, "par": null, "last": "Wrote lessons 3 and 4 of Bab 2, pushed. Stopped mid lesson 5: aw ran out of time.", "ask": "", "age": "1 h", "model": "sonnet-5-5", "eff": "medium", "test": true}, {"n": "test-clash", "a": "sc21", "st": "wait", "g": "Zikr-e-Mun'im", "repo": "Zikr-e-Mun'im", "br": "job/test-clash", "flow": "flowing", "pc": 2, "prot": false, "q": false, "role": null, "par": null, "last": "The tick could not put my piece into main: main changed the same file.", "ask": "Two versions of the Bab 2 hub draft: pick one.", "age": "58 m", "model": "sonnet-5-5", "eff": "medium", "test": true}, {"n": "test-go", "a": "sc21", "st": "wait", "g": "Library index", "repo": "library index", "br": null, "flow": "held", "pc": 0, "prot": false, "q": false, "role": null, "par": null, "last": "New Riyad build passed 412 of 412 checks.", "ask": "Restart the library index to load the new build?", "age": "50 m", "model": "sonnet-5-5", "eff": "medium", "test": true}, {"n": "test-tafweez", "a": "amm", "st": "done", "g": "scholar-works", "repo": "scholar-works", "br": "job/test-tafweez", "flow": "flowing", "pc": 0, "prot": false, "q": false, "role": null, "par": null, "last": "18 of 18 transcripts formatted and checked. TAFWEEZ", "ask": "", "age": "35 m", "model": "sonnet-5-5", "eff": "medium", "test": true}, {"n": "test-question", "a": "sc21", "st": "wait", "g": "00 - Makarim ul Akhlaq", "repo": "00 - Makarim ul Akhlaq", "br": "job/test-question", "flow": "flowing", "pc": 1, "prot": false, "q": false, "role": null, "par": null, "last": "Hub draft 1 for Bab 3 is ready: 9 lessons in 3 movements.", "ask": "Hilm riwayat in L2 or L5? Its pick: L2.", "age": "20 m", "model": "sonnet-5-5", "eff": "medium", "test": true}, {"n": "test-quiet", "a": "sc21", "st": "work", "g": "EX-44 tune-up", "repo": "ex44-system", "br": "job/test-quiet", "flow": "flowing", "pc": 3, "prot": false, "q": true, "role": "worker", "par": null, "last": "Quiet mode: piece 3 of 6 done; speaks at the end of the chunk.", "ask": "", "age": "12 m", "model": "sonnet-5-5", "eff": "medium", "test": true}];
+    const TESTJOBS = [{"n": "test-limit-aw", "a": "aw", "st": "bad", "g": "Mahdaviyat", "repo": "Mahdaviyat", "br": "job/test-limit-aw", "flow": "flowing", "pc": 0, "prot": false, "q": false, "role": null, "par": null, "last": "Wrote lessons 3 and 4 of Bab 2, pushed. Stopped mid lesson 5: aw ran out of time.", "ask": "", "age": "1 h", "model": "sonnet-5-5", "eff": "medium", "test": true, "saidT": "10:20", "saidD": "today", "said": "Which of the two layouts should I keep? I recommend B: it keeps one row per chat. Say B or A."}, {"n": "test-clash", "a": "sc21", "st": "wait", "g": "Zikr-e-Mun'im", "repo": "Zikr-e-Mun'im", "br": "job/test-clash", "flow": "flowing", "pc": 2, "prot": false, "q": false, "role": null, "par": null, "last": "The tick could not put my piece into main: main changed the same file.", "ask": "Two versions of the Bab 2 hub draft: pick one.", "age": "58 m", "model": "sonnet-5-5", "eff": "medium", "test": true, "saidT": "10:20", "saidD": "today", "said": "Which of the two layouts should I keep? I recommend B: it keeps one row per chat. Say B or A."}, {"n": "test-go", "a": "sc21", "st": "wait", "g": "Library index", "repo": "library index", "br": null, "flow": "held", "pc": 0, "prot": false, "q": false, "role": null, "par": null, "last": "New Riyad build passed 412 of 412 checks.", "ask": "Restart the library index to load the new build?", "age": "50 m", "model": "sonnet-5-5", "eff": "medium", "test": true, "saidT": "10:20", "saidD": "today", "said": "Which of the two layouts should I keep? I recommend B: it keeps one row per chat. Say B or A."}, {"n": "test-tafweez", "a": "amm", "st": "done", "g": "scholar-works", "repo": "scholar-works", "br": "job/test-tafweez", "flow": "flowing", "pc": 0, "prot": false, "q": false, "role": null, "par": null, "last": "18 of 18 transcripts formatted and checked. TAFWEEZ", "ask": "", "age": "35 m", "model": "sonnet-5-5", "eff": "medium", "test": true}, {"n": "test-question", "a": "sc21", "st": "wait", "g": "00 - Makarim ul Akhlaq", "repo": "00 - Makarim ul Akhlaq", "br": "job/test-question", "flow": "flowing", "pc": 1, "prot": false, "q": false, "role": null, "par": null, "last": "Hub draft 1 for Bab 3 is ready: 9 lessons in 3 movements.", "ask": "Hilm riwayat in L2 or L5? Its pick: L2.", "age": "20 m", "model": "sonnet-5-5", "eff": "medium", "test": true}, {"n": "test-quiet", "a": "sc21", "st": "work", "g": "EX-44 tune-up", "repo": "ex44-system", "br": "job/test-quiet", "flow": "flowing", "pc": 3, "prot": false, "q": true, "role": "worker", "par": null, "last": "Quiet mode: piece 3 of 6 done; speaks at the end of the chunk.", "ask": "", "age": "12 m", "model": "sonnet-5-5", "eff": "medium", "test": true}];
     const JOBS = (LV.jobs || []).concat(LV.test ? TESTJOBS : []);
     const stt = this.state, jo = stt.jo;
     const ALLJ = JOBS.concat(stt.extra).filter(j => !stt.gone[j.n]).map(j => Object.assign({}, j, jo[j.n] || {}));
@@ -1345,14 +1353,15 @@ class Component extends DCLogic {
     const ROLEX = {};
     const dsplit = t => { const mm = /^(\d{4})-(\d{2})-(\d{2})(?:[ T]\d{2}:\d{2}Z?)?(?:\s*\([^)]{0,60}\))?\s*:\s*/.exec(t || "") || /^(\d{4})-(\d{2})-(\d{2})\s+/.exec(t || ""); return mm ? { dt: (+mm[3]) + " " + MON[+mm[2]-1], yr: mm[1], rest: (t || "").slice(mm[0].length) } : { dt: "", yr: "", rest: t || "" }; };
     const R = (name,st,acct,main,n,doing0,asks,age,o) => {
-      const m = M[main](n); o = o||{}; const ds = dsplit(doing0), doing = ds.rest, md = MDL(o.model), ef = EFF(o.eff);
-      return Object.assign({ name, st, acct, hue:HUE[acct], doing, doingFull: doing0, dt: ds.dt, yr: ds.yr, mdl: md[0], mcls: md[1], eff: ef[0], ecls: ef[1], role: o.role || "", asks: asks||"", hasAsk: !!asks, age, lock: !!o.lock, dot:S[st][0], dotcls:S[st][1], main:m[0], mainbg:m[1], mainfg:m[2], mainIcon:m[3], cls: o.kid ? "row kid":"row" }, split(name));
+      const m = M[main](n); o = o||{}; const nd = dsplit(doing0), ds = o.said ? { dt: o.saidT || "", yr: o.saidD || "", rest: o.said } : nd, doing = ds.rest, md = MDL(o.model), ef = EFF(o.eff);
+      const note = o.said ? nd.rest : "";   // P8.8: line 1 is the chat's real last message, line 2 its job note line
+      return Object.assign({ name, st, acct, hue:HUE[acct], doing, note, doingFull: o.said ? o.said + (note ? "  |  Note: " + note : "") : doing0, dt: ds.dt, yr: ds.yr, mdl: md[0], mcls: md[1], eff: ef[0], ecls: ef[1], role: o.role || "", asks: asks||"", hasAsk: !!asks, age, lock: !!o.lock, dot:S[st][0], dotcls:S[st][1], main:m[0], mainbg:m[1], mainfg:m[2], mainIcon:m[3], cls: o.kid ? "row kid":"row" }, split(name));
     };
     const GO = ["EX-44 tune-up","Tauheed","Adl"];
     const gmap = {}; ALLJ.forEach(j => { (gmap[j.g] = gmap[j.g] || []).push(j); });
     const gnames = Object.keys(gmap).sort((a, b) => (GO.indexOf(a) < 0 ? 99 : GO.indexOf(a)) - (GO.indexOf(b) < 0 ? 99 : GO.indexOf(b)) || gmap[b].length - gmap[a].length);
     const ordered = list => { const out = []; list.filter(j => !j.par || !list.some(p => p.n === j.par)).forEach(p => { out.push(p); list.filter(k => k.par === p.n).forEach(k => out.push(k)); }); return out; };
-    const allGroups = gnames.map((g, gi) => ({ id: "G" + gi, name: g, rows: ordered(gmap[g]).map(j => Object.assign(R(j.n, j.st, j.a, j.flow === "held" && j.br ? "held" : (j.br ? "flow" : "none"), j.pc, j.last || "", j.ask, j.age || "", { lock: j.prot, kid: !!j.par && gmap[g].some(p => p.n === j.par), model: j.model, eff: j.eff, role: ROLEX[j.n] || (j.role === "orchestrator" || j.role === "thinker" ? j.role : "") }), { open: openChat(j.n) })) }));
+    const allGroups = gnames.map((g, gi) => ({ id: "G" + gi, name: g, rows: ordered(gmap[g]).map(j => Object.assign(R(j.n, j.st, j.a, j.flow === "held" && j.br ? "held" : (j.br ? "flow" : "none"), j.pc, j.last || "", j.ask, j.age || "", { lock: j.prot, kid: !!j.par && gmap[g].some(p => p.n === j.par), model: j.model, eff: j.eff, said: j.said, saidT: j.saidT, saidD: j.saidD, role: ROLEX[j.n] || (j.role === "orchestrator" || j.role === "thinker" ? j.role : "") }), { open: openChat(j.n) })) }));
     const cq = (stt.cq || "").toLowerCase();
     const keep = { open:["work","wait","bad"], work:["work"], wait:["wait"], done:["done"], all:["work","wait","bad","done"] }[this.state.bf];
     const groups = allGroups.map(g => {
@@ -1417,10 +1426,10 @@ class Component extends DCLogic {
       const n = sj.n, i = order.indexOf(n), sp = split(n), held = sj.flow === "held";
       const PH = ["go","continue","stop","save","publish","show me","quiet mode","yes to option 1","yes to option 2","yes to option 3"];
       dr = Object.assign({ on:true, a:sj.a, hue:HUE[sj.a], dot:STL[sj.st][1], stl:STL[sj.st][0], stbg:STL[sj.st][2],
-        chips: [(ROLEX[sj.n] || sj.role) ? (ROLEX[sj.n] || sj.role) + (sj.par ? " of " + sj.par : "") : "", sj.br ? (held ? "held" : "flowing") : "no branch", sj.q ? "quiet" : "", sj.prot ? "protected" : "", sj.test ? "test case" : ""].filter(Boolean), mdl: MDL(sj.model)[0], mcls: MDL(sj.model)[1], eff: EFF(sj.eff)[0], ecls: EFF(sj.eff)[1], dt: dsplit(sj.last).dt, yr: dsplit(sj.last).yr,
-        hasAsk: !!sj.ask, ask: sj.ask, last: dsplit(sj.last).rest || "No note line yet.",
+        chips: [(ROLEX[sj.n] || sj.role) ? (ROLEX[sj.n] || sj.role) + (sj.par ? " of " + sj.par : "") : "", sj.br ? (held ? "held" : "flowing") : "no branch", sj.q ? "quiet" : "", sj.prot ? "protected" : "", sj.test ? "test case" : ""].filter(Boolean), mdl: MDL(sj.model)[0], mcls: MDL(sj.model)[1], eff: EFF(sj.eff)[0], ecls: EFF(sj.eff)[1], dt: sj.said ? sj.saidT || "" : dsplit(sj.last).dt, yr: sj.said ? sj.saidD || "" : dsplit(sj.last).yr,
+        hasAsk: !!sj.ask, ask: sj.ask, last: sj.said || dsplit(sj.last).rest || "No note line yet.",
         answers: [{label:"Yes, go", cls:"btn you", run: () => this.act("Send \"go\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Yes to option 1", cls:"btn", run: () => this.act("Send \"yes to option 1\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Open the chat", cls:"btn ghost", run: () => this.flash("Open " + n + " in the Claude app, under its account.")}],
-        facts: [["Account", sj.a], ["Project", sj.g], ["Repo", sj.repo || "none"], ["Branch", sj.br || "none"], ["Into main", sj.br ? (held ? "Held" + (sj.pc ? ": " + sj.pc + " pieces waiting" : "") : "Flowing: clean pieces go in by themselves") : "No branch"], ["For", sj.age || "now"], ["Trip", sj.trip || ""]].filter(([k, v]) => v).map(([k, v]) => ({k, v})),
+        facts: [["Account", sj.a], ["Project", sj.g], ["Repo", sj.repo || "none"], ["Branch", sj.br || "none"], ["Into main", sj.br ? (held ? "Held" + (sj.pc ? ": " + sj.pc + " pieces waiting" : "") : "Flowing: clean pieces go in by themselves") : "No branch"], ["For", sj.age || "now"], ["Trip", sj.trip || ""], ["Job note", sj.said ? dsplit(sj.last).rest : ""]].filter(([k, v]) => v).map(([k, v]) => ({k, v})),
         phrases: PH.map(ph => ({ label: ph, run: () => this.act("Send \"" + ph + "\" to " + n) })),
         sendPhrase: () => { const el = document.getElementById("ph"); const v = el ? el.value : "go"; this.act("Send \"" + v + "\" to " + n); },
         openChat: () => this.flash("Open " + n + " in the Claude app, under its account."),
