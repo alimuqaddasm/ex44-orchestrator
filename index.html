@@ -955,7 +955,7 @@ function build(d, now){
       flow: j.flow || "held", pc: h ? h.pieces : ((j.held || {}).pieces || 0), prot: !!j.protected, q: false, role: j.role || null,
       par: j.parent && byName[j.parent] ? j.parent : null, last: L.doing || L.need || L.done || "", doing: L.doing || "", ask, age: ago(j.status_since, now),
       since: j.status_since || "", model: String(j.model || "").replace(/^claude-/, ""),   // the feed says claude-opus-5-5; the tags read opus..., sonnet..., fable...
-       eff: "", link: !!j.has_link, act: j.activity || "" }; });   // act: the screen word (P8.7 timed check)
+       eff: "", link: !!j.has_link, act: j.activity || "", trip: (j.trip || {}).line || "" }; });   // trip: P10.9, the six stamps   // act: the screen word (P8.7 timed check)
   const jb = n => jobs.find(j => j.n === n) || {};
   const held = heldList.slice().sort((a, b) => (b.pieces || 0) - (a.pieces || 0)).map(h => [h.job, jb(h.job).a || "sc21", h.repo || "", h.pieces || 0, h.age || ago(h.oldest, now)]);
   const T = [];
@@ -1420,7 +1420,7 @@ class Component extends DCLogic {
         chips: [(ROLEX[sj.n] || sj.role) ? (ROLEX[sj.n] || sj.role) + (sj.par ? " of " + sj.par : "") : "", sj.br ? (held ? "held" : "flowing") : "no branch", sj.q ? "quiet" : "", sj.prot ? "protected" : "", sj.test ? "test case" : ""].filter(Boolean), mdl: MDL(sj.model)[0], mcls: MDL(sj.model)[1], eff: EFF(sj.eff)[0], ecls: EFF(sj.eff)[1], dt: dsplit(sj.last).dt, yr: dsplit(sj.last).yr,
         hasAsk: !!sj.ask, ask: sj.ask, last: dsplit(sj.last).rest || "No note line yet.",
         answers: [{label:"Yes, go", cls:"btn you", run: () => this.act("Send \"go\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Yes to option 1", cls:"btn", run: () => this.act("Send \"yes to option 1\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Open the chat", cls:"btn ghost", run: () => this.flash("Open " + n + " in the Claude app, under its account.")}],
-        facts: [["Account", sj.a], ["Project", sj.g], ["Repo", sj.repo || "none"], ["Branch", sj.br || "none"], ["Into main", sj.br ? (held ? "Held" + (sj.pc ? ": " + sj.pc + " pieces waiting" : "") : "Flowing: clean pieces go in by themselves") : "No branch"], ["For", sj.age || "now"]].map(([k, v]) => ({k, v})),
+        facts: [["Account", sj.a], ["Project", sj.g], ["Repo", sj.repo || "none"], ["Branch", sj.br || "none"], ["Into main", sj.br ? (held ? "Held" + (sj.pc ? ": " + sj.pc + " pieces waiting" : "") : "Flowing: clean pieces go in by themselves") : "No branch"], ["For", sj.age || "now"], ["Trip", sj.trip || ""]].filter(([k, v]) => v).map(([k, v]) => ({k, v})),
         phrases: PH.map(ph => ({ label: ph, run: () => this.act("Send \"" + ph + "\" to " + n) })),
         sendPhrase: () => { const el = document.getElementById("ph"); const v = el ? el.value : "go"; this.act("Send \"" + v + "\" to " + n); },
         openChat: () => this.flash("Open " + n + " in the Claude app, under its account."),
