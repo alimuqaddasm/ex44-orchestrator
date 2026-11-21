@@ -1346,8 +1346,9 @@ function ico(name, size, cls) {
   const s = document.createElement("span"); if (cls) s.className = cls; s.append(icoCache[key].cloneNode(true)); return s;
 }
 
-const SRVIDX = ['', 'srv', 'index'].join('/'), HOMEALI = ['', 'home', 'ali'].join('/');
-const WSROOT = ['', 'srv', 'ws'].join('/');   // the workspace root, built so no path is spelled out in the public page
+// The machine's own path prefixes are NOT in this page: they come with the private scan (ov.prefix, set by tools/mapd.py) and are
+// read in init(). Without them (an old scan) every prefix is empty and paths show as labels only.
+let WSROOT = '', SRVIDX = '', HOMEALI = '';
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
 // A small notes store with the same calls the live page used, kept in this browser (localStorage only).
@@ -1408,6 +1409,7 @@ function create(opts) {
 }
 
 function init(RAW, root, app) {
+if (RAW.ov && RAW.ov.prefix) { WSROOT = RAW.ov.prefix.ws || ''; SRVIDX = RAW.ov.prefix.srv || ''; HOMEALI = RAW.ov.prefix.home || ''; }
 const $ = id => root.getElementById(id);
 const T = RAW.tree, OV = RAW.ov;
 const SCANNED = OV.when;
@@ -1601,9 +1603,9 @@ function noteBtn(w, path, kind) {
 const chunks = new Map(); let focusDoc = null; let focusPick = store.get('ex44map-focus') || 'auto';
 function mapPath(p) {
   p = String(p || '').replace(/\/+$/, '');
-  if (p === WSROOT || p.startsWith(WSROOT + '/')) return 'EX-44/Workspace' + p.slice(WSROOT.length);
-  if (p === '/srv/index' || p.startsWith('/srv/index/')) return 'EX-44/Elsewhere on EX-44/srv-index' + p.slice(10);
-  if (p === HOMEALI || p.startsWith(HOMEALI + '/')) return 'EX-44/Elsewhere on EX-44/home-ali' + p.slice(HOMEALI.length);
+  if (WSROOT && (p === WSROOT || p.startsWith(WSROOT + '/'))) return 'EX-44/Workspace' + p.slice(WSROOT.length);
+  if (SRVIDX && (p === SRVIDX || p.startsWith(SRVIDX + '/'))) return 'EX-44/Elsewhere on EX-44/srv-index' + p.slice(SRVIDX.length);
+  if (HOMEALI && (p === HOMEALI || p.startsWith(HOMEALI + '/'))) return 'EX-44/Elsewhere on EX-44/home-ali' + p.slice(HOMEALI.length);
   if (p.startsWith('storagebox:')) return ('EX-44/Storage Box/' + p.slice(11)).replace(/\/+$/, '');
   return p.startsWith('EX-44') ? p : 'EX-44/Workspace/' + p.replace(/^\/+/, '');
 }
