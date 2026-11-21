@@ -792,6 +792,34 @@ body{background:var(--page-bg);margin:0}
     </div>
   </div>
   </div></sc-if>
+  <sc-if value="{{isMap}}" hint-placeholder-val="{{ false }}"><div style="display:flex;flex-direction:column;gap:20px">
+  <section style="display:flex;flex-direction:column;gap:8px;padding-top:6px"><h1 style="margin:0;font:600 28px/1.1 var(--id);letter-spacing:-.025em">Map</h1><p style="margin:0;font-size:15px;color:var(--ink2);max-width:760px">What is really on EX-44 and the Storage Box, folder by folder, and where else each file lives. This shows the scan of {{mp.when}}; the real page rescans by itself.</p></section>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+    <section class="panel" style="padding:18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px"><span class="tile" style="background:var(--blue-d);color:var(--blue)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="7" rx="2"></rect><rect x="3" y="13" width="18" height="7" rx="2"></rect><path d="M7 7.5h.01M7 16.5h.01"></path></svg></span><h2 style="margin:0;font-size:15px;font-weight:600">EX-44</h2><span class="lab" style="margin-left:auto">Hetzner, the master</span></div>
+      <div style="display:flex;flex-direction:column;gap:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span><span class="num">{{mp.used}}</span> used of <span class="num">{{mp.size}}</span></span><span class="num" style="color:var(--ok)">{{mp.free}} free</span></div><div style="height:6px;border-radius:3px;background:var(--g2);overflow:hidden"><div style="height:100%;width:{{mp.pct}};background:var(--blue)"></div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="display:flex;flex-direction:column;gap:2px"><span class="num" style="font-size:18px">{{mp.wsc}}</span><span class="lab">files in the workspace, {{mp.wss}}</span></div>
+        <div style="display:flex;flex-direction:column;gap:2px"><span class="num" style="font-size:18px">{{mp.elc}}</span><span class="lab">elsewhere: index and home, {{mp.els}}</span></div>
+      </div>
+    </section>
+    <section class="panel" style="padding:18px;display:flex;flex-direction:column;gap:12px">
+      <div style="display:flex;align-items:center;gap:10px"><span class="tile" style="background:var(--held-d);color:var(--held)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"></path></svg></span><h2 style="margin:0;font-size:15px;font-weight:600">Storage Box</h2><span class="lab" style="margin-left:auto">Hetzner, rclone storagebox:</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div style="display:flex;flex-direction:column;gap:2px"><span class="num" style="font-size:18px">{{mp.rawc}}</span><span class="lab">raw media files, {{mp.raw}}</span></div>
+        <div style="display:flex;flex-direction:column;gap:2px"><span class="num" style="font-size:18px">{{mp.resc}}</span><span class="lab">backup files, {{mp.res}}, encrypted</span></div>
+      </div>
+      <p class="lab" style="margin:0;font-size:13px">Raw media moved off EX-44 on 14 November, same paths as before. Listed {{mp.sbl}}.</p>
+    </section>
+    <section class="panel" style="padding:18px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;gap:10px"><span class="tile" style="background:var(--ok-d);color:var(--ok)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"></path></svg></span><h2 style="margin:0;font-size:15px;font-weight:600">What keeps them in step</h2></div>
+      <sc-for list="{{mp.jobs}}" as="j" hint-placeholder-count="3">
+        <div style="display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:center;font-size:13px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="{{j.col}}" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="{{j.d}}"></path></svg><span>{{j.n}}<span class="lab" style="display:inline">  {{j.what}}</span></span><span class="num" style="font-size:12px;color:var(--ink3)">{{j.at}}</span></div>
+      </sc-for>
+    </section>
+  </div>
+  <div id="map-host" data-keep="map" style="min-height:70vh"></div>
+  </div></sc-if>
 </div>
 <sc-if value="{{dr.on}}" hint-placeholder-val="{{ false }}">
   <div class="scrim" onClick="{{closeAll}}"></div>
@@ -902,6 +930,1655 @@ body{background:var(--page-bg);margin:0}
 </template>
 <div id="dc-root"></div>
 <script src="https://cdn.jsdelivr.net/npm/morphdom@2.7.4/dist/morphdom-umd.min.js"></script>
+<script>
+/* EX-44 Map module for the Home mock-up (P8.1).
+   window.EX44Map.mount(hostElement, { theme: "dark" | "light" }) and window.EX44Map.setTheme(theme).
+   A port of map/ex44_map_template.html: every view, button and key is kept, restyled to the Home tokens,
+   rendered inside a Shadow DOM so its CSS cannot clash with the page. Data: the sidecar file
+   "map-data.json.gz.b64" (gzip + base64 of map/out/ex44_tree.json, made by build_map_data.py), fetched by
+   relative URL. Notes and layouts live in this browser (localStorage), there is no database here. */
+(function () {
+"use strict";
+if (window.EX44Map) return;
+
+const CSS = `
+:host{display:block}
+[hidden]{display:none!important}
+.app.dark{
+  --g0:oklch(14% 0.012 250);--g1:oklch(17% 0.012 250);--g2:oklch(21% 0.013 250);--g3:oklch(25.5% 0.014 250);
+  --line:oklch(100% 0 0 / .11);--line2:oklch(100% 0 0 / .18);--edge:inset 0 1px 0 oklch(100% 0 0 / .04);--card-sh:none;
+  --ink:oklch(95% 0.006 250);--ink2:oklch(79% 0.01 250);--ink3:oklch(65% 0.012 250);
+  --amber:oklch(82% 0.15 80);--amber-d:oklch(82% 0.15 80 / .14);--you:oklch(82% 0.15 80);--you-ink:oklch(20% 0.04 80);
+  --blue:oklch(77% 0.12 245);--blue-d:oklch(77% 0.12 245 / .14);--ok:oklch(77% 0.15 150);--ok-d:oklch(77% 0.15 150 / .14);
+  --bad:oklch(72% 0.16 25);--bad-d:oklch(72% 0.16 25 / .15);--held:oklch(78% 0.1 300);--held-d:oklch(78% 0.1 300 / .14);
+  --hit:oklch(82% 0.15 80 / .22);--hit-line:oklch(82% 0.15 80 / .7);--lvL:76%;--lvC:.1;--shadow:oklch(0% 0 0 / .45);color-scheme:dark}
+.app.light{
+  --g0:oklch(99.4% 0.003 250);--g1:oklch(97.3% 0.004 250);--g2:oklch(95% 0.006 250);--g3:oklch(92% 0.007 250);
+  --line:oklch(25% 0.02 250 / .09);--line2:oklch(25% 0.02 250 / .15);--edge:inset 0 1px 0 oklch(100% 0 0 / .8);--card-sh:0 1px 2px oklch(30% 0.02 250 / .05);
+  --ink:oklch(23% 0.016 250);--ink2:oklch(40% 0.014 250);--ink3:oklch(50% 0.013 250);
+  --amber:oklch(55% 0.13 70);--amber-d:oklch(80% 0.15 80 / .2);--you:oklch(80% 0.15 80);--you-ink:oklch(22% 0.04 70);
+  --blue:oklch(50% 0.14 250);--blue-d:oklch(60% 0.14 250 / .12);--ok:oklch(50% 0.12 150);--ok-d:oklch(60% 0.12 150 / .13);
+  --bad:oklch(53% 0.18 25);--bad-d:oklch(60% 0.18 25 / .12);--held:oklch(50% 0.12 300);--held-d:oklch(60% 0.12 300 / .12);
+  --hit:oklch(80% 0.15 80 / .32);--hit-line:oklch(62% 0.14 75);--lvL:56%;--lvC:.12;--shadow:oklch(30% 0.02 250 / .14);color-scheme:light}
+.app{--sans:"Geist",ui-sans-serif,system-ui,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace;
+  --cols:minmax(280px,1fr) 84px 80px 84px 84px 84px 160px 132px;--tmin:1122px;--tw:auto;
+  color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;position:relative;min-width:0}
+.app *{box-sizing:border-box}
+.app svg.i{flex:none;display:block}
+#ui{display:flex;flex-direction:column;gap:12px;min-width:0}
+.loading{display:flex;align-items:center;gap:12px;padding:28px 20px;border:1px solid var(--line);border-radius:12px;background:var(--g0);color:var(--ink2);font-size:14px}
+.loading .spin{width:16px;height:16px;border-radius:50%;border:2px solid var(--line2);border-top-color:var(--blue);animation:sp .8s linear infinite;flex:none}
+.loading.err{color:var(--bad);border-color:var(--bad-d)}
+.loading.err .spin{display:none}
+@keyframes sp{to{transform:rotate(360deg)}}
+.sub{color:var(--ink3);font-size:13px}
+/* controls, as on the Home page */
+input[type=search],input[type=text]{font:400 14px/1 var(--sans);height:32px;padding:0 10px;border:1px solid var(--line2);border-radius:7px;background:var(--g0);color:var(--ink);min-width:0}
+input::placeholder{color:var(--ink3)}
+input:focus-visible,select:focus-visible,button:focus-visible,.row:focus-visible,.crumb a:focus-visible,.res:focus-visible,.ncard:focus-visible,.srch:focus-within{outline:2px solid var(--amber);outline-offset:1px}
+input[type=checkbox]{accent-color:var(--blue);margin:0}
+button,label.tg{font:500 14px/1 var(--sans);height:32px;padding:0 12px;border:1px solid var(--line2);border-radius:7px;background:var(--g2);color:var(--ink);cursor:pointer;display:inline-flex;gap:7px;align-items:center;white-space:nowrap;box-shadow:var(--edge);transition:background .12s ease-out,border-color .12s ease-out}
+button:hover,label.tg:hover{background:var(--g3)}
+button:disabled{opacity:.42;cursor:not-allowed}
+button[aria-pressed="true"]{background:var(--g3);color:var(--ink)}
+button.primary{background:var(--you);color:var(--you-ink);border-color:oklch(70% 0.15 78);font-weight:600;box-shadow:inset 0 1px 0 oklch(100% 0 0 / .2)}
+button.primary:hover{background:var(--you);filter:brightness(1.05)}
+button.ghost{background:transparent;border-color:transparent;box-shadow:none;color:var(--ink2)}
+button.ghost:hover{background:var(--g2)}
+button.sq{width:32px;padding:0;justify-content:center}
+select{font:500 14px/1 var(--sans);height:32px;padding:0 8px;border:1px solid var(--line2);border-radius:7px;background:var(--g2);color:var(--ink);max-width:100%;box-shadow:var(--edge)}
+kbd{font:500 11px/1 var(--mono);border:1px solid var(--line2);border-radius:4px;padding:3px 5px;color:var(--ink3)}
+.panel{background:var(--g0);border:1px solid var(--line);border-radius:12px;box-shadow:var(--edge),var(--card-sh);overflow:hidden}
+.phead{display:flex;align-items:baseline;gap:4px 12px;padding:14px 16px 14px 18px;flex-wrap:wrap}
+.phead h2{margin:0;font-size:15px;font-weight:600;letter-spacing:-.01em}
+.phead .sum{font-size:13px;color:var(--ink3);max-width:90ch}
+.lab{font-size:12px;line-height:1.3;color:var(--ink3);display:flex;align-items:center;gap:5px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums slashed-zero;letter-spacing:0;white-space:nowrap}
+.pill{font:500 11px/1 var(--sans);padding:3px 6px;border-radius:5px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+/* toolbar: view switch, search, More, Full screen */
+.tb{display:flex;gap:10px;align-items:center;flex-wrap:wrap;position:relative;z-index:6}
+.seg{display:flex;gap:2px;background:var(--g0);border:1px solid var(--line);border-radius:8px;padding:3px}
+.seg button,.tab{font:500 14px/1 var(--sans);color:var(--ink3);background:transparent;border:0;border-radius:6px;height:32px;padding:0 11px;box-shadow:none;gap:6px;transition:color .12s,background .12s}
+.seg button:hover,.tab:hover{color:var(--ink);background:transparent}
+.seg button[aria-pressed="true"],.tab.on{color:var(--ink);background:var(--g3);box-shadow:var(--edge)}
+.srch{display:flex;align-items:center;gap:8px;height:32px;padding:0 10px;border:1px solid var(--line2);border-radius:7px;background:var(--g0);color:var(--ink3);width:300px;max-width:100%}
+.srch input{border:0;background:transparent;height:30px;padding:0;color:var(--ink);font:400 14px/1 var(--sans);outline:none;min-width:0;flex:1;width:180px}
+.srch input::-webkit-search-cancel-button{filter:grayscale(1)}
+.tb .grow{flex:1}
+.mwrap{position:relative;display:inline-flex}
+.mbadge{font:500 11px/16px var(--mono);color:var(--amber);background:var(--amber-d);border-radius:5px;padding:0 5px}
+.pop{position:absolute;right:0;top:calc(100% + 6px);width:360px;max-width:calc(100vw - 32px);max-height:min(72vh,640px);overflow:auto;overscroll-behavior:contain;background:var(--g0);border:1px solid var(--line2);border-radius:12px;box-shadow:0 18px 40px -16px var(--shadow);z-index:30;padding:6px 0;animation:pin .14s ease-out}
+@keyframes pin{from{opacity:0;transform:translateY(-4px)}}
+.psec{padding:10px 14px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line)}
+.psec:first-child{border-top:0}
+.psec h3{margin:0;font-size:12px;font-weight:500;color:var(--ink3)}
+.psec .line{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.psec button,.psec label.tg,.psec select{height:30px;font-size:13px}
+.psec select{width:100%}
+.psec .help{font-size:12.5px;line-height:1.55;color:var(--ink2)}
+.psec .help kbd{margin:0 1px}
+.psec .marks{display:grid;grid-template-columns:auto minmax(0,1fr);gap:5px 8px;align-items:center;font-size:12.5px;color:var(--ink2)}
+.focusinfo{font-size:12.5px;color:var(--ink3)}
+.focusinfo b{color:var(--amber);font-weight:600}
+/* layer chips */
+#legend{display:flex;gap:6px;flex-wrap:wrap}
+#legend .tab{border:1px solid var(--line);height:30px}
+#legend .sqr{width:8px;height:8px;border-radius:2px;flex:none}
+#legend .n{font:500 12px/1 var(--mono);color:var(--ink3)}
+/* the tree card: scrolls inside itself only */
+.tcard{position:relative;max-height:max(420px,calc(100vh - 220px));display:flex;flex-direction:column}
+.tscroll{flex:1 1 auto;min-height:0;overflow:auto;overscroll-behavior:contain}
+.tscroll>.hrow,.tscroll>#tree{min-width:var(--tmin)}
+.row.hrow{position:sticky;top:0;z-index:3}
+.cbar{display:flex;align-items:center;gap:6px 10px;min-height:49px;padding:10px 14px 10px 18px;flex-wrap:wrap;border-bottom:1px solid var(--line)}
+.crumb{font-size:13px;color:var(--ink3);display:flex;flex-wrap:wrap;gap:2px 4px;align-items:center;min-width:0;flex:1}
+.crumb a{color:var(--ink2);text-decoration:none;border-radius:4px;padding:0 3px;cursor:pointer}
+.crumb a:hover{color:var(--ink);background:var(--g2)}
+.crumb a:last-child{color:var(--ink);font-weight:500}
+.crumb .sep{color:var(--ink3);opacity:.7}
+.cbar .qinfo{font-size:12.5px;color:var(--ink3)}
+.cbar .tagon{font:500 12px/1 var(--sans);height:24px;padding:0 9px;border-radius:6px;background:var(--amber-d);color:var(--amber);display:inline-flex;align-items:center;gap:6px}
+.cbar button{height:28px;font-size:13px;padding:0 10px}
+.row{display:grid;grid-template-columns:var(--cols);gap:14px;align-items:center;padding:4px 18px;min-height:38px;border-top:1px solid var(--line);color:var(--ink);cursor:default;position:relative;transition:background .12s;width:100%}
+.row.hrow{min-height:32px;padding-block:0;background:var(--g1);cursor:default}
+.row.hrow .r,.row .r{justify-content:flex-end;text-align:right}
+#tree .row:hover,.res:hover,.ncard:hover{background:var(--g1)}
+.row.dir{cursor:pointer}
+.row.cur{background:var(--g1);box-shadow:inset 2px 0 0 var(--amber)}
+.name{min-width:0;display:flex;gap:8px;align-items:center}
+.tw{width:12px;flex:none;color:var(--ink3);display:inline-flex;transition:transform .22s cubic-bezier(.2,.8,.2,1)}
+.open>.row .tw{transform:rotate(90deg)}
+.fi{color:var(--ink3);display:inline-flex;flex:none}
+.fi.repo{color:var(--blue)}.fi.sb{color:var(--held)}.fi.top{color:var(--ink2)}
+.dname,.fname{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fname{font-weight:400;color:var(--ink2)}
+#tree .depth0>.row .dname{font-weight:600}
+.hid{opacity:.55}
+.hid .dname::after,.hid .fname::after{content:" hidden";font-size:11px;color:var(--ink3);font-weight:400}
+.ext{font:500 10.5px/15px var(--mono);color:var(--ink3);border:1px solid var(--line2);border-radius:4px;padding:0 4px;flex:none}
+.ext.pillx{font:500 11px/1 var(--mono);background:var(--g2);border:0;border-radius:5px;padding:2px 5px}
+.row .num{font-size:13px;text-align:right}
+.row .zero{color:var(--ink3)}
+.row .sz{color:var(--ink3)}
+.yes{color:var(--ok);display:inline-flex;justify-content:flex-end}
+.row .tags,.row .fls{display:flex;gap:4px;flex-wrap:wrap;min-width:0}
+.row .tags .tag{white-space:normal;overflow-wrap:anywhere}
+.kids{margin-left:15px;border-left:1px solid var(--line);padding-left:4px}
+#tree .kids{margin:0;border:0;padding:0}
+#tree>.node>.row,#tree>.node>.nprev{display:none}
+#tree>.node>.kids>.node:first-child>.row{border-top:0}
+.more{color:var(--blue);font-size:13px;padding:8px 26px;cursor:pointer;border-top:1px solid var(--line)}
+#tree .more{padding-left:calc(56px + var(--ind,0px))}
+.ncount{font:500 11px/16px var(--sans);color:var(--amber);background:var(--amber-d);border-radius:5px;padding:0 6px;flex:none}
+mark{background:var(--hit);color:inherit;border-radius:3px}
+#results{display:flex;flex-direction:column}
+.res{padding:8px 18px;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;border-top:1px solid var(--line)}
+.res .p,.ncard .p{font-size:12px;color:var(--ink3);overflow-wrap:anywhere}
+.res .n{overflow-wrap:anywhere;display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}
+.res .num{font-size:13px;color:var(--ink3)}
+.flash>.row{animation:fl 1.6s ease-out}
+@keyframes fl{from{background:var(--hit)}to{background:transparent}}
+/* row actions, the right-hand column: Board (a file sends its folder) and + note, ghost buttons on every row */
+.act{display:inline-flex;gap:4px;align-items:center;justify-content:flex-end;flex:none}
+#tree .act button{font:500 12px/1 var(--sans);height:26px;padding:0 8px;gap:6px;border:1px solid transparent;border-radius:7px;background:transparent;box-shadow:none;color:var(--ink2);opacity:1}
+#tree .act button:hover{background:var(--g2);color:var(--ink)}
+.cbar .fsb,.bbar .fsb{flex:none}
+.bbar .grow{flex:1}
+.nb,.bb,.pull{font:500 12px/1 var(--sans);height:22px;padding:0 8px;border-radius:6px;border:1px dashed var(--line2);background:transparent;color:var(--ink3);white-space:nowrap;box-shadow:none;gap:5px}
+.nb:hover,.bb:hover,.pull:hover{border-style:solid;color:var(--ink);background:var(--g2)}
+.card .nb,.card .pull{opacity:.5}
+.card .row:hover .nb,.card .row:focus-within .nb,.card .row:hover .pull,.nb:focus-visible,.pull:focus-visible{opacity:1;border-style:solid;color:var(--ink)}
+@media (hover:none){.card .nb,.card .pull{opacity:.85}}
+.has-note>.row .nb{opacity:1;border:1px solid transparent;font-weight:600}
+.has-note.st-open>.row .nb{background:var(--amber-d);color:var(--amber)}
+.has-note.st-asked>.row .nb{background:var(--blue-d);color:var(--blue)}
+.has-note.st-done>.row .nb{background:var(--ok-d);color:var(--ok)}
+.notes-off .nb,.notes-off .needs-db{display:none!important}
+.nprev{font-size:13px;border-radius:6px;padding:8px 10px;margin:2px 18px 8px calc(56px + var(--ind,0px));white-space:pre-wrap;overflow-wrap:anywhere;display:flex;flex-direction:column;gap:2px;color:var(--ink2)}
+.card .nprev{margin:1px 0 4px 20px;padding:5px 9px}
+.st-open>.nprev{background:var(--amber-d)}.st-asked>.nprev{background:var(--blue-d)}.st-done>.nprev{background:var(--ok-d)}
+.nprev .extra{font-size:12px;color:var(--ink2)}
+.badge{font:600 10.5px/16px var(--sans);letter-spacing:.04em;text-transform:uppercase;border-radius:4px;padding:0 5px;align-self:flex-start}
+.badge.open,.st-open .badge{color:var(--amber)}.badge.asked,.st-asked .badge{color:var(--blue)}.badge.done,.st-done .badge{color:var(--ok)}
+.badge.open{background:var(--amber-d)}.badge.asked{background:var(--blue-d)}.badge.done{background:var(--ok-d)}
+.nprev .badge{padding:0}
+.editor{margin:4px 18px 12px calc(56px + var(--ind,0px));display:flex;flex-direction:column;gap:6px;max-width:640px}
+.card .editor{margin:4px 0 10px 20px}
+.editor label{font-size:12px;color:var(--ink3)}
+.editor .q{font-size:13px;background:var(--blue-d);border-radius:7px;padding:5px 9px;white-space:pre-wrap}
+.editor textarea{font:inherit;min-height:68px;padding:8px 10px;border:1px solid var(--line2);border-radius:8px;background:var(--g1);color:var(--ink);resize:vertical}
+.editor textarea:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.editor .btns{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.editor .msg{font-size:12px;color:var(--ink3)}
+/* Notes view, inside the tree card */
+#notesPanel{display:flex;flex-direction:column;gap:6px;padding:4px 18px 18px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{height:30px;font-size:13px}
+.grp{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+.grp h2{font-size:14px;font-weight:600;margin:0;display:flex;gap:8px;align-items:center;overflow-wrap:anywhere}
+.grp h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--lvc,var(--ink3));flex:none}
+.ncard{background:var(--g0);border:1px solid var(--line);border-left:3px solid var(--lvc,var(--line2));border-radius:10px;padding:9px 12px;cursor:pointer;display:flex;flex-direction:column;gap:3px}
+.ncard .t{white-space:pre-wrap;overflow-wrap:anywhere}
+.ncard .extra{font-size:12.5px;color:var(--ink3);white-space:pre-wrap;overflow-wrap:anywhere}
+.ncard .gone{font-size:12px;color:var(--ink3);font-style:italic}
+.ncard .head{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.focusing .node.dim>.row{opacity:.28}
+.focusing .node.dim>.row:hover,.focusing .node.dim>.row:focus-visible{opacity:.7}
+.focusing .node.dim>.nprev{opacity:.35}
+.focusing .node.inchunk>.row{background:var(--amber-d)}
+.focusing .node.chunkroot>.row{box-shadow:inset 0 0 0 1px var(--amber)}
+.ncard.dim{opacity:.35}
+/* views */
+.app.bm .tree-only,.app.ov .tree-only{display:none!important}
+.app:not(.bm) .board-only{display:none!important}
+/* the board: a dotted card with its own small toolbar */
+.bcard{height:calc(100vh - 220px);min-height:420px;display:flex;flex-direction:column;position:relative}
+.bbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:14px 18px 12px;position:relative;z-index:4;border-bottom:1px solid var(--line);background:var(--g0)}
+#boardWrap{flex:1;min-height:0;position:relative;overflow:hidden}
+#board{position:absolute;inset:0;overflow:hidden;touch-action:none;cursor:grab;background-color:var(--g0);background-image:radial-gradient(circle,var(--line2) 1px,transparent 1px);background-size:20px 20px;user-select:none;-webkit-user-select:none}
+#board.panning{cursor:grabbing}
+.card .cbody{user-select:text;-webkit-user-select:text}
+.notes-folded .card .nprev{display:none}
+.nosel,.nosel *{user-select:none!important;-webkit-user-select:none!important}
+#board.dropping{box-shadow:inset 0 0 0 2px var(--amber)}
+#world{position:absolute;left:0;top:0;transform-origin:0 0}
+.card{position:absolute;background:var(--g0);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--edge),0 1px 2px var(--shadow),0 10px 28px -14px var(--shadow);display:flex;flex-direction:column;min-width:240px;cursor:default;overflow:hidden}
+.card.min .cbody,.card.min .cfoot,.card.min .cresize,.card.min .cpath{display:none}
+.chead{display:flex;gap:2px;align-items:center;padding:8px 8px 8px 10px;background:var(--g0);border-bottom:1px solid var(--line);cursor:grab;touch-action:none;user-select:none}
+.chead .fi{color:var(--lvc,var(--amber));margin-right:4px}
+.chead.dragging{cursor:grabbing}
+.ctitle{font-size:14px;font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-inline:2px}
+.cbtn{height:26px;min-width:26px;justify-content:center;padding:0 6px;border:1px solid transparent;background:transparent;color:var(--ink3);border-radius:6px;box-shadow:none;font-size:12.5px}
+.cbtn:hover{background:var(--g2);color:var(--ink)}
+.cbtn:disabled{opacity:.4;cursor:default;background:transparent;color:var(--ink3)}
+.cpath{font-size:12px;color:var(--ink3);padding:5px 12px;display:flex;flex-wrap:wrap;gap:0 3px;border-bottom:1px solid var(--line)}
+.cpath a{color:var(--ink2);cursor:pointer;border-radius:3px}.cpath a:hover{color:var(--ink);text-decoration:underline}
+.cpath .num{font-size:11.5px}
+.cbody{flex:1;min-height:0;overflow:auto;padding:4px 6px 8px;touch-action:pan-x pan-y;overscroll-behavior:contain}
+.cbody>.node>.row,.cbody>.node>.nprev{display:none}
+.cbody>.node>.kids{margin-left:0;border-left:0;padding-left:0}
+.card .row{grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;height:auto;min-height:30px;padding:3px 8px;border-top:0;border-radius:6px}
+.card .row:hover{background:var(--g2)}
+.card .name{flex-wrap:nowrap;overflow:hidden;min-width:0;gap:7px}
+.card .fname{color:var(--ink)}
+.card .row .num{font-size:11px;color:var(--ink3)}
+.card .sz{display:none}
+.card .act{display:inline-flex;margin:0}
+.card .more{border-top:0;padding:4px 26px}
+.cfoot{font-size:12px;padding:6px 22px 7px 10px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;color:var(--ink3)}
+.cfoot .oklbl{color:var(--ok)}.cfoot .misslbl{color:var(--bad);font-weight:600}
+.chip-l{font:500 11px/1 var(--mono);height:20px;border-radius:5px;padding:0 6px;border:1px solid var(--line2);background:var(--g1);color:var(--ink);box-shadow:none}
+.chip-l.miss{background:var(--bad-d);color:var(--bad);border-color:transparent}
+.chip-l.on{outline:2px solid var(--hit-line)}
+.lkbtn{height:22px;font-size:11.5px;padding:0 7px;border-color:var(--hit-line);color:var(--ink);background:var(--hit)}
+.cresize{position:absolute;right:0;bottom:0;width:18px;height:18px;cursor:nwse-resize;touch-action:none;background:linear-gradient(135deg,transparent 55%,var(--ink3) 55%,var(--ink3) 62%,transparent 62%,transparent 72%,var(--ink3) 72%,var(--ink3) 79%,transparent 79%);opacity:.5}
+.node.lk-hit>.row{background:var(--hit);box-shadow:inset 0 0 0 1px var(--hit-line)}
+.node.sel>.row{box-shadow:inset 0 0 0 2px var(--amber)}
+.zoombar{position:absolute;left:12px;bottom:12px;display:flex;gap:2px;align-items:center;background:var(--g0);border:1px solid var(--line2);border-radius:8px;padding:3px;z-index:3;box-shadow:var(--edge)}
+.zoombar button{height:28px;padding:0 10px;border-color:transparent;background:transparent;box-shadow:none}
+.zoombar button:hover{background:var(--g2)}
+.zoombar .num{min-width:46px;text-align:center;font-size:12px;color:var(--ink3)}
+.empty-board{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink3);text-align:center;pointer-events:none;padding:24px}
+.addbox{position:relative;flex:1 1 220px;max-width:420px;min-width:0;display:flex}
+.addbox input{width:100%;background:var(--g0)}
+.addres{position:absolute;top:calc(100% + 4px);left:0;right:0;z-index:20;background:var(--g0);border:1px solid var(--line2);border-radius:10px;box-shadow:0 12px 32px -12px var(--shadow);max-height:320px;overflow:auto;padding:4px}
+.addres .res{border-top:0;border-radius:7px;padding:7px 10px}
+.addres .res:hover{background:var(--g2)}
+.bbar select{max-width:200px}
+.bbar input[type=text]{width:160px;max-width:100%}
+.inl{display:inline-flex;flex-wrap:wrap;gap:6px;align-items:center}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--g0);padding:10px 14px;border-radius:10px;font-size:13px;z-index:2147483600;max-width:calc(100% - 32px);display:flex;gap:10px;align-items:center;overflow-wrap:anywhere}
+#toast button{height:26px;padding:0 9px;font-size:12.5px;background:transparent;color:var(--g0);border-color:color-mix(in oklch,var(--g0) 40%,transparent);box-shadow:none}
+/* marks, tags, overview */
+.fls,.tags{display:inline-flex;gap:3px;flex:none;flex-wrap:wrap}
+.fl{font:500 10px/16px var(--mono);border-radius:4px;padding:0 4px;background:var(--g2);color:var(--ink2);flex:none}
+.fl-G{background:var(--blue-d);color:var(--blue)}.fl-L{background:var(--held-d);color:var(--held)}
+.fl-D{background:var(--ok-d);color:var(--ok)}.fl-P{background:var(--amber-d);color:var(--amber)}
+.fl-T{background:var(--ok-d);color:var(--ok);box-shadow:inset 0 0 0 1px var(--ok-d)}.fl-B{background:var(--g3);color:var(--ink2)}
+.fl-U,.fl-O{background:var(--bad-d);color:var(--bad)}.fl-K{background:transparent;box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink3)}
+.tag{font:500 11px/1 var(--sans);border-radius:5px;padding:3px 6px;color:var(--ink3);background:var(--g2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:0 1 auto}
+.t-repo{background:var(--blue-d);color:var(--blue)}.t-pull{background:var(--amber-d);color:var(--amber)}
+.t-block{background:var(--bad-d);color:var(--bad)}.t-sb{background:var(--held-d);color:var(--held)}
+.card .tags{display:none}
+.lnk{font-size:12px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#tree .name{flex-wrap:wrap;row-gap:1px}
+#tree .fn{flex:1 1 0;min-width:0;line-height:1.35;padding-block:2px}
+#tree .fn .fname{white-space:normal;overflow:visible;overflow-wrap:anywhere}
+#tree .fn .ext{margin-left:6px;vertical-align:1px}
+#tree .lnk{flex:1 0 100%;padding-left:43px;line-height:1.35}
+#over{display:flex;flex-direction:column;gap:16px}
+.osec .lead{margin:0;color:var(--ink2);max-width:80ch;line-height:1.5}
+.osec .sub{margin:0;padding:10px 18px;line-height:1.5;overflow-wrap:anywhere;border-top:1px solid var(--line)}
+.osec h3{font-size:13.5px;font-weight:600;margin:0;padding:14px 18px 8px;border-top:1px solid var(--line)}
+.twrap{overflow-x:auto}
+.ot{border-collapse:collapse;width:100%;font-size:14px}
+.ot th{text-align:left;font-weight:500;font-size:12px;color:var(--ink3);height:32px;padding:0 14px;white-space:nowrap;background:var(--g1);border-top:1px solid var(--line)}
+.ot td{padding:9px 14px;border-top:1px solid var(--line);vertical-align:top;white-space:pre-line;overflow-wrap:anywhere;color:var(--ink2)}
+.ot th:first-child,.ot td:first-child{padding-left:18px}.ot th:last-child,.ot td:last-child{padding-right:18px}
+.ot td:first-child{color:var(--ink);font-weight:500}
+.ot td:nth-child(n+3){font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums slashed-zero;color:var(--ink)}
+.ot tr.go{cursor:pointer}.ot tr.go:hover,.ot tr.go:focus-visible{background:var(--g1);outline:none}
+.dbar{height:6px;border-radius:3px;background:var(--g2);overflow:hidden;margin:0 18px 14px}.dbar span{display:block;height:100%;background:var(--blue)}
+.ointro{padding:4px 18px 22px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.ointro .lead{align-self:stretch}
+.ointro .flow{width:100%;max-width:860px;height:auto;display:block}
+.fbox{fill:var(--g1);stroke:var(--line2);stroke-width:1.2}.ft{font:600 14px var(--sans);fill:var(--ink);text-anchor:middle}
+.fs{font:11.5px var(--sans);fill:var(--ink3);text-anchor:middle}.fa{stroke:var(--blue);stroke-width:1.5}.fah{fill:var(--blue)}
+.fl2{font:11.5px var(--sans);fill:var(--ink3)}
+/* full screen: the native API when allowed, else this overlay; both use .fs */
+.app.fs{position:fixed;inset:0;z-index:2147483000;background:var(--g1);padding:16px max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;overflow:hidden}
+.app.fs #ui{flex:1;min-height:0}
+.app.fs .tcard,.app.fs .bcard{flex:1;height:auto;min-height:0;max-height:none}
+.app.fs #over{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+.app:fullscreen{width:100%;height:100%}
+@media (prefers-reduced-motion:reduce){.tw{transition:none}.flash>.row{animation:none}.loading .spin{animation:none}.pop{animation:none}}
+@media (max-width:760px){
+  .app{--cols:minmax(200px,1fr) 70px 72px 76px 76px 76px 150px 124px;--tmin:980px}
+  .row{gap:10px;padding-inline:12px}
+  .cbar{padding:8px 12px}
+  .cbar .fsb{width:30px;padding:0;justify-content:center}
+  #legend{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;margin-inline:-2px;padding:0 2px 2px}
+  .tb{gap:8px}
+  .tb .srch{order:5;width:100%;flex:1 1 100%}
+  .tb .grow{display:none}
+  .tb .seg{flex:1}
+  .tb .seg button{flex:1;justify-content:center;padding:0 8px}
+  .bbar .fsb span,.cbar .fsb span{display:none}
+  .tb .mb span.lb{display:none}
+  .pop{position:fixed;left:16px;right:16px;top:auto;width:auto;max-width:none}
+  .bbar{padding:12px}
+  .bbar .lyl{display:none}
+  .addbox{flex:1 1 100%;max-width:none}
+  #tree .more{padding-left:calc(44px + var(--ind,0px))}
+  .nprev,.editor{margin-left:calc(44px + var(--ind,0px));margin-right:12px}
+}
+`;
+
+const HTML = `
+<div class="loading" id="loading"><span class="spin"></span><span id="loadMsg">Loading the scan of EX-44...</span></div>
+<div id="ui" hidden>
+  <div class="tb">
+    <div class="seg" role="group" aria-label="View"><button id="vOver" type="button" aria-pressed="false">Overview</button><button id="vTree" type="button" aria-pressed="false">Tree</button><button id="vBoard" type="button" aria-pressed="false">Board</button></div>
+    <label class="srch"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg><input type="search" id="q" placeholder="Search any file or folder name" aria-label="Search the map" autocomplete="off"></label>
+    <div class="grow"></div>
+    <span class="mwrap">
+      <button id="moreBtn" class="mb" type="button" aria-haspopup="true" aria-expanded="false" title="Notes, show hidden, collapse all, keys"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="1.6"></circle><circle cx="12" cy="12" r="1.6"></circle><circle cx="19" cy="12" r="1.6"></circle></svg><span class="lb">More</span><span class="mbadge" id="moreBadge" hidden></span></button>
+      <div class="pop" id="morePop" role="dialog" aria-label="More" hidden>
+        <div class="psec needs-db"><h3>Notes</h3>
+          <div class="line"><button id="notesBtn" type="button" aria-pressed="false">Notes</button></div>
+          <div class="line"><label class="tg"><input type="checkbox" id="onlyNotes"> Only folders with notes</label><button id="openNotes" type="button">Open all notes</button></div>
+          <div class="help" id="noteHelp">Click "+ note" on any row to say what should change there. Notes save as you go, in this browser only: they do not reach EX-44 or other browsers. Amber = open, blue = Claude asked you something (answer it in the note), green = done.</div>
+        </div>
+        <div class="psec"><h3>Tree</h3>
+          <div class="line"><label class="tg"><input type="checkbox" id="showHidden" checked> Show hidden</label><button id="collapse" type="button">Collapse all</button></div>
+        </div>
+        <div class="psec needs-db"><h3>Focus</h3>
+          <select id="focusSel" aria-label="Focus"><option value="auto">Follow the chat that is working</option><option value="none">Whole map, nothing dimmed</option></select>
+          <span class="focusinfo" id="focusInfo"></span>
+        </div>
+        <div class="psec"><h3>Marks on files</h3><div class="marks" id="markHelp"></div></div>
+        <div class="psec"><h3>Keys</h3>
+          <div class="help">Tree: <kbd>↑</kbd> <kbd>↓</kbd> move · <kbd>→</kbd> open · <kbd>←</kbd> close / up · <kbd>Enter</kbd> open or close · <kbd>N</kbd> note on this row · <kbd>/</kbd> search · double-click a row copies its path on EX-44</div>
+          <div class="help">Board: drag a folder row onto empty space (or click the pull-out button) for its own card · two fingers on the touchpad (or drag empty space) to move around · pinch or Ctrl + scroll to zoom · click a file to light up the same lesson in every card · <kbd>F</kbd> fit all · <kbd>+</kbd> <kbd>-</kbd> zoom · <kbd>0</kbd> 100% · <kbd>Esc</kbd> clear the lesson light</div>
+          <div class="help">Full screen: <kbd>Esc</kbd> comes back.</div>
+        </div>
+        <div class="psec"><span class="sub" id="scanned"></span></div>
+      </div>
+    </span>
+  </div>
+  <div id="legend" role="group" aria-label="Show only"></div>
+  <section id="over" hidden></section>
+  <section class="panel tcard tree-only" id="tcard" aria-label="Folder tree">
+    <div class="cbar" title="The tree scrolls on its own. Folders and files, with notes and Board on every row."><nav class="crumb" id="crumb" aria-label="Current folder"></nav><span class="qinfo" id="qinfo" hidden></span><span class="tagon" id="focusPill" hidden></span><span class="tagon" id="notesPill" hidden>Notes view</span><button id="backTree" type="button" class="ghost" hidden>Back to the tree</button><button id="fsBtn" class="fsb ghost" type="button" title="Show this on the whole screen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path class="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg><span class="fsLbl">Full screen</span></button></div>
+    <div class="tscroll" id="tscroll">
+      <div class="row hrow" aria-hidden="true"><span class="lab">Folder</span><span class="lab r">Files</span><span class="lab r">Size</span><span class="lab r">In GitHub</span><span class="lab r">On Drive</span><span class="lab r">Backed up</span><span class="lab">Tags</span><span></span></div>
+    <div id="results" hidden></div>
+    <div id="notesPanel" hidden></div>
+      <div id="tree"></div>
+    </div>
+  </section>
+  <section class="panel bcard board-only" id="bcard" aria-label="Board">
+    <div class="bbar">
+      <div class="addbox" id="addbox"><input type="search" id="addq" placeholder="Add a folder to the board: type part of its name" autocomplete="off"><div class="addres" id="addres" hidden></div></div>
+      <button id="zFit" type="button">Fit all</button>
+      <button id="fsBtnB" class="fsb ghost" type="button" title="Show this on the whole screen"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path class="fsIco" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path></svg><span class="fsLbl">Full screen</span></button>
+      <button id="foldNotes" type="button" class="needs-db" aria-pressed="false">Collapse all notes</button>
+      <span class="inl" id="layBtns"><label class="sub lyl" for="laySel">Layout</label><select id="laySel"></select><button id="layNew" type="button">Save layout</button><button id="layRen" type="button" class="sq ghost" title="Rename this layout" aria-label="Rename this layout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4"></path></svg></button><button id="layDel" type="button" class="sq ghost" title="Delete this layout" aria-label="Delete this layout"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"></path></svg></button></span>
+      <span class="inl" id="layInline" hidden><span id="layAsk" class="sub"></span><input type="text" id="layName" maxlength="60"><button id="layOk" type="button" class="primary">Save</button><button id="layCancel" type="button" class="ghost">Cancel</button></span>
+      <span class="sub" id="layMsg"></span>
+      <button id="clearBoard" type="button" class="ghost">Clear board</button>
+    </div>
+    <div id="boardWrap">
+      <div id="board"><div id="world"></div>
+        <div class="empty-board" id="emptyBoard" hidden><div>The board is empty.<br>Type a folder name in "Add a folder" above, or use <b>Board</b> on any folder in the Tree.</div></div>
+      </div>
+      <div class="zoombar"><button id="zOut" type="button" aria-label="Zoom out">−</button><span class="num" id="zLbl">100%</span><button id="zIn" type="button" aria-label="Zoom in">+</button></div>
+    </div>
+  </section>
+</div>
+<div id="toast" role="status" hidden></div>
+`;
+
+// duotone icons (fill at .16 plus a 1.5 stroke), built once and cloned
+const ICONS = {
+  chev: ["", "m9 6 6 6-6 6"],
+  folder: ["M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z", "M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"],
+  disk: ["M3 5h18v6H3zM3 13h18v6H3z", "M3 5h18v6H3zM3 13h18v6H3zM7 8h.01M7 16h.01"],
+  box: ["M3 7l9-4 9 4v10l-9 4-9-4z", "M3 7l9-4 9 4v10l-9 4-9-4zM3 7l9 4 9-4M12 11v10"],
+  up: ["", "M12 19V5M6 11l6-6 6 6"],
+  openall: ["M4 4h16v16H4z", "M4 4h16v16H4zM12 8v8M8 12h8"],
+  foldall: ["M4 4h16v16H4z", "M4 4h16v16H4zM8 12h8"],
+  min: ["", "M6 12h12"],
+  close: ["", "M6 6l12 12M18 6 6 18"],
+  pull: ["M4 8a2 2 0 0 1 2-2h4v12H6a2 2 0 0 1-2-2z", "M14 4h6v6M20 4l-8 8M10 6H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"],
+  check: ["", "M20 6 9 17l-5-5"],
+  board: ["", "M4.5 3h4A1.5 1.5 0 0 1 10 4.5v4A1.5 1.5 0 0 1 8.5 10h-4A1.5 1.5 0 0 1 3 8.5v-4A1.5 1.5 0 0 1 4.5 3zM15.5 3h4A1.5 1.5 0 0 1 21 4.5v4a1.5 1.5 0 0 1-1.5 1.5h-4A1.5 1.5 0 0 1 14 8.5v-4A1.5 1.5 0 0 1 15.5 3zM4.5 14h4a1.5 1.5 0 0 1 1.5 1.5v4A1.5 1.5 0 0 1 8.5 21h-4A1.5 1.5 0 0 1 3 19.5v-4A1.5 1.5 0 0 1 4.5 14zM17.5 14v7M14 17.5h7"],
+  file: ["M6 3h8l4 4v14H6z", "M6 3h8l4 4v14H6zM14 3v4h4"],
+};
+const icoCache = {};
+function ico(name, size, cls) {
+  const key = name + size;
+  if (!icoCache[key]) {
+    const [f, d] = ICONS[name]; const t = document.createElement("template");
+    t.innerHTML = `<svg class="i" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true">${f ? `<path d="${f}" fill="currentColor" opacity=".16"/>` : ""}<path d="${d}" fill="none" stroke="currentColor" stroke-width="${name === "chev" ? 2 : 1.5}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    icoCache[key] = t.content.firstChild;
+  }
+  const s = document.createElement("span"); if (cls) s.className = cls; s.append(icoCache[key].cloneNode(true)); return s;
+}
+
+const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
+
+// A small notes store with the same calls the live page used, kept in this browser (localStorage only).
+function localDb() {
+  const KEY = "ex44map-db"; let data = store.get(KEY); if (!data || typeof data !== "object") data = {};
+  const subs = {};
+  const save = () => store.set(KEY, data);
+  const snap = name => ({ docs: Object.entries(data[name] || {}).map(([id, v]) => ({ id, data: () => v })) });
+  const fire = name => (subs[name] || []).forEach(cb => { try { cb(snap(name)); } catch (e) { console.error(e); } });
+  const coll = name => ({
+    limit() { return this; },
+    onSnapshot(cb) { (subs[name] = subs[name] || []).push(cb); setTimeout(() => cb(snap(name)), 0); return () => {}; },
+    doc(id) { return {
+      async set(v) { (data[name] = data[name] || {})[id] = JSON.parse(JSON.stringify(v)); save(); fire(name); },
+      async update(p) { const c = (data[name] = data[name] || {}); c[id] = Object.assign({}, c[id] || {}, p); save(); fire(name); },
+      async delete() { if (data[name]) delete data[name][id]; save(); fire(name); },
+    }; },
+  });
+  return { collection: coll };
+}
+
+let inst = null;
+
+function create(opts) {
+  const hostEl = document.createElement("div"); hostEl.className = "ex44map";
+  const root = hostEl.attachShadow({ mode: "open" });
+  root.innerHTML = `<style>${CSS}</style><div class="app ${opts.theme === "light" ? "light" : "dark"}" id="app">${HTML}</div>`;
+  const app = root.getElementById("app");
+  const it = { el: hostEl, root, app, api: null, started: false,
+    setTheme(t) { app.classList.toggle("dark", t !== "light"); app.classList.toggle("light", t === "light"); } };
+  it.start = () => {
+    if (it.started) return; it.started = true;
+    const t0 = performance.now();
+    (async () => {
+      // The live home passes opts.loader (reads the private repo with the viewer's key and returns the scan); the mock-up fetches the sidecar.
+      if (opts.loader) { root.getElementById("loadMsg").textContent = "Reading the scan from EX-44's state..."; return await opts.loader(); }
+      const r = await fetch(opts.src || "map-data.json.gz.b64");
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      root.getElementById("loadMsg").textContent = "Unpacking the scan...";
+      const b64 = (await r.text()).trim(); const bin = atob(b64); const u = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+      const txt = await new Response(new Blob([u]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+      return JSON.parse(txt);
+    })().then(RAW => {
+      root.getElementById("loadMsg").textContent = "Building the tree...";
+      setTimeout(() => {
+        try { it.api = init(RAW, root, app); it.api.loadMs = Math.round(performance.now() - t0); root.getElementById("loading").hidden = true; root.getElementById("ui").hidden = false; it.api.start(); }
+        catch (e) { fail(e); }
+      }, 0);
+    }).catch(fail);
+    function fail(e) {
+      const l = root.getElementById("loading"); l.classList.add("err"); l.hidden = false;
+      root.getElementById("loadMsg").textContent = (opts.loader ? "Could not load the map: " : "Could not load the map data (map-data.json.gz.b64 must sit next to this page): ") + (e && e.message ? e.message : e);
+      console.error(e); it.error = String(e && e.stack || e);
+    }
+  };
+  return it;
+}
+
+function init(RAW, root, app) {
+const $ = id => root.getElementById(id);
+const T = RAW.tree, OV = RAW.ov;
+const SCANNED = OV.when;
+const PAGE = 300;
+const fmt = b => b < 1024 ? b + ' B' : b < 1048576 ? (b/1024).toFixed(0) + ' KB' : b < 1073741824 ? (b/1048576).toFixed(1) + ' MB' : (b/1073741824).toFixed(2) + ' GB';
+const n0 = n => n.toLocaleString('en-US');
+const BS = '/';
+const ONLY_MASK = 1 | 4 | 8 | 16 | 128;  // G D T B K: a file with none of these lives only on EX-44
+let showHidden = true, onlyNotes = false;
+$('scanned').textContent = `Scanned ${SCANNED} · ${n0(T.c)} files · ${fmt(T.s)}`;
+const isShown = () => app.isConnected && app.getClientRects().length > 0;
+const typing = () => { const a = root.activeElement || document.activeElement; return !!a && (/INPUT|TEXTAREA|SELECT/.test(a.tagName) || a.isContentEditable); };
+
+// ---------- level colours: one hue per top-level folder (IoUT and Claude World children get their own) ----------
+const HUES = [245, 25, 150, 300, 350, 75, 190, 270, 110, 330, 50, 210];
+const lvHue = new Map(); let hueI = 0;
+function levelKey(path) { const s = path.split(BS); if (s[1] === 'Workspace') return s.slice(0, (s[2] === 'IoUT' || s[2] === 'Claude World') ? 4 : 3).join(BS); return s.slice(0, 2).join(BS); }
+function levelColour(path) {
+  const k = levelKey(path); if (k === 'EX-44' || k === 'EX-44/Workspace') return '';
+  if (!lvHue.has(k)) lvHue.set(k, HUES[hueI++ % HUES.length]);
+  return `oklch(var(--lvL) var(--lvC) ${lvHue.get(k)})`;
+}
+
+// parent links + folder index (files are looked up inside their folder, which keeps memory low on 1M+ files)
+const dirs = [], dirMap = new Map();
+(function walk(d, path, par) {
+  d.p = par; d.path = path;
+  for (const k of d.d) { walk(k, path + BS + k.n, d); }
+  dirs.push(d); dirMap.set(path, { d, path });
+  d.ko = (d.x && d.x.sum) ? (d.n === '.git' || (d.x && d.x.sb) ? 0 : d.c) : d.d.reduce((a, k) => a + k.ko, 0) + d.f.filter(f => !(f[3] & ONLY_MASK)).length;
+})(T, 'EX-44', null);
+const byPath = {
+  get(p) {
+    const hit = dirMap.get(p); if (hit) return hit;
+    const i = p.lastIndexOf(BS); if (i < 0) return undefined;
+    const par = dirMap.get(p.slice(0, i)); if (!par) return undefined;
+    const nm = p.slice(i + 1); const f = par.d.f.find(x => x[0] === nm);
+    return f ? { f, dir: par.d, path: par.d.path } : undefined;
+  },
+  has(p) { return !!this.get(p); },
+};
+for (const k of T.d) { levelColour(k.path); for (const kk of k.d) { levelColour(kk.path); for (const k3 of kk.d) levelColour(k3.path); } }
+// ---------- layers: where else each file lives (flags from the scan) ----------
+const LAYERS = [
+  ['all', 'Everything', -1, ''],
+  ['G', 'In GitHub', 0, 'In git: it is pushed to GitHub with its repo'],
+  ['L', 'Reaches la57', 1, 'On its repo\'s la57 branch, so la57 pulls it'],
+  ['D', 'On Drive', 2, 'Drive has a file at the same path (Drive = la57\'s mentor tree)'],
+  ['P', 'Drive pull writes here', 6, 'The 30-minute Drive pull may add or update this file'],
+  ['T', 'Sent by the top-up', 3, 'In the nightly top-up set: EX-44 copies it to Drive "EX-44 top-up"'],
+  ['B', 'Backed up', 4, 'Backed up every night to the Storage Box'],
+  ['U', 'In a repo, not in git', 5, 'Inside a repo folder but untracked or ignored: only git does not have it'],
+  ['O', 'Only on EX-44', -2, 'Not in git, not on Drive, not in the top-up, not in the backup'],
+  ['K', 'Links', 7, 'A link that points to another folder'],
+];
+const LAYER = Object.fromEntries(LAYERS.map(l => [l[0], l]));
+const LCOL = { all: 'var(--ink3)', G: 'var(--blue)', L: 'var(--held)', D: 'var(--ok)', P: 'var(--amber)', T: 'var(--ok)', B: 'var(--held)', U: 'var(--bad)', O: 'var(--bad)', K: 'var(--ink3)' };
+let layer = 'all';
+function layerFile(f) { if (layer === 'all') return true; const L = LAYER[layer]; return L[2] === -2 ? !(f[3] & ONLY_MASK) : !!(f[3] & (1 << L[2])); }
+function layerCount(d, lk) { const L = LAYER[lk || layer]; return L[2] === -1 ? d.c : L[2] === -2 ? (d.ko || 0) : (d.k ? d.k[L[2]] : 0); }
+function flagChips(fl) {
+  const box = el('span', 'fls');
+  for (const L of LAYERS) if (L[2] >= 0 && (fl & (1 << L[2]))) { const c = el('span', 'fl fl-' + L[0], L[0]); c.title = L[1] + ': ' + L[3]; box.append(c); }
+  if (!(fl & ONLY_MASK)) { const c = el('span', 'fl fl-O', 'only'); c.title = LAYER.O[3]; box.append(c); }
+  return box;
+}
+function dirTags(d) {
+  const box = el('span', 'tags'); const x = d.x || {};
+  const t = (cls, txt, tip) => { const e = el('span', 'tag ' + cls, txt); e.title = tip; box.append(e); };
+  if (x.r) t('t-repo', 'repo ' + x.r, 'A git working copy. Its work is pushed to GitHub: ' + x.r);
+  if (x.pull) t('t-pull', 'Drive pull: ' + x.pull, 'Every 30 minutes EX-44 copies new and changed files from the Drive folder "' + x.pull + '" into here (adds and updates, never deletes)');
+  if (x.block) t('t-block', 'pull stops here', 'The Drive pull does not write in here. Why: ' + x.block);
+  if (x.sb) t('t-sb', 'Storage Box', x.sb);
+  if (x.sum) t('t-sum', 'size only', 'Not listed file by file: only the size and count are shown for this folder');
+  return box;
+}
+function realPath(p) {
+  const s = p.split(BS);
+  if (s[1] === 'Workspace') return ['/srv/ws', ...s.slice(2)].join('/');
+  if (s[1] === 'Elsewhere on EX-44') return [s[2] === 'srv-index' ? '/srv/index' : '/home/ali', ...s.slice(3)].join('/');
+  if (s[1] === 'Storage Box') return 'storagebox:' + s.slice(2).join('/');
+  return 'EX-44';
+}
+function visible(node) { for (let x = node; x; x = x.p) if (x.h && !showHidden) return false; return true; }
+
+function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function folderIcon(d) {
+  const x = d.x || {};
+  if (!d.p) return ico('disk', 15, 'fi top');
+  if (d.p === T) return ico(d.n === 'Storage Box' ? 'box' : 'disk', 15, 'fi top');
+  return ico('folder', 15, 'fi' + (x.r ? ' repo' : x.sb ? ' sb' : ''));
+}
+const IND = 20;  // px per level in the tree, as on the design
+function cnt(v) { return el('span', 'num r' + (v ? '' : ' zero'), n0(v || 0)); }
+function yes(on, tip) { const s = el('span', 'num r' + (on ? ' yes' : ' zero'), on ? '' : '·'); if (on) { s.append(ico('check', 14)); s.title = tip; } return s; }
+function boardBtn(path, tip) {
+  const b = el('button', 'bb'); b.append(ico('board', 13), el('span', null, 'Board')); b.type = 'button'; b.title = tip;
+  b.onclick = e => { e.stopPropagation(); boardAdd(path); setView('board'); }; return b;
+}
+function dirNode(d, parentSize, ctx, depth) {
+  depth = depth == null ? -1 : depth;
+  const w = el('div', 'node' + (d.h ? ' hid' : '') + (levelKey(d.path) === d.path ? ' top' : '') + (depth === 0 ? ' depth0' : '')); w._d = d; w._ctx = ctx || null; w._depth = depth;
+  if (ctx) ctx.els.set(d.path, w); else { d._el = w; w.style.setProperty('--ind', Math.max(0, depth) * IND + 'px'); }
+  const c = levelColour(d.path); if (c) w.style.setProperty('--lvc', c);
+  const r = el('div', 'row dir'); r.tabIndex = 0;
+  const nm = el('span', 'name'); nm.append(ico('chev', 12, 'tw'), folderIcon(d), el('span', 'dname', d.n));
+  if (ctx) nm.append(dirTags(d)); else nm.style.paddingLeft = Math.max(0, depth) * IND + 'px';
+  const nc = el('span', 'ncount'); nc.hidden = true; nm.append(nc);
+  const act = el('span', 'act');
+  if (!ctx) act.append(boardBtn(d.path, 'Put this folder on the board as its own card'));
+  else if (d.p && ctx.card.root !== d.path) { const b = el('button', 'pull'); b.append(ico('pull', 13)); b.type = 'button'; b.title = 'Give this folder its own card'; b.setAttribute('aria-label', 'Give ' + d.n + ' its own card'); b.onclick = e => { e.stopPropagation(); pullOut(ctx, d.path); }; act.append(b); }
+  if (ctx) {
+    const ctTxt = layer === 'all' ? n0(d.c) + ' files' : n0(layerCount(d)) + ' of ' + n0(d.c);
+    r.append(nm, el('span', 'num ct', ctTxt), el('span', 'num sz', fmt(d.s)), act, noteBtn(w, d.path, 'folder'));
+  } else {
+    act.append(noteBtn(w, d.path, 'folder'));
+    const k = d.k || [];
+    const files = cnt(layer === 'all' ? d.c : layerCount(d)); if (layer !== 'all') files.title = n0(layerCount(d)) + ' of ' + n0(d.c) + ' files are "' + LAYER[layer][1] + '"';
+    r.append(nm, files, el('span', 'num r sz', fmt(d.s)), cnt(k[0]), cnt(k[2]), cnt(k[4]), dirTags(d), act);
+    r.setAttribute('aria-expanded', 'false');
+  }
+  r.onclick = e => { if (!e.target.closest('.nb, .bb, .pull')) { toggle(w); if (!ctx) setCurrent(d); } };
+  if (!ctx) r.ondblclick = e => { if (!e.target.closest('.nb, .bb')) copyPath(d.path); };
+  r.title = realPath(d.path);
+  if (!ctx) r.onfocus = () => setCurrent(d);
+  else {
+    r.draggable = true; r.title = realPath(d.path) + ' · ' + fmt(d.s) + ' · drag onto empty space for its own card · double-click copies the path';
+    r.ondragstart = e => { e.dataTransfer.setData('text/x-snpath', d.path); e.dataTransfer.setData('text/plain', d.n); e.dataTransfer.effectAllowed = 'copy'; };
+    r.ondblclick = e => { if (!e.target.closest('.nb, .pull')) copyPath(d.path); };
+  }
+  w.append(r); paintNote(w); return w;
+}
+function fileNode(f, dir, ctx, depth) {
+  const w = el('div', 'node' + (f[2] ? ' hid' : '')); w._dir = dir; w._ctx = ctx || null; const fp = dir.path + BS + f[0];
+  if (!ctx) w.style.setProperty('--ind', Math.max(0, depth || 0) * IND + 'px');
+  const r = el('div', 'row'); r.tabIndex = -1;
+  const nm = el('span', 'name'); const dot = f[0].lastIndexOf('.');
+  if (!ctx) nm.style.paddingLeft = Math.max(0, depth || 0) * IND + 'px';
+  nm.append(el('span', 'tw')); nm.title = f[0];
+  const ext = dot > 0 && f[0].length - dot <= 6 ? f[0].slice(dot + 1).toLowerCase() : '';
+  if (ctx) { if (ext) nm.append(el('span', 'ext', ext)); nm.append(el('span', 'fname', f[0])); }
+  else { const fn = el('span', 'fn'); fn.append(el('span', 'fname', f[0])); if (ext) fn.append(el('span', 'ext pillx', ext)); nm.append(ico('file', 15, 'fi'), fn); }
+  if (f[3] & 128) { const lk = el('span', 'lnk', '→ ' + (f[4] || '')); lk.title = 'A link to ' + (f[4] || ''); nm.append(lk); }
+  if (ctx) {
+    nm.append(flagChips(f[3]));
+    r.append(nm, el('span', 'num ct', ''), el('span', 'num sz', (f[3] & 128) ? '' : fmt(f[1])), el('span', 'act'), noteBtn(w, fp, 'file'));
+  } else {
+    const act = el('span', 'act'); act.append(boardBtn(dir.path, 'Put this file\'s folder (' + dir.n + ') on the board'), noteBtn(w, fp, 'file'));
+    r.append(nm, el('span', 'num r zero', ''), el('span', 'num r sz', (f[3] & 128) ? '' : fmt(f[1])),
+      yes(f[3] & 1, 'In GitHub'), yes(f[3] & 4, 'On Drive'), yes(f[3] & 16, 'Backed up'), flagChips(f[3]), act);
+  }
+  r.title = realPath(fp);
+  r.ondblclick = e => { if (!e.target.closest('.nb, .bb')) copyPath(fp); };
+  if (!ctx) r.onfocus = () => setCurrent(dir);
+  else {
+    r.tabIndex = 0; r.title = realPath(fp) + ' · ' + fmt(f[1]) + ' · double-click copies the path';
+    const k = lkey(f[0]); if (k) { w.dataset.lk = k; if (k === selLk) w.classList.add('lk-hit'); }
+    if (fp === selPath) w.classList.add('sel');
+    r.onclick = e => { if (!e.target.closest('.nb')) selectFile(fp, k); };
+  }
+  w.append(r); paintNote(w); return w;
+}
+
+// ---------- breadcrumb ----------
+const crumb = $('crumb'); let current = null;
+function setCurrent(d) {
+  if (current === d) return; if (current && current._el) current._el.querySelector(':scope > .row')?.classList.remove('cur');
+  current = d; crumb.replaceChildren();
+  const chain = []; for (let x = d; x; x = x.p) chain.unshift(x);
+  chain.forEach((x, i) => {
+    if (i) crumb.append(el('span', 'sep', '›'));
+    const a = el('a', null, x.n); a.tabIndex = 0; a.onclick = () => { if (x === T) { tcard.scrollTop = 0; return; } reveal(x); x._el?.querySelector(':scope > .row')?.focus({ preventScroll: true }); };
+    a.onkeydown = e => { if (e.key === 'Enter') a.onclick(); };
+    crumb.append(a);
+  });
+  if (d._el) d._el.querySelector(':scope > .row')?.classList.add('cur');
+}
+
+// ---------- notes (on the live page: its database; here: this browser) ----------
+let db = null;
+const notesById = new Map(), notesByPath = new Map(); let noteAnc = new Map(); // ancestor path -> count of open/asked notes below
+function hid(path) { let h1 = 0x811c9dc5, h2 = 0x9747b28c; for (let i = 0; i < path.length; i++) { const c = path.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619); h2 = Math.imul(h2 ^ c, 2246822519); } return 'n' + (h1 >>> 0).toString(16) + (h2 >>> 0).toString(16) + path.length; }
+const ST = s => (s === 'done' || s === 'asked') ? s : 'open';
+function noteBtn(w, path, kind) {
+  w.dataset.path = path; w.dataset.kind = kind;
+  const b = el('button', 'nb', '+ note'); b.type = 'button'; b.title = 'Add or edit a note for Claude';
+  b.onclick = e => { e.stopPropagation(); openEditor(w); };
+  return b;
+}
+// ---------- chunk focus (db: chunks/<id> {title, paths[], exclude[], state, session}; focus/current {chunk, by}) ----------
+const chunks = new Map(); let focusDoc = null; let focusPick = store.get('ex44map-focus') || 'auto';
+function mapPath(p) {
+  p = String(p || '').replace(/\/+$/, '');
+  if (p === '/srv/ws' || p.startsWith('/srv/ws/')) return 'EX-44/Workspace' + p.slice(7);
+  if (p === '/srv/index' || p.startsWith('/srv/index/')) return 'EX-44/Elsewhere on EX-44/srv-index' + p.slice(10);
+  if (p === '/home/ali' || p.startsWith('/home/ali/')) return 'EX-44/Elsewhere on EX-44/home-ali' + p.slice(9);
+  if (p.startsWith('storagebox:')) return ('EX-44/Storage Box/' + p.slice(11)).replace(/\/+$/, '');
+  return p.startsWith('EX-44') ? p : 'EX-44/Workspace/' + p.replace(/^\/+/, '');
+}
+const rel = p => mapPath(p);
+function activeChunk() {
+  if (focusPick === 'none') return null;
+  const id = focusPick === 'auto' ? (focusDoc && focusDoc.chunk) : focusPick;
+  return id && chunks.has(id) ? chunks.get(id) : null;
+}
+const under = (p, rt) => p === rt || p.startsWith(rt + BS);
+function focusClass(path) {
+  const c = activeChunk(); if (!c) return '';
+  if (c.exclude.some(x => under(path, x))) return 'dim';
+  if (c.paths.some(x => under(path, x))) return c.paths.includes(path) ? 'inchunk chunkroot' : 'inchunk';
+  if (c.paths.some(x => under(x, path))) return '';
+  return 'dim';
+}
+function focusMark(w) {
+  w.classList.remove('dim', 'inchunk', 'chunkroot');
+  const k = focusClass(w.dataset.path); if (k) w.classList.add(...k.split(' '));
+}
+const focusSel = $('focusSel'), focusInfo = $('focusInfo');
+function renderFocusSel() {
+  const keep = focusPick; focusSel.replaceChildren();
+  const opt = (v, t) => { const o = el('option', null, t); o.value = v; focusSel.append(o); };
+  opt('auto', 'Follow the chat that is working'); opt('none', 'Whole map, nothing dimmed');
+  for (const [id, c] of [...chunks.entries()].sort((a, b) => a[0].localeCompare(b[0]))) opt(id, `${c.title}${c.state ? ' (' + c.state + ')' : ''}`);
+  focusSel.value = [...focusSel.options].some(o => o.value === keep) ? keep : 'auto';
+}
+function applyFocus(scroll) {
+  const c = activeChunk();
+  app.classList.toggle('focusing', !!c);
+  root.querySelectorAll('.node[data-path]').forEach(focusMark);
+  const fp = $('focusPill'); fp.hidden = !c; if (c) { fp.textContent = 'Focus: ' + c.title; fp.title = 'The rest of the map is dimmed. Change it under More.'; }
+  if (!c) { focusInfo.textContent = focusPick === 'auto' ? 'No chat is focused on a chunk right now (on the live page, a working chat sets this).' : ''; }
+  else {
+    let open = 0; for (const n of notesById.values()) if (ST(n.status) !== 'done' && c.paths.some(x => under(n.path, x)) && !c.exclude.some(x => under(n.path, x))) open++;
+    focusInfo.replaceChildren(el('span', null, 'Showing '), el('b', null, c.title),
+      el('span', null, `${c.session ? ' · chat: ' + c.session : ''} · ${open} open or asked note${open === 1 ? '' : 's'} · the rest of the map is dimmed`));
+  }
+  if (!notesPanel.hidden) renderNotesPanel();
+  if (c && scroll) {
+    for (const p of c.paths) { const it = byPath.get(p); if (it && it.d) reveal(it.d, null, true); }
+    saveOpen();
+    const first = treeBox.querySelector('.chunkroot');
+    if (first) { if (first._d) setCurrent(first._d); inCard(first, 'start'); }
+  }
+}
+focusSel.onchange = () => { focusPick = focusSel.value; store.set('ex44map-focus', focusPick); applyFocus(true); };
+
+function paintNote(w) {
+  focusMark(w);
+  const n = notesByPath.get(w.dataset.path); const row = w.querySelector(':scope > .row');
+  w.classList.toggle('has-note', !!n); w.classList.remove('st-open', 'st-asked', 'st-done');
+  if (n) w.classList.add('st-' + ST(n.status));
+  row.querySelector('.nb').textContent = n ? ({ open: 'note', asked: 'question', done: 'done' })[ST(n.status)] : '+ note';
+  const nc = row.querySelector('.ncount');
+  if (nc) { const k = noteAnc.get(w.dataset.path) || 0; nc.hidden = !k || w.classList.contains('open'); nc.textContent = k + (k > 1 ? ' notes' : ' note'); nc.title = k + ' open or asked notes inside'; }
+  let pv = w.querySelector(':scope > .nprev');
+  if (n && !w.querySelector(':scope > .editor')) {
+    if (!pv) { pv = el('div', 'nprev'); row.after(pv); }
+    pv.replaceChildren(el('span', 'badge', ST(n.status)), el('span', null, n.text));
+    if (n.status === 'done' && n.done) pv.append(el('span', 'extra', 'Done: ' + n.done));
+    if (n.status === 'asked' && n.question) pv.append(el('span', 'extra', 'Claude asks: ' + n.question));
+    if (n.answer) pv.append(el('span', 'extra', 'Your answer: ' + n.answer));
+  } else if (pv) pv.remove();
+}
+function openEditor(w) {
+  if (!db) return;
+  const old = w.querySelector(':scope > .editor'); if (old) { old.remove(); paintNote(w); return; }
+  const path = w.dataset.path, n = notesByPath.get(path);
+  w.querySelector(':scope > .nprev')?.remove();
+  const ed = el('div', 'editor');
+  const ta = el('textarea'); ta.id = 'ta-' + hid(path);
+  ta.placeholder = 'What should change here? e.g. "move to Resources", "rename to ...", "old, hide it"'; ta.value = n ? n.text : '';
+  const lab = el('label', null, 'Your note'); lab.htmlFor = ta.id; ed.append(lab, ta);
+  let ans = null;
+  if (n && (n.status === 'asked' || n.answer)) {
+    if (n.question) ed.append(el('div', 'q', 'Claude asks: ' + n.question));
+    ans = el('textarea'); ans.id = 'ans-' + hid(path); ans.placeholder = 'Type your answer for Claude'; ans.value = n.answer || '';
+    const al = el('label', null, 'Your answer'); al.htmlFor = ans.id; ed.append(al, ans);
+  }
+  const btns = el('div', 'btns'); const save = el('button', 'primary', 'Save'); save.type = 'button';
+  const del = el('button', null, 'Delete note'); del.type = 'button'; del.hidden = !n;
+  const cancel = el('button', 'ghost', 'Cancel'); cancel.type = 'button'; const msg = el('span', 'msg');
+  btns.append(save, del, cancel, msg); ed.append(btns);
+  w.querySelector(':scope > .row').after(ed); (ans || ta).focus();
+  const ref = db.collection('notes').doc(n ? n.id : hid(path));
+  save.onclick = async () => {
+    const text = ta.value.trim(); if (!text) { msg.textContent = 'Type something first, or use Delete.'; return; }
+    save.disabled = true; msg.textContent = 'Saving...';
+    const now = new Date().toISOString();
+    try {
+      if (n) { const patch = { text, updated: now }; if (ans) { patch.answer = ans.value.trim(); if (patch.answer && n.status === 'asked') patch.answered = now; } await ref.update(patch); }
+      else await ref.set({ path: realPath(path), kind: w.dataset.kind, text, status: 'open', updated: now });
+      ed.remove(); paintNote(w);
+    } catch (e) { save.disabled = false; msg.textContent = 'Could not save. Try again.'; }
+  };
+  del.onclick = async () => { del.disabled = true; try { await ref.delete(); ed.remove(); paintNote(w); } catch (e) { del.disabled = false; msg.textContent = 'Could not delete. Try again.'; } };
+  cancel.onclick = () => { ed.remove(); paintNote(w); };
+}
+
+// ---------- Notes view: grouped by level, filtered by status ----------
+const notesBtn = $('notesBtn'), notesPanel = $('notesPanel');
+let stFilter = store.get('ex44map-stfilter') || 'all';
+function counts() { const c = { open: 0, asked: 0, done: 0 }; for (const n of notesById.values()) c[ST(n.status)]++; return c; }
+function renderNotesPanel() {
+  const c = counts();
+  notesBtn.textContent = `Notes view: ${c.open} open · ${c.asked} asked · ${c.done} done`;
+  const mb = $('moreBadge'); mb.hidden = !(c.open + c.asked); mb.textContent = String(c.open + c.asked); mb.title = c.open + ' open and ' + c.asked + ' asked notes';
+  if (notesPanel.hidden) return;
+  notesPanel.replaceChildren();
+  const chips = el('div', 'chips');
+  for (const [k, label] of [['all', `All (${notesById.size})`], ['open', `Open (${c.open})`], ['asked', `Asked you (${c.asked})`], ['done', `Done (${c.done})`]]) {
+    const b = el('button', null, label); b.type = 'button'; b.setAttribute('aria-pressed', String(stFilter === k));
+    b.onclick = () => { stFilter = k; store.set('ex44map-stfilter', k); renderNotesPanel(); }; chips.append(b);
+  }
+  notesPanel.append(chips);
+  if (!notesById.size) { notesPanel.append(el('div', 'sub', 'No notes yet. Click "+ note" on any row in the tree.')); return; }
+  const groups = new Map();
+  for (const n of notesById.values()) {
+    if (stFilter !== 'all' && ST(n.status) !== stFilter) continue;
+    const k = levelKey(n.path); if (!groups.has(k)) groups.set(k, []); groups.get(k).push(n);
+  }
+  if (!groups.size) { notesPanel.append(el('div', 'sub', 'No notes with this status.')); return; }
+  const order = { asked: 0, open: 1, done: 2 };
+  for (const k of [...groups.keys()].sort()) {
+    const g = el('section', 'grp'); const colour = levelColour(k + BS + 'x'); if (colour) g.style.setProperty('--lvc', colour);
+    const h = el('h2'); h.append(el('span', 'dot'), el('span', null, realPath(k)), el('span', 'sub', String(groups.get(k).length)));
+    g.append(h);
+    for (const n of groups.get(k).sort((a, b) => order[ST(a.status)] - order[ST(b.status)] || a.path.localeCompare(b.path))) {
+      const card = el('div', 'ncard'); card.tabIndex = 0;
+      if (activeChunk() && focusClass(n.path) === 'dim') card.classList.add('dim');
+      const head = el('div', 'head'); head.append(el('span', 'badge ' + ST(n.status), ST(n.status)), el('span', 'p', (n.kind === 'file' ? 'File: ' : 'Folder: ') + realPath(n.path)));
+      card.append(head, el('div', 't', n.text));
+      if (n.status === 'done' && n.done) card.append(el('div', 'extra', 'Done: ' + n.done));
+      if (n.status === 'asked' && n.question) card.append(el('div', 'extra', 'Claude asks: ' + n.question));
+      if (n.answer) card.append(el('div', 'extra', 'Your answer: ' + n.answer));
+      const exists = byPath.has(n.path);
+      if (!exists) card.append(el('div', 'gone', n.old_path ? 'Not on disk now (moved or removed). Was: ' + n.old_path : 'Not on disk now (moved or removed).'));
+      const go = () => { setNotesView(false); gotoPath(n.path); };
+      card.onclick = go; card.onkeydown = e => { if (e.key === 'Enter') go(); };
+      g.append(card);
+    }
+    notesPanel.append(g);
+  }
+}
+function setNotesView(on) {
+  notesPanel.hidden = !on; notesBtn.setAttribute('aria-pressed', String(on));
+  if (on) { $('q').value = ''; search(''); treeBox.hidden = true; if (view !== 'tree') setView('tree'); tcard.scrollTop = 0; } else if (res.hidden) treeBox.hidden = false;
+  cbarState(); renderNotesPanel();
+}
+// the slim bar on top of the tree card: where you are, or what the card shows instead of the tree
+function cbarState() {
+  const notes = !notesPanel.hidden, srch = !res.hidden;
+  $('notesPill').hidden = !notes; $('backTree').hidden = !(notes || srch);
+  crumb.hidden = notes || srch;
+}
+$('backTree').onclick = () => { if (!notesPanel.hidden) setNotesView(false); else { $('q').value = ''; search(''); } };
+notesBtn.onclick = () => setNotesView(notesPanel.hidden);
+function nearest(path) { let p = path; while (p && !byPath.has(p)) p = p.slice(0, Math.max(0, p.lastIndexOf(BS))); return p ? byPath.get(p) : null; }
+function gotoPath(path) {
+  treeBox.hidden = false;
+  const it = nearest(path); if (!it) return;
+  it.f ? reveal(it.dir, it.f[0]) : reveal(it.d);
+}
+function rebuildNoteIndex() {
+  notesByPath.clear(); const anc = new Map();
+  for (const n of notesById.values()) {
+    if (!notesByPath.has(n.path)) notesByPath.set(n.path, n);
+    if (ST(n.status) === 'done') continue;
+    let p = n.path; while ((p = p.slice(0, Math.max(0, p.lastIndexOf(BS))))) anc.set(p, (anc.get(p) || 0) + 1);
+  }
+  noteAnc = anc;
+}
+let notePathKey = '';
+function startDb() {
+  db = localDb();
+  db.collection('notes').limit(1000).onSnapshot(snap => {
+    notesById.clear();
+    for (const d of snap.docs) {
+      const v = d.data(); if (!v || typeof v.path !== 'string' || typeof v.text !== 'string') continue;
+      notesById.set(d.id, { id: d.id, path: mapPath(v.path), kind: v.kind, text: v.text, updated: v.updated,
+        status: v.status, done: v.done, question: v.question, answer: v.answer, old_path: v.old_path });
+    }
+    rebuildNoteIndex();
+    const key = [...notesByPath.keys()].sort().join('|');
+    if (onlyNotes && key !== notePathKey) { notePathKey = key; render(); } else { notePathKey = key; root.querySelectorAll('.node[data-path]').forEach(paintNote); }
+    renderNotesPanel(); applyFocus(false);
+  });
+  let firstFocus = true;
+  db.collection('chunks').limit(200).onSnapshot(snap => {
+    chunks.clear();
+    for (const d of snap.docs) {
+      const v = d.data() || {}; const paths = Array.isArray(v.paths) ? v.paths.map(rel).filter(Boolean) : [];
+      if (!paths.length) continue;
+      chunks.set(d.id, { id: d.id, title: String(v.title || d.id), paths, exclude: Array.isArray(v.exclude) ? v.exclude.map(rel) : [],
+        state: v.state ? String(v.state) : '', session: v.session ? String(v.session) : '' });
+    }
+    renderFocusSel(); applyFocus(firstFocus); firstFocus = false;
+  });
+  let lastFocus = '';
+  db.collection('focus').limit(5).onSnapshot(snap => {
+    const d = snap.docs.find(x => x.id === 'current'); focusDoc = d ? d.data() : null;
+    const key = focusDoc && focusDoc.chunk ? String(focusDoc.chunk) : '';
+    applyFocus(focusPick === 'auto' && key !== lastFocus); lastFocus = key;
+  });
+}
+
+// ---------- tree ----------
+function keepDir(k) { return (showHidden || !k.h) && (layer === 'all' || layerCount(k) > 0) && (!onlyNotes || noteAnc.has(k.path) || notesByPath.has(k.path)); }
+function keepFile(d, f) { return (showHidden || !f[2]) && layerFile(f) && (!onlyNotes || notesByPath.has(d.path + BS + f[0])); }
+function fillKids(w) {
+  const d = w._d, ctx = w._ctx, dep = (w._depth == null ? -1 : w._depth) + 1; const box = el('div', 'kids'); w.append(box);
+  const kd = ctx ? (k => !k.h && (layer === 'all' || layerCount(k) > 0)) : keepDir, kf = ctx ? ((dd, f) => !f[2] && layerFile(f)) : keepFile;  // cards never show hidden files
+  const items = [...d.d.filter(kd).map(k => ['d', k]), ...d.f.filter(f => kf(d, f)).map(f => ['f', f])];
+  let shown = 0;
+  const more = () => {
+    const end = Math.min(items.length, shown + PAGE);
+    for (; shown < end; shown++) { const [t, x] = items[shown]; box.append(t === 'd' ? dirNode(x, d.s, ctx, dep) : fileNode(x, d, ctx, dep)); }
+    if (shown < items.length) { const m = el('div', 'more pg', `Show ${Math.min(PAGE, items.length - shown)} more of ${n0(items.length - shown)} left`); m.style.setProperty('--ind', Math.max(0, dep) * IND + 'px'); m.onclick = () => { m.remove(); more(); }; box.append(m); }
+  };
+  if (!items.length) {
+    const e = el('div', 'more', onlyNotes && !ctx ? 'No notes in here' : (d.x && d.x.sum) ? 'Not listed file by file: ' + n0(d.c) + ' files, ' + fmt(d.s) : layer !== 'all' ? 'Nothing here for "' + LAYER[layer][1] + '"' : 'Empty');
+    e.style.setProperty('--ind', Math.max(0, dep) * IND + 'px'); box.append(e);
+  }
+  more();
+}
+const openSet = new Set(store.get('ex44map-open') || []);
+let saveT; function saveOpen() { clearTimeout(saveT); saveT = setTimeout(() => store.set('ex44map-open', [...openSet].slice(-400)), 300); }
+function toggle(w, force, quiet) {
+  const open = force ?? !w.classList.contains('open');
+  if (open) { if (!w.querySelector(':scope > .kids')) fillKids(w); w.classList.add('open'); w.querySelector(':scope > .kids').hidden = false; }
+  else { w.classList.remove('open'); const k = w.querySelector(':scope > .kids'); if (k) k.hidden = true; }
+  if (w._ctx) { const o = w._ctx.open; open ? o.add(w._d.path) : o.delete(w._d.path); if (!quiet) w._ctx.changed(); }
+  else if (w._d && w._d.p) { open ? openSet.add(w._d.path) : openSet.delete(w._d.path); if (!quiet) saveOpen(); }
+  if (!w._ctx) w.querySelector(':scope > .row')?.setAttribute('aria-expanded', String(open));
+  paintNote(w);
+}
+const treeBox = $('tree'), tcard = $('tscroll');  // tcard: the tree card's scroller
+// scroll the tree card only (never the page): block 'center' | 'start' | 'nearest'
+function inCard(node, block) {
+  if (!node || !tcard.contains(node)) return;
+  const r = node.getBoundingClientRect(), c = tcard.getBoundingClientRect(), top = c.top + tcard.querySelector('.hrow').offsetHeight;
+  const h = Math.min(r.height, 38), vis = c.bottom - top;
+  if (block === 'nearest') { if (r.top < top) tcard.scrollTop -= top - r.top; else if (r.top + h > c.bottom) tcard.scrollTop += r.top + h - c.bottom; return; }
+  tcard.scrollTop += r.top - top - (block === 'start' ? 8 : (vis - h) / 2);
+}
+function render() {
+  treeBox.replaceChildren(); const rt = dirNode(T, 0); treeBox.append(rt); toggle(rt, true, true);
+  const saved = [...openSet].filter(p => dirMap.has(p)).sort((a, b) => a.split(BS).length - b.split(BS).length);
+  if (!saved.length) { for (const k of T.d) if (k._el && !k.h) toggle(k._el, true, true); }
+  else for (const p of saved) { const d = dirMap.get(p).d; if (d && d.p && d.p._el && d.p._el.classList.contains('open') && openRendered(d)) toggle(d._el, true, true); }
+  if (!current) setCurrent(T); else setCurrent(current);
+}
+function openRendered(d) { if (d._el && treeBox.contains(d._el)) return true; const w = d.p._el; let m; while (!(d._el && treeBox.contains(d._el)) && (m = w.querySelector(':scope > .kids > .more.pg'))) m.click(); return !!(d._el && treeBox.contains(d._el)); }
+
+function reveal(target, fileName, quiet) {
+  if (!quiet) { $('q').value = ''; search(''); }
+  if (onlyNotes && !keepDir(target) && target.p) { onlyNotes = false; $('onlyNotes').checked = false; render(); }
+  const chain = []; for (let x = target; x; x = x.p) chain.unshift(x);
+  let w = null;
+  for (const d of chain) {
+    w = (d._el && treeBox.contains(d._el)) ? d._el : null;
+    if (!w) return;
+    toggle(w, true, quiet);
+    const next = chain[chain.indexOf(d) + 1];
+    if (next && !(next._el && treeBox.contains(next._el))) {
+      let m; while (!(next._el && treeBox.contains(next._el)) && (m = w.querySelector(':scope > .kids > .more.pg'))) m.click();
+    }
+  }
+  if (quiet) return;
+  saveOpen();
+  let spot = w;
+  if (fileName) {
+    let m; const find = () => [...w.querySelectorAll(':scope > .kids > .node')].find(n => n.querySelector('.fname')?.textContent === fileName);
+    while (!find() && (m = w.querySelector(':scope > .kids > .more.pg'))) m.click();
+    spot = find() || w;
+  }
+  setCurrent(target);
+  spot.classList.remove('flash'); void spot.offsetWidth; spot.classList.add('flash');
+  inCard(spot, 'center');
+}
+$('openNotes').onclick = () => {
+  setNotesView(false);
+  for (const n of notesById.values()) { if (ST(n.status) === 'done') continue; const it = nearest(n.path); if (it) reveal(it.f ? it.dir : it.d, null, true); }
+  saveOpen(); const first = treeBox.querySelector('.has-note'); if (first) inCard(first, 'center');
+};
+
+// ---------- keyboard navigation ----------
+function rows(box) { return [...box.querySelectorAll('.row')].filter(r => r.offsetParent !== null); }
+function navKeys(e) {
+  const r = e.target.closest('.row'); if (!r || e.target !== r) return;
+  const w = r.parentElement; const list = rows(r.closest('.cbody') || treeBox); const i = list.indexOf(r);
+  const focus = x => { if (x) { x.tabIndex = x.tabIndex < 0 ? -1 : x.tabIndex; if (tcard.contains(x)) { x.focus({ preventScroll: true }); inCard(x, 'nearest'); } else { x.focus(); x.scrollIntoView({ block: 'nearest' }); } } };
+  if (e.key === 'ArrowDown') { e.preventDefault(); focus(list[i + 1]); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); focus(list[i - 1]); }
+  else if (e.key === 'ArrowRight' && w._d) { e.preventDefault(); if (!w.classList.contains('open')) toggle(w, true); else focus(w.querySelector(':scope > .kids > .node > .row')); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); if (w._d && w.classList.contains('open')) toggle(w, false); else { const par = w.parentElement?.closest('.node'); if (par) focus(par.querySelector(':scope > .row')); } }
+  else if ((e.key === 'Enter' || e.key === ' ') && w._d) { e.preventDefault(); toggle(w); }
+  else if ((e.key === 'n' || e.key === 'N') && !e.ctrlKey && !e.metaKey) { e.preventDefault(); openEditor(w); }
+  else if (e.key === 'Enter' && !w._d && w._ctx) { e.preventDefault(); copyPath(w.dataset.path); }
+  else return;
+  e.stopPropagation();
+}
+treeBox.addEventListener('keydown', navKeys);
+const onSlash = e => { if (e.key === '/' && !e.ctrlKey && !e.metaKey && isShown() && !typing()) { e.preventDefault(); $('q').focus(); } };
+document.addEventListener('keydown', onSlash);
+
+// ---------- search ----------
+const res = $('results'), qinfo = $('qinfo');
+function hl(text, q) { const s = el('span', 'n'); const i = text.toLowerCase().indexOf(q); if (i < 0) { s.textContent = text; return s; }
+  s.append(text.slice(0, i)); const m = el('mark', null, text.slice(i, i + q.length)); s.append(m, text.slice(i + q.length)); return s; }
+let timer;
+function search(raw) {
+  const q = raw.trim().toLowerCase();
+  if (!q) { res.hidden = true; qinfo.hidden = true; if (notesPanel.hidden) treeBox.hidden = false; cbarState(); return; }
+  notesPanel.hidden = true; notesBtn.setAttribute('aria-pressed', 'false');
+  const hits = []; let total = 0;
+  for (const d of dirs) {  // same order as the old flat list: a folder's files, then the folder
+    const dv = showHidden || visible(d);
+    for (const f of d.f) {
+      if (!f[0].toLowerCase().includes(q)) continue;
+      if (!showHidden && (f[2] || !dv)) continue;
+      if (layer !== 'all' && !layerFile(f)) continue;
+      total++; if (hits.length < 400) hits.push({ f, dir: d, path: d.path });
+    }
+    if (!d.n.toLowerCase().includes(q)) continue;
+    if (!dv) continue;
+    if (layer !== 'all' && layerCount(d) === 0) continue;
+    total++; if (hits.length < 400) hits.push({ d, path: d.path });
+  }
+  res.replaceChildren();
+  for (const it of hits) {
+    const r = el('div', 'res'); r.tabIndex = 0; const left = el('div');
+    left.append(hl(it.f ? it.f[0] : it.d.n + BS, q), el('div', 'p', realPath(it.f ? it.path : (it.d.p ? it.d.p.path : 'EX-44'))));
+    if (it.f) left.firstChild.append(flagChips(it.f[3])); else left.firstChild.append(dirTags(it.d));
+    r.append(left, el('span', 'num', it.f ? fmt(it.f[1]) : n0(it.d.c) + ' files'));
+    r.onclick = () => it.f ? reveal(it.dir, it.f[0]) : reveal(it.d);
+    r.onkeydown = e => { if (e.key === 'Enter') r.onclick(); };
+    res.append(r);
+  }
+  qinfo.textContent = total ? `${n0(total)} match${total > 1 ? 'es' : ''}${total > hits.length ? `, first ${hits.length} shown` : ''}. Click one to see it in the tree.` : 'Nothing matches.';
+  qinfo.hidden = false; res.hidden = false; treeBox.hidden = true; tcard.scrollTop = 0; cbarState();
+}
+$('q').addEventListener('input', () => { if ($('q').value.trim() && view !== 'tree') setView('tree'); clearTimeout(timer); timer = setTimeout(() => search($('q').value), 180); });
+$('q').addEventListener('keydown', e => { if (e.key === 'Escape' && $('q').value) { e.stopPropagation(); $('q').value = ''; search(''); } });  // e.target is cleared after a shadow-tree event
+$('showHidden').addEventListener('change', e => { showHidden = e.target.checked; render(); refillCards(); search($('q').value); });
+$('onlyNotes').addEventListener('change', e => { onlyNotes = e.target.checked; render(); if (onlyNotes) $('openNotes').click(); });
+$('collapse').onclick = () => { $('q').value = ''; setNotesView(false); search(''); openSet.clear(); store.set('ex44map-open', []); treeBox.replaceChildren(); const rt = dirNode(T, 0); treeBox.append(rt); toggle(rt, true, true); setCurrent(T); };
+
+// ---------- board: several folders as cards on a zoomable space ----------
+// Layout = { cards: [{root, x, y, w, h, open[], min}], view: {x, y, z} }. The working board and named layouts are kept in this browser.
+const boardEl = $('board'), world = $('world'), zLbl = $('zLbl');
+let B = { cards: [], view: { x: 40, y: 30, z: 1 } };
+let selLk = '', selPath = '', zTop = 10, seq = 0;
+const cardRecs = new Map();
+const relPath = realPath;
+
+function lkey(name) { const m = name.match(/(?:^|[^a-z0-9])l(?:esson)?[ _-]?0*(\d{1,3})(?!\d)/i); return m ? 'L' + m[1].padStart(2, '0') : ''; }
+const lessonCache = new Map();
+function lessonsUnder(d) {
+  if (lessonCache.has(d.path)) return lessonCache.get(d.path);
+  const m = new Map(); let n = 0; const st = [d];
+  while (st.length && n < 80000) {
+    const x = st.pop();
+    for (const f of x.f) { n++; const k = lkey(f[0]); if (k) { let a = m.get(k); if (!a) m.set(k, a = []); if (a.length < 60) a.push([x, f[0]]); } }
+    for (const k of x.d) st.push(k);
+  }
+  lessonCache.set(d.path, m); return m;
+}
+
+// ----- toast -----
+const toastEl = $('toast'); let toastT;
+function toast(msg, btnText, btnFn) {
+  toastEl.replaceChildren(el('span', null, msg));
+  if (btnText) { const b = el('button', null, btnText); b.type = 'button'; b.onclick = () => { toastEl.hidden = true; btnFn(); }; toastEl.append(b); }
+  toastEl.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => { toastEl.hidden = true; }, btnText ? 7000 : 3500);
+}
+
+// ----- double-click copies the path on EX-44 -----
+async function copyPath(path) {
+  const rp = realPath(path);
+  try { await navigator.clipboard.writeText(rp); toast('Copied: ' + rp); } catch (e) { toast(rp); }
+}
+
+// ----- pan and zoom -----
+function applyView() {
+  const v = B.view; world.style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.z})`;
+  const g = 20 * v.z; boardEl.style.backgroundSize = `${g}px ${g}px`; boardEl.style.backgroundPosition = `${v.x}px ${v.y}px`;
+  zLbl.textContent = Math.round(v.z * 100) + '%';
+}
+function zoomAt(f, cx, cy) {
+  const v = B.view; const nz = Math.min(2.5, Math.max(0.12, v.z * f)); const k = nz / v.z;
+  v.x = cx - (cx - v.x) * k; v.y = cy - (cy - v.y) * k; v.z = nz; applyView(); boardChanged();
+}
+function zoomCentre(f) { zoomAt(f, boardEl.clientWidth / 2, boardEl.clientHeight / 2); }
+function fitAll() {
+  if (!B.cards.length) { B.view = { x: 40, y: 30, z: 1 }; applyView(); return; }
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const rec of cardRecs.values()) { const c = rec.c; x0 = Math.min(x0, c.x); y0 = Math.min(y0, c.y); x1 = Math.max(x1, c.x + c.w); y1 = Math.max(y1, c.y + (c.min ? 40 : c.h)); }
+  const W = boardEl.clientWidth, H = boardEl.clientHeight, pad = 40;
+  const z = Math.min(1.2, Math.max(0.12, Math.min((W - 2 * pad) / (x1 - x0), (H - 2 * pad - 50) / (y1 - y0))));
+  B.view = { z, x: (W - (x1 - x0) * z) / 2 - x0 * z, y: pad - y0 * z }; applyView(); boardChanged();
+}
+function toWorld(cx, cy) { const r = boardEl.getBoundingClientRect(), v = B.view; return [(cx - r.left - v.x) / v.z, (cy - r.top - v.y) / v.z]; }
+boardEl.addEventListener('wheel', e => {
+  // two fingers on the touchpad (plain scroll) move the board; pinch or Ctrl + scroll zooms.
+  // With the pointer over a card, scrolling only ever scrolls that card's list, never the board.
+  if (!e.ctrlKey && e.target.closest('.card, .addres, .zoombar')) {
+    if (!e.target.closest('.cbody, .addres')) e.preventDefault();
+    return;
+  }
+  e.preventDefault();
+  const r = boardEl.getBoundingClientRect();
+  if (e.ctrlKey) { zoomAt(Math.exp(-Math.max(-25, Math.min(25, e.deltaY)) * 0.01), e.clientX - r.left, e.clientY - r.top); return; }
+  const k = e.deltaMode === 1 ? 32 : e.deltaMode === 2 ? boardEl.clientHeight : 1;
+  if (e.shiftKey && !e.deltaX) { B.view.x -= e.deltaY * k; } else { B.view.x -= e.deltaX * k; B.view.y -= e.deltaY * k; }
+  applyView(); boardChanged();
+}, { passive: false });
+const ptrs = new Map(); let pinch = null;
+boardEl.addEventListener('pointerdown', e => {
+  if (e.target !== boardEl && e.target !== world && !e.target.closest('.empty-board')) return;
+  e.preventDefault(); window.getSelection()?.removeAllRanges(); app.classList.add('nosel');
+  boardEl.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); boardEl.classList.add('panning');
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), mx: (a[0] + b[0]) / 2, my: (a[1] + b[1]) / 2 }; }
+});
+boardEl.addEventListener('pointermove', e => {
+  if (!ptrs.has(e.pointerId)) return;
+  const prev = ptrs.get(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ptrs.size === 1) { B.view.x += e.clientX - prev[0]; B.view.y += e.clientY - prev[1]; applyView(); }
+  else if (ptrs.size === 2 && pinch) {
+    const [a, b] = [...ptrs.values()]; const d = Math.hypot(a[0] - b[0], a[1] - b[1]); const r = boardEl.getBoundingClientRect();
+    const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2;
+    B.view.x += mx - pinch.mx; B.view.y += my - pinch.my;
+    zoomAt(d / pinch.d, mx - r.left, my - r.top); pinch.d = d; pinch.mx = mx; pinch.my = my;
+  }
+});
+const endPtr = e => { if (!ptrs.delete(e.pointerId)) return; if (ptrs.size < 2) pinch = null; if (!ptrs.size) { boardEl.classList.remove('panning'); app.classList.remove('nosel'); boardChanged(); } };
+boardEl.addEventListener('pointerup', endPtr); boardEl.addEventListener('pointercancel', endPtr);
+// drop a folder row from a card onto empty space
+boardEl.addEventListener('dragover', e => { if ([...e.dataTransfer.types].includes('text/x-snpath')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; boardEl.classList.add('dropping'); } });
+boardEl.addEventListener('dragleave', e => { if (e.target === boardEl) boardEl.classList.remove('dropping'); });
+boardEl.addEventListener('drop', e => {
+  boardEl.classList.remove('dropping');
+  const p = e.dataTransfer.getData('text/x-snpath'); if (!p) return; e.preventDefault();
+  if (e.target.closest('.card')) { toast('Drop it on empty space to give it its own card.'); return; }
+  const [x, y] = toWorld(e.clientX, e.clientY); addCard(p, x - 40, y - 16);
+});
+$('zIn').onclick = () => zoomCentre(1.2); $('zOut').onclick = () => zoomCentre(1 / 1.2); $('zFit').onclick = fitAll;
+
+// ----- cards -----
+function cbtn(icon, label) { const b = el('button', 'cbtn'); b.append(ico(icon, 14)); b.type = 'button'; b.title = label; b.setAttribute('aria-label', label); return b; }
+function addCard(path, x, y, o = {}) {
+  const it = dirMap.get(path); if (!it) return null;
+  const c = { id: 'c' + Date.now().toString(36) + (seq++), root: path, x: Math.round(x), y: Math.round(y), w: o.w || 360, h: o.h || 460, open: o.open || [], min: false };
+  B.cards.push(c); const rec = mountCard(c); raise(rec); boardChanged(); refreshFeet(); $('emptyBoard').hidden = true;
+  return rec;
+}
+function viewSpot(w = 360) { const W = boardEl.clientWidth || 900, H = boardEl.clientHeight || 600, v = B.view; const n = cardRecs.size % 6; return [(W / 2 - v.x) / v.z - w / 2 + n * 26, (H / 3 - v.y) / v.z - 60 + n * 26]; }
+function boardAdd(path) { ensureBoard(); const [x, y] = viewSpot(); addCard(path, x, y); }
+function pullOut(ctx, path) {
+  const c = ctx.card, w = 340, h = 420; let x = c.x + c.w + 32, y = c.y;
+  const hits = () => [...cardRecs.values()].find(r => x < r.c.x + r.c.w + 16 && x + w + 16 > r.c.x && y < r.c.y + (r.c.min ? 44 : r.c.h) + 16 && y + h + 16 > r.c.y);
+  for (let i = 0, r; i < 40 && (r = hits()); i++) y = r.c.y + (r.c.min ? 44 : r.c.h) + 24;
+  const rec = addCard(path, x, y, { w, h }); if (rec) toast('New card: ' + path.split(BS).pop());
+}
+function mountCard(c) {
+  const card = el('section', 'card'); card.dataset.id = c.id; card.setAttribute('aria-label', 'Card ' + c.root.split(BS).pop());
+  const head = el('div', 'chead'); const title = el('span', 'ctitle');
+  const up = cbtn('up', 'Show the folder above in this card'), fold = cbtn('foldall', 'Close every folder in this card'), mn = cbtn('min', 'Shrink to the title bar, or open again'), x = cbtn('close', 'Remove this card');
+  const all = cbtn('openall', 'Open every folder in this card');
+  head.append(ico('folder', 15, 'fi'), title, up, all, fold, mn, x);
+  const crumbs = el('nav', 'cpath'), body = el('div', 'cbody'), foot = el('div', 'cfoot'), rz = el('div', 'cresize'); rz.title = 'Drag to resize';
+  card.append(head, crumbs, body, foot, rz); world.append(card);
+  const ctx = { card: c, els: new Map(), open: new Set(c.open), changed: () => boardChanged() };
+  const rec = { el: card, ctx, c, body, title, crumbs, foot, up };
+  cardRecs.set(c.id, rec);
+  up.onclick = () => { const d = dirMap.get(c.root)?.d; if (d && d.p) setRoot(rec, d.p.path); };
+  fold.onclick = () => { ctx.open.clear(); fillCard(rec); boardChanged(); };
+  all.onclick = () => openAll(rec);
+  mn.onclick = () => { c.min = !c.min; placeCard(rec); boardChanged(); };
+  x.onclick = () => removeCard(rec);
+  head.ondblclick = e => { if (!e.target.closest('button')) mn.onclick(); };
+  body.addEventListener('keydown', navKeys);
+  dragBy(head, rec, (c0, dx, dy) => { c.x = Math.round(c0.x + dx); c.y = Math.round(c0.y + dy); });
+  dragBy(rz, rec, (c0, dx, dy) => { c.w = Math.round(Math.max(240, c0.w + dx)); c.h = Math.round(Math.max(150, c0.h + dy)); });
+  card.addEventListener('pointerdown', () => raise(rec), true);
+  placeCard(rec); fillCard(rec);
+  return rec;
+}
+function raise(rec) { if (rec.el.style.zIndex != zTop) rec.el.style.zIndex = ++zTop; rec.c.z = zTop; }
+function dragBy(handle, rec, apply) {
+  handle.addEventListener('pointerdown', e => {
+    if (e.target.closest('button') || e.button) return;
+    e.preventDefault(); e.stopPropagation(); window.getSelection()?.removeAllRanges(); app.classList.add('nosel'); handle.setPointerCapture(e.pointerId); handle.classList.add('dragging');
+    const sx = e.clientX, sy = e.clientY, c0 = { ...rec.c };
+    const mv = ev => { apply(c0, (ev.clientX - sx) / B.view.z, (ev.clientY - sy) / B.view.z); placeCard(rec); };
+    const up = () => { handle.removeEventListener('pointermove', mv); handle.removeEventListener('pointerup', up); handle.removeEventListener('pointercancel', up); handle.classList.remove('dragging'); app.classList.remove('nosel'); boardChanged(); };
+    handle.addEventListener('pointermove', mv); handle.addEventListener('pointerup', up); handle.addEventListener('pointercancel', up);
+  });
+}
+function placeCard(rec) {
+  const c = rec.c; const s = rec.el.style;
+  s.left = c.x + 'px'; s.top = c.y + 'px'; s.width = c.w + 'px'; s.height = c.min ? '' : c.h + 'px';
+  rec.el.classList.toggle('min', !!c.min);
+}
+function setRoot(rec, path) { rec.c.root = path; fillCard(rec); boardChanged(); refreshFeet(); }
+function removeCard(rec) {
+  const c = rec.c; const keep = { ...c, open: [...rec.ctx.open] };
+  rec.el.remove(); cardRecs.delete(c.id); B.cards = B.cards.filter(x => x !== c); boardChanged(); refreshFeet();
+  $('emptyBoard').hidden = B.cards.length > 0;
+  toast('Removed ' + c.root.split(BS).pop() + '.', 'Undo', () => { B.cards.push(keep); const r = mountCard(keep); raise(r); boardChanged(); refreshFeet(); $('emptyBoard').hidden = true; });
+}
+function fillCard(rec) {
+  const c = rec.c, it = dirMap.get(c.root);
+  rec.body.replaceChildren(); rec.ctx.els.clear(); rec.crumbs.replaceChildren();
+  const colour = levelColour(c.root); rec.el.style.setProperty('--lvc', colour || 'var(--blue)');
+  if (!it) { rec.title.textContent = c.root.split(BS).pop(); rec.body.append(el('div', 'more', 'This folder is not on disk now (moved or removed). Remove the card, or use the up arrow to go up.')); rec.foot.replaceChildren(); return; }
+  const d = it.d; rec.title.textContent = d.n; rec.title.title = relPath(c.root); rec.up.disabled = !d.p;
+  const chain = []; for (let x = d.p; x; x = x.p) chain.unshift(x);
+  chain.forEach((x, i) => {
+    if (i) rec.crumbs.append(el('span', 'sep', '›'));
+    const a = el('a', null, x.n); a.tabIndex = 0; a.title = 'Show ' + x.n + ' in this card';
+    a.onclick = () => setRoot(rec, x.path); a.onkeydown = e => { if (e.key === 'Enter') a.onclick(); };
+    rec.crumbs.append(a);
+  });
+  rec.crumbs.append(el('span', 'num', '· ' + n0(d.c) + ' files · ' + fmt(d.s)));
+  const rt = dirNode(d, 0, rec.ctx); rec.body.append(rt); toggle(rt, true, true);
+  const saved = [...rec.ctx.open].filter(p => p !== d.path && under(p, d.path) && dirMap.get(p)).sort((a, b) => a.split(BS).length - b.split(BS).length);
+  for (const p of saved) {
+    const dd = dirMap.get(p).d; const pw = rec.ctx.els.get(dd.p.path);
+    if (pw && pw.classList.contains('open') && cardHas(rec, dd)) toggle(rec.ctx.els.get(p), true, true);
+  }
+  renderFoot(rec);
+}
+// open every folder in a card, level by level; stop at 400 folders so a huge card stays usable
+function openAll(rec) {
+  const it = dirMap.get(rec.c.root); if (!it) return;
+  const LIMIT = 400; let n = 0, left = 0; let level = it.d.d.filter(k => !k.h);
+  while (level.length) {
+    const next = [];
+    for (const d of level) {
+      if (n >= LIMIT) { left++; continue; }
+      if (!rec.ctx.els.get(d.path) && !cardHas(rec, d)) continue;
+      const w = rec.ctx.els.get(d.path); if (!w.classList.contains('open')) toggle(w, true, true);
+      n++; next.push(...d.d.filter(k => !k.h));
+    }
+    level = next;
+  }
+  boardChanged();
+  toast(left ? `Opened ${n} folders. ${n0(left)} more are still closed (too many to open at once).` : `Opened all ${n} folder${n === 1 ? '' : 's'} in ${it.d.n}.`);
+}
+function refillCards() { for (const rec of cardRecs.values()) fillCard(rec); }
+function cardHas(rec, d) {
+  const pw = rec.ctx.els.get(d.p.path); if (!pw) return false; let m;
+  while (!rec.ctx.els.get(d.path) && (m = pw.querySelector(':scope > .kids > .more.pg'))) m.click();
+  return !!rec.ctx.els.get(d.path);
+}
+function openTo(rec, dir) {
+  const chain = []; for (let x = dir; x && x.path !== rec.c.root; x = x.p) chain.unshift(x);
+  for (const d of chain) {
+    if (!rec.ctx.els.get(d.path) && !cardHas(rec, d)) return null;
+    const w = rec.ctx.els.get(d.path); if (!w.classList.contains('open')) toggle(w, true, true);
+  }
+  return rec.ctx.els.get(dir.path);
+}
+function revealHits(rec, hits, quiet) {
+  let first = null;
+  for (const [dir, name] of hits) {
+    const dw = openTo(rec, dir); if (!dw) continue;
+    const fp = dir.path + BS + name; let m, n;
+    const find = () => [...dw.querySelectorAll(':scope > .kids > .node')].find(x => x.dataset.path === fp);
+    while (!(n = find()) && (m = dw.querySelector(':scope > .kids > .more.pg'))) m.click();
+    if (n && !first) first = n;
+  }
+  if (first) {
+    const r1 = first.getBoundingClientRect(), r0 = rec.body.getBoundingClientRect();
+    rec.body.scrollTop += (r1.top - r0.top) / B.view.z - rec.body.clientHeight / 3;
+    if (!quiet) { first.classList.remove('flash'); void first.offsetWidth; first.classList.add('flash'); }
+  }
+  boardChanged();
+}
+
+// ----- lessons: highlight the same lesson number in every card; footer says what each card lacks -----
+function selectFile(path, k) {
+  if (!path && k === selLk) selLk = ''; else selLk = k || '';
+  selPath = path || '';
+  world.querySelectorAll('.lk-hit, .sel').forEach(n => n.classList.remove('lk-hit', 'sel'));
+  if (selLk) world.querySelectorAll(`.node[data-lk="${selLk}"]`).forEach(n => n.classList.add('lk-hit'));
+  if (selPath) for (const n of world.querySelectorAll('.node[data-lk]')) if (n.dataset.path === selPath) n.classList.add('sel');
+  if (selLk) for (const rec of cardRecs.values()) {
+    const it = dirMap.get(rec.c.root); if (!it) continue;
+    const hits = lessonsUnder(it.d).get(selLk) || [];
+    if (hits.length && hits.length <= 4 && !hits.some(([dir, name]) => dir.path + BS + name === selPath)) revealHits(rec, hits, true);
+  }
+  refreshFeet();
+}
+function refreshFeet() { for (const rec of cardRecs.values()) renderFoot(rec); }
+function lchip(k, miss) {
+  const b = el('button', 'chip-l' + (miss ? ' miss' : '') + (k === selLk ? ' on' : ''), k); b.type = 'button';
+  b.title = miss ? `No ${k} in this card. Click to light up ${k} in the other cards.` : `Light up ${k} in every card`;
+  b.onclick = () => selectFile('', k); return b;
+}
+function renderFoot(rec) {
+  const it = dirMap.get(rec.c.root); rec.foot.replaceChildren(); if (!it) return;
+  const mine = lessonsUnder(it.d); const others = new Set();
+  for (const r2 of cardRecs.values()) {
+    if (r2 === rec) continue; const p2 = r2.c.root, i2 = dirMap.get(p2);
+    if (!i2 || under(p2, rec.c.root) || under(rec.c.root, p2)) continue;
+    for (const k of lessonsUnder(i2.d).keys()) others.add(k);
+  }
+  const keys = [...mine.keys()].sort();
+  if (!keys.length && !others.size) { rec.foot.append(el('span', null, 'No lesson numbers (L01, L02 ...) in here.')); return; }
+  rec.foot.append(el('span', null, keys.length ? `Lessons ${keys[0]} to ${keys[keys.length - 1]} (${keys.length})` : 'No lesson files here'));
+  const miss = [...others].filter(k => !mine.has(k)).sort();
+  if (miss.length) { rec.foot.append(el('span', 'misslbl', 'Missing here:')); for (const k of miss.slice(0, 40)) rec.foot.append(lchip(k, true)); if (miss.length > 40) rec.foot.append(el('span', null, '+' + (miss.length - 40) + ' more')); }
+  else if (others.size && keys.length) rec.foot.append(el('span', 'oklbl', 'Has every lesson the other cards have'));
+  if (selLk) {
+    const hits = mine.get(selLk) || [];
+    const b = el('button', 'cbtn lkbtn', hits.length ? `${selLk}: ${hits.length} file${hits.length > 1 ? 's' : ''} here · show` : `${selLk}: none here`); b.type = 'button';
+    b.disabled = !hits.length; b.onclick = () => revealHits(rec, hits, false); rec.foot.append(b);
+  }
+}
+
+// ----- add a folder from the board bar -----
+const addq = $('addq'), addres = $('addres'), addbox = $('addbox'); let addT;
+addq.addEventListener('input', () => { clearTimeout(addT); addT = setTimeout(addSearch, 160); });
+addq.addEventListener('keydown', e => { if (e.key === 'Escape') { addq.value = ''; addres.hidden = true; } if (e.key === 'Enter') { addres.querySelector('.res')?.click(); } });
+const onOutside = e => { if (!e.composedPath().includes(addbox)) addres.hidden = true; };
+document.addEventListener('pointerdown', onOutside);
+function addSearch() {
+  const q = addq.value.trim().toLowerCase(); addres.replaceChildren();
+  if (!q) { addres.hidden = true; return; }
+  let total = 0;
+  for (const d of dirs) {
+    if (!d.n.toLowerCase().includes(q) || (!showHidden && !visible(d))) continue;
+    if (++total > 60) continue;
+    const r = el('div', 'res'); r.tabIndex = 0; const left = el('div'); left.append(hl(d.n, q), el('div', 'p', d.p ? relPath(d.p.path) : ''));
+    r.append(left, el('span', 'num', n0(d.c) + ' files'));
+    r.onclick = () => { addres.hidden = true; addq.value = ''; boardAdd(d.path); };
+    r.onkeydown = e => { if (e.key === 'Enter') r.onclick(); };
+    addres.append(r);
+  }
+  if (!total) addres.append(el('div', 'sub', 'No folder has that in its name.'));
+  else if (total > 60) addres.append(el('div', 'sub', `${n0(total)} folders match, first 60 shown. Type more of the name.`));
+  addres.hidden = false;
+}
+
+// ----- saving: working board and named layouts in this browser -----
+const layouts = new Map(); let curLayout = '';
+function snapshot() {
+  const cards = [...cardRecs.values()].sort((a, b) => (a.c.z || 0) - (b.c.z || 0)).map(r => ({ root: r.c.root, x: r.c.x, y: r.c.y, w: r.c.w, h: r.c.h, min: !!r.c.min, open: [...r.ctx.open].filter(p => p !== r.c.root).slice(-150) }));
+  return { cards, view: { x: Math.round(B.view.x), y: Math.round(B.view.y), z: +B.view.z.toFixed(3) } };
+}
+let saveBT;
+function boardChanged() { clearTimeout(saveBT); saveBT = setTimeout(saveBoard, 700); }
+function saveBoard() {
+  const s = snapshot(); store.set('ex44map-board', { ...s, layout: curLayout });
+  if (!curLayout || !layouts.has(curLayout)) return;
+  const L = { ...layouts.get(curLayout), ...s, updated: new Date().toISOString() }; layouts.set(curLayout, L);
+  saveLocalLayouts(); layMsg('Saved');
+}
+function saveLocalLayouts() { store.set('ex44map-layouts', Object.fromEntries(layouts)); }
+let layMsgT; function layMsg(t) { const m = $('layMsg'); m.textContent = t; clearTimeout(layMsgT); layMsgT = setTimeout(() => { m.textContent = ''; }, 2500); }
+const laySel = $('laySel');
+function renderLaySel() {
+  laySel.replaceChildren();
+  const opt = (v, t) => { const o = el('option', null, t); o.value = v; laySel.append(o); };
+  if (!curLayout || !layouts.has(curLayout)) opt('', 'Unsaved board');
+  for (const [id, L] of [...layouts.entries()].sort((a, b) => String(a[1].name).localeCompare(String(b[1].name)))) opt(id, L.name || 'Untitled');
+  laySel.value = layouts.has(curLayout) ? curLayout : '';
+  $('layRen').disabled = $('layDel').disabled = !layouts.has(curLayout);
+}
+function loadBoard(s) {
+  for (const rec of cardRecs.values()) rec.el.remove(); cardRecs.clear();
+  B = { cards: [], view: s && s.view && isFinite(s.view.z) ? { ...s.view } : { x: 40, y: 30, z: 1 } };
+  for (const c0 of (s && Array.isArray(s.cards) ? s.cards : [])) {
+    if (typeof c0.root !== 'string') continue;
+    const c = { id: 'c' + Date.now().toString(36) + (seq++), root: c0.root, x: +c0.x || 0, y: +c0.y || 0, w: +c0.w || 360, h: +c0.h || 460, min: !!c0.min, open: Array.isArray(c0.open) ? c0.open : [] };
+    B.cards.push(c); raise(mountCard(c));
+  }
+  applyView(); refreshFeet(); $('emptyBoard').hidden = B.cards.length > 0;
+}
+laySel.onchange = () => {
+  const id = laySel.value; if (!id || !layouts.has(id)) return;
+  curLayout = id; loadBoard(layouts.get(id)); store.set('ex44map-board', { ...snapshot(), layout: curLayout }); renderLaySel();
+  toast('Layout: ' + (layouts.get(id).name || 'Untitled'));
+};
+let inlineMode = '';
+function inline(mode) {
+  inlineMode = mode; const on = !!mode;
+  $('layInline').hidden = !on; $('layBtns').hidden = on;
+  if (!on) return;
+  const nm = $('layName'), L = layouts.get(curLayout);
+  nm.hidden = mode === 'delete';
+  $('layAsk').textContent = mode === 'new' ? 'Name:' : mode === 'rename' ? 'New name:' : `Delete layout "${L ? L.name : ''}"? The board stays as it is.`;
+  $('layOk').textContent = mode === 'delete' ? 'Delete' : 'Save';
+  nm.value = mode === 'rename' && L ? L.name : ''; if (mode !== 'delete') nm.focus();
+}
+$('layNew').onclick = () => inline('new');
+$('layRen').onclick = () => inline('rename');
+$('layDel').onclick = () => inline('delete');
+$('layCancel').onclick = () => inline('');
+$('layName').addEventListener('keydown', e => { if (e.key === 'Enter') $('layOk').click(); if (e.key === 'Escape') inline(''); });
+$('layOk').onclick = () => {
+  const name = $('layName').value.trim().slice(0, 60);
+  if (inlineMode !== 'delete' && !name) { layMsg('Type a name first'); return; }
+  if (inlineMode === 'new') {
+    const id = 'l' + Date.now().toString(36); const L = { name, ...snapshot(), updated: new Date().toISOString() };
+    layouts.set(id, L); curLayout = id; saveLocalLayouts(); layMsg('Saved as ' + name);
+  } else if (inlineMode === 'rename') {
+    const L = { ...layouts.get(curLayout), name }; layouts.set(curLayout, L); saveLocalLayouts(); layMsg('Renamed');
+  } else if (inlineMode === 'delete') {
+    layouts.delete(curLayout); curLayout = ''; saveLocalLayouts(); layMsg('Deleted');
+  }
+  store.set('ex44map-board', { ...snapshot(), layout: curLayout }); inline(''); renderLaySel();
+};
+// note texts under rows in cards: fold them all away (the row's badge stays) or show them again
+const foldBtn = $('foldNotes');
+function setFold(on) {
+  app.classList.toggle('notes-folded', on); foldBtn.setAttribute('aria-pressed', String(on));
+  foldBtn.textContent = on ? 'Show all notes' : 'Collapse all notes'; store.set('ex44map-foldnotes', on);
+}
+foldBtn.onclick = () => setFold(!app.classList.contains('notes-folded'));
+setFold(!!store.get('ex44map-foldnotes'));
+$('clearBoard').onclick = () => {
+  if (!B.cards.length) return;
+  const before = snapshot(); curLayout = ''; loadBoard({ cards: [], view: before.view }); store.set('ex44map-board', { ...snapshot(), layout: '' }); renderLaySel();
+  toast('Board cleared. Saved layouts are untouched.', 'Undo', () => { loadBoard(before); boardChanged(); });
+};
+
+// ----- starting state -----
+const STARTER = (() => {
+  const w = 'EX-44/Workspace/';
+  const cards = [
+    { root: w + 'IoUT', x: 0, y: 0, w: 380, h: 480, open: [] },
+    { root: w + '_repo', x: 420, y: 0, w: 380, h: 480, open: [] },
+    { root: w + 'Claude World', x: 840, y: 0, w: 360, h: 480, open: [] },
+    { root: 'EX-44/Storage Box', x: 1240, y: 0, w: 340, h: 480, open: ['EX-44/Storage Box/raw'] },
+  ].filter(c => dirMap.get(c.root));
+  return { cards, view: { x: 40, y: 30, z: 0.8 } };
+})();
+let boardReady = false;
+function ensureBoard() {
+  if (boardReady) return; boardReady = true;
+  const saved = store.get('ex44map-board');
+  const loc = store.get('ex44map-layouts'); if (loc && typeof loc === 'object') for (const [k, v] of Object.entries(loc)) if (v && Array.isArray(v.cards)) layouts.set(k, v);
+  if (saved && Array.isArray(saved.cards)) { curLayout = saved.layout || ''; loadBoard(saved); }
+  else loadBoard(STARTER);
+  renderLaySel();
+}
+
+// ----- views: overview, tree or board -----
+const VIEWS = ['overview', 'tree', 'board'];
+let view = 'tree';
+function setView(v) {
+  if (!VIEWS.includes(v)) v = 'tree';
+  view = v; const bm = v === 'board', ov = v === 'overview';
+  app.classList.toggle('bm', bm); app.classList.toggle('ov', ov); $('over').hidden = !ov; setMore(false);
+  $('vTree').setAttribute('aria-pressed', String(v === 'tree')); $('vBoard').setAttribute('aria-pressed', String(bm)); $('vOver').setAttribute('aria-pressed', String(ov));
+  store.set('ex44map-view', v);
+  if (bm) { ensureBoard(); applyView(); }
+  if (ov) renderOverview();
+}
+$('vTree').onclick = () => setView('tree'); $('vBoard').onclick = () => setView('board'); $('vOver').onclick = () => setView('overview');
+const onBoardKeys = e => {
+  if (!app.classList.contains('bm') || !isShown() || typing() || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.key === 'f' || e.key === 'F') { e.preventDefault(); fitAll(); }
+  else if (e.key === '+' || e.key === '=') { e.preventDefault(); zoomCentre(1.2); }
+  else if (e.key === '-' || e.key === '_') { e.preventDefault(); zoomCentre(1 / 1.2); }
+  else if (e.key === '0') { e.preventDefault(); B.view.z = 1; applyView(); boardChanged(); }
+  else if (e.key === 'Escape' && (selLk || selPath)) { selectFile('', ''); }
+};
+document.addEventListener('keydown', onBoardKeys);
+// ----- Overview: Ali's seven questions, answered from the scan -----
+const WHAT = {
+  'IoUT': 'The course tree, the same layout as Drive\'s IoUT. Most course repos live inside it as their one working copy.',
+  'Claude World': 'Library and hadith bank, OCR tools and older projects. The same layout as Drive\'s Claude World.',
+  '_repo': 'Repos with no place in the tree, plus links to the repos that live in IoUT.',
+  '_repos': 'Older clones of repos, kept apart from the tree.',
+  '_jobs': 'One working copy per job (each on its own branch).',
+  '_old-copies': 'The shelf: things set aside instead of deleted, by date.',
+  '_ocr': 'OCR text the library index reads.',
+  '_narrations': 'Narration stores looked up before the index (never in git).',
+  'My Drive': 'Folders copied from your My Drive (Persian books index, screen records, bulk audio).',
+  'F': 'Folders sent from la57\'s F: drive.',
+  '_cloudpc-ctl': 'The machine\'s own scripts and logs: Drive pull, backup, top-up, reboot.',
+  '_skills': 'Skills, one copy for all four accounts.', '_skills-intake': 'Skills waiting to be sorted in.',
+  '_index-work': 'Work files for the library index.',
+  '_venv-build': 'Python used for building decks and docs.', '_venv-docs': 'Python used for docs.',
+  '_fonts': 'Fonts for rendering.', '.claude': 'Claude settings for this folder.',
+};
+function goTree(mp, lay) { setView('tree'); if (lay) setLayer(lay); const it = nearest(mp); if (it) it.f ? reveal(it.dir, it.f[0]) : reveal(it.d); }
+function tbl(head, rws) {
+  const t = el('table', 'ot'); const tr = el('tr'); for (const h of head) tr.append(el('th', null, h)); const th = el('thead'); th.append(tr); t.append(th);
+  const tb = el('tbody'); for (const r of rws) tb.append(r); t.append(tb); const w = el('div', 'twrap'); w.append(t); return w;
+}
+function trow(cells, go) {
+  const tr = el('tr'); for (const c of cells) { const td = el('td'); if (c instanceof Node) td.append(c); else td.textContent = c ?? ''; tr.append(td); }
+  if (go) { tr.className = 'go'; tr.tabIndex = 0; tr.onclick = go; tr.onkeydown = e => { if (e.key === 'Enter') go(); }; tr.title = 'Show in the tree'; }
+  return tr;
+}
+const pct = (a, b) => b ? Math.round(100 * a / b) + '%' : '';
+function sect(title, lead) { const s = el('section', 'osec panel'); const h = el('div', 'phead'); h.append(el('h2', null, title)); if (lead) h.append(el('span', 'sum', lead)); s.append(h); return s; }
+function flowSvg() {
+  const NS = 'http://www.w3.org/2000/svg', svg = document.createElementNS(NS, 'svg'); svg.setAttribute('viewBox', '0 0 760 310'); svg.setAttribute('class', 'flow'); svg.setAttribute('role', 'img');
+  svg.setAttribute('aria-label', 'EX-44 pushes to GitHub; la57 pulls the la57 branch; Drive is pulled into EX-44 every 30 minutes; the top-up sends what Drive lacks; the backup and raw media go to the Storage Box');
+  const box = (x, y, w, t, sub) => { const g = document.createElementNS(NS, 'g'); const r = document.createElementNS(NS, 'rect'); Object.entries({ x, y, width: w, height: 54, rx: 10, class: 'fbox' }).forEach(([k, v]) => r.setAttribute(k, v));
+    const a = document.createElementNS(NS, 'text'); a.setAttribute('x', x + w / 2); a.setAttribute('y', y + 23); a.setAttribute('class', 'ft'); a.textContent = t;
+    const b = document.createElementNS(NS, 'text'); b.setAttribute('x', x + w / 2); b.setAttribute('y', y + 41); b.setAttribute('class', 'fs'); b.textContent = sub; g.append(r, a, b); svg.append(g); };
+  const arrow = (x1, y1, x2, y2, label, lx, ly) => { const l = document.createElementNS(NS, 'line'); Object.entries({ x1, y1, x2, y2, class: 'fa', 'marker-end': 'url(#ex44map-ah)' }).forEach(([k, v]) => l.setAttribute(k, v)); svg.append(l);
+    if (label) { const t = document.createElementNS(NS, 'text'); t.setAttribute('x', lx); t.setAttribute('y', ly); t.setAttribute('class', 'fl2'); t.textContent = label; svg.append(t); } };
+  const defs = document.createElementNS(NS, 'defs'); defs.innerHTML = '<marker id="ex44map-ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="fah"/></marker>'; svg.append(defs);
+  box(290, 128, 180, 'EX-44', 'master of everything'); box(290, 8, 180, 'GitHub', 'the record, the only door'); box(560, 8, 180, 'la57', 'shop window');
+  box(560, 128, 180, 'Google Drive', 'mentor tree + top-up'); box(20, 128, 200, 'Storage Box', 'raw media + nightly backup'); box(560, 248, 180, 'mentor\'s Mac', 'reads the mentor tree');
+  arrow(380, 128, 380, 66, 'push, every piece', 388, 102);
+  arrow(470, 35, 556, 35, 'la57 branch', 482, 28);
+  arrow(650, 62, 650, 124, 'Drive desktop', 658, 98);
+  arrow(560, 146, 474, 146, 'pull, every 30 min', 476, 140);
+  arrow(470, 170, 556, 170, 'top-up, nightly', 482, 192);
+  arrow(290, 155, 224, 155, 'backup, nightly', 196, 206);
+  arrow(650, 182, 650, 244, 'Drive', 658, 218);
+  return svg;
+}
+let ovDone = false;
+function renderOverview() {
+  if (ovDone) return; ovDone = true;
+  const box = $('over'); box.replaceChildren();
+  const ws = dirMap.get('EX-44/Workspace').d, k = ws.k;
+  const top = sect('How files move', `Everything on EX-44, where each file also lives, and which way it moves. Measured ${OV.when}. Click any row below to see it in the tree.`);
+  const intro = el('div', 'ointro'); intro.append(flowSvg()); top.append(intro); box.append(top);
+
+  const d = OV.disk; const s1 = sect('1. What EX-44 has', `Disk: ${fmt(d.used)} used of ${fmt(d.size)}, ${fmt(d.free)} free. The workspace /srv/ws holds ${n0(ws.c)} files (${fmt(ws.s)}).`);
+  const bar = el('div', 'dbar'); const used = el('span'); used.style.width = pct(d.used, d.size); bar.append(used); s1.append(bar);
+  const rows1 = ws.d.slice().sort((a, b) => b.s - a.s).map(t => trow([t.n, WHAT[t.n] || '', n0(t.c), fmt(t.s), pct(t.k[0], t.c), pct(t.k[2], t.c), pct(t.ko, t.c)], () => goTree(t.path)));
+  for (const t of dirMap.get('EX-44/Elsewhere on EX-44').d.d) rows1.push(trow([realPath(t.path), t.n === 'srv-index' ? 'The live library index (index.marefat.uk). Never touched without your GO.' : 'Claude account folders and settings (shown two levels deep).', n0(t.c), fmt(t.s), pct(t.k[0], t.c), '', ''], () => goTree(t.path)));
+  for (const f of ws.f) rows1.push(trow([f[0], 'file', '1', fmt(f[1]), '', '', ''], () => goTree(ws.path + BS + f[0])));
+  s1.append(tbl(['Folder', 'What it is', 'Files', 'Size', 'In git', 'On Drive', 'Only here'], rows1)); box.append(s1);
+
+  const sb = OV.sb; const s2 = sect('2. What the Storage Box holds', `${fmt(sb.raw + sb.restic)} in two parts. Listed ${sb.listed}.`);
+  const rows2 = sb.parts.map(p => trow(['raw/' + p.n, 'Raw media moved off EX-44 on 2026-11-14. Never on GitHub.', n0(p.c), fmt(p.s)], () => goTree('EX-44/Storage Box/raw/' + p.n)));
+  rows2.push(trow(['restic-ex44', 'The nightly encrypted backup of EX-44: the files marked B. ' + (OV.backup_last ? 'Last: ' + OV.backup_last : ''), n0(sb.restic_c) + ' packs', fmt(sb.restic)], () => goTree('EX-44/Storage Box/restic-ex44')));
+  s2.append(tbl(['Part', 'What it is', 'Files', 'Size'], rows2));
+  s2.append(el('p', 'sub', 'In the backup: ' + OV.backup_roots.join(' · ') + ' (secrets, caches and the live SQLite files are left out; safe copies of the SQLite files go in instead).'));
+  box.append(s2);
+
+  const s3 = sect('3. Where each and every file exists', 'Every file in the tree carries marks for where else it lives. Counts are for /srv/ws. Click one to show only those files in the tree.');
+  const rows3 = LAYERS.filter(L => L[2] !== -1).map(L => trow([el('span', 'fl fl-' + L[0], L[2] === -2 ? 'only' : L[0]), L[1], L[3], n0(L[2] === -2 ? ws.ko : k[L[2]]), pct(L[2] === -2 ? ws.ko : k[L[2]], ws.c)], () => goTree('EX-44/Workspace', L[0])));
+  s3.append(tbl(['Mark', 'Meaning', 'In plain words', 'Files', 'Share'], rows3)); box.append(s3);
+
+  const s4 = sect('4. Which parts sync with Drive', 'Drive to EX-44: every 30 minutes the read-only robot copies new and changed files from these Drive folders. It adds and updates, never deletes. EX-44 to Drive: each night the top-up copies what Drive\'s mentor tree lacks into one Drive folder, "EX-44 top-up".');
+  s4.append(tbl(['Drive folder', 'EX-44 folder', 'On Drive', 'On EX-44', 'In both', 'Only on Drive', 'Only on EX-44', 'Drive listed'],
+    OV.pulls.map(p => trow([p.name, p.dest, n0(p.drive), n0(p.local), n0(p.both), n0(p.drive_only), n0(p.local_only), p.listed], () => goTree(mapPath(p.dest), 'D')))));
+  s4.append(el('p', 'sub', 'Last pull: ' + OV.pull_last));
+  s4.append(el('p', 'sub', 'Top-up: ' + n0(k[3]) + ' files on EX-44 are in the last top-up set (listed ' + OV.topup_listed + '). Last run: ' + OV.topup_last));
+  s4.append(el('h3', null, 'Where the pull stops (EX-44 is the master there)'));
+  const grp = new Map(); for (const b of OV.blocks) { const g = grp.get(b.why) || []; g.push(b.pat); grp.set(b.why, g); }
+  s4.append(tbl(['Why', 'Folders and files'], [...grp.entries()].map(([why, pats]) => trow([why || '(no reason written)', pats.join('\n')]))));
+  box.append(s4);
+
+  const s5 = sect('5. Which parts push or pull to which repo', 'Every working copy pushes to and pulls from its own GitHub repo. "In the tree": the repo\'s folder inside IoUT is its one working copy. "Job copy": a job\'s own copy on its job branch. Untracked: files in the folder that git does not hold (ignored or new), so they live only on EX-44 unless Drive or the backup has them.');
+  const shelf = OV.repos.filter(r => r.path.startsWith('_old-copies/'));
+  const rp = OV.repos.filter(r => !r.path.startsWith('_old-copies/')).sort((a, b) => a.path.localeCompare(b.path));
+  const where = r => r.path.startsWith('IoUT/') ? 'in the tree' : r.path.startsWith('_jobs/') ? 'job copy' : r.kind === 'worktree' ? 'extra copy' : 'clone';
+  s5.append(tbl(['Repo on GitHub', 'Working copy on EX-44', 'Kind', 'Branch', 'In git', 'Untracked', 'la57 list', 'On la57', 'Last commit'],
+    rp.map(r => trow([r.remote, r.path + (r.linked.length ? '  (link: _repo/' + r.linked.join(', _repo/') + ')' : ''), where(r), r.branch, n0(r.tracked), n0(r.untracked), r.la57list ? 'yes' : '', r.la57 ? n0(r.la57) : '', r.last], () => goTree(mapPath(r.path), 'G')))));
+  if (shelf.length) s5.append(el('p', 'sub', `Also ${shelf.length} old working copies sit on the shelf in _old-copies. They are not used: ` + shelf.map(r => r.remote.split('/').pop()).join(', ') + '.'));
+  box.append(s5);
+
+  const l57 = rp.filter(r => r.la57list || r.la57);
+  const s6 = sect('6. Which parts are common with la57', `la57 gets files two ways. First, the la57 branch of ${l57.length} repos: la57 pulls it every hour. Second, la57's own folders are the Drive mentor tree (Drive desktop), so files marked D are the files la57 also has. In /srv/ws: ${n0(k[1])} files are on a la57 branch, ${n0(k[2])} are on Drive.`);
+  s6.append(tbl(['Repo', 'Working copy', 'Files in git', 'On the la57 branch', 'Share'], l57.map(r => trow([r.remote.split('/').pop(), r.path, n0(r.tracked), n0(r.la57), pct(r.la57, r.tracked)], () => goTree(mapPath(r.path), 'L')))));
+  box.append(s6);
+
+  const s7 = sect('7. Which parts are common with Drive, and with a repo', null);
+  s7.append(tbl(['Folder', 'Files', 'On Drive', 'In git', 'Untracked in a repo', 'Only on EX-44'],
+    ws.d.slice().sort((a, b) => b.c - a.c).map(t => trow([t.n, n0(t.c), n0(t.k[2]) + ' (' + pct(t.k[2], t.c) + ')', n0(t.k[0]) + ' (' + pct(t.k[0], t.c) + ')', n0(t.k[5]), n0(t.ko) + ' (' + pct(t.ko, t.c) + ')'], () => goTree(t.path)))));
+  s7.append(el('p', 'sub', 'Common with Drive means a file at the same path in the Drive folder the pull follows. It does not compare the contents.'));
+  box.append(s7);
+}
+
+// ----- layer chips (tree and board share one choice); the chips are also the legend of the file marks -----
+const CHIP_ORDER = ['all', 'G', 'L', 'D', 'P', 'T', 'B', 'U', 'K', 'O'];
+function setLayer(k) {
+  layer = LAYER[k] ? k : 'all'; store.set('ex44map-layer', layer);
+  renderLegend(); render(); refillCards(); search($('q').value);
+}
+function renderLegend() {
+  const box = $('legend'); box.replaceChildren();
+  for (const k of CHIP_ORDER) {
+    const L = LAYER[k], on = layer === k;
+    const c = el('button', 'tab lg' + (on ? ' on' : '')); c.type = 'button'; c.dataset.layer = k; c.setAttribute('aria-pressed', String(on));
+    c.title = k === 'all' ? 'Every file' : L[3] + '. Files carry the mark ' + (k === 'O' ? '"only"' : k) + '. Click to show only these.';
+    const sq = el('span', 'sqr'); sq.style.background = LCOL[k];
+    c.append(sq, el('span', null, k === 'all' ? 'Everything' : L[1]), el('span', 'n', n0(layerCount(T, k))));
+    c.onclick = () => { if (view === 'overview') setView('tree'); setLayer(on && k !== 'all' ? 'all' : k); };
+    box.append(c);
+  }
+  const mh = $('markHelp');
+  if (!mh.childElementCount) for (const k of CHIP_ORDER.slice(1)) { const L = LAYER[k]; mh.append(el('span', 'fl fl-' + k, k === 'O' ? 'only' : k), el('span', null, L[1] + ': ' + L[3])); }
+}
+
+// ----- More: the secondary controls in one popover -----
+const moreBtn = $('moreBtn'), morePop = $('morePop');
+function setMore(on) { morePop.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); moreBtn.setAttribute('aria-pressed', String(on)); }
+moreBtn.onclick = () => setMore(morePop.hidden);
+const onMoreOutside = e => { if (!morePop.hidden && !e.composedPath().includes(morePop) && !e.composedPath().includes(moreBtn)) setMore(false); };
+document.addEventListener('pointerdown', onMoreOutside);
+// buttons in the popover that change the view close it
+for (const id of ['notesBtn', 'openNotes', 'collapse']) $(id).addEventListener('click', () => setMore(false));
+
+// ----- Full screen: the browser's own when it allows it, else an overlay; Esc comes back either way -----
+let fsMode = '';
+const fsBtns = [$('fsBtn'), $('fsBtnB')];
+function fsPaint() {
+  const on = !!fsMode; app.classList.toggle('fs', on);
+  for (const b of fsBtns) {
+    b.querySelector('.fsLbl').textContent = on ? 'Exit full screen' : 'Full screen';
+    b.querySelector('.fsIco').setAttribute('d', on ? 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5' : 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5');
+    b.title = on ? 'Back to the page (Esc)' : b.id === 'fsBtn' ? 'Show the tree on the whole screen' : 'Show the board on the whole screen';
+  }
+  document.documentElement.style.overflow = fsMode === 'overlay' ? 'hidden' : '';
+  if (view === 'board') requestAnimationFrame(() => { applyView(); });
+}
+async function enterFs() {
+  if (fsMode) return;
+  fsMode = 'overlay'; fsPaint();
+  try {
+    if (!document.fullscreenEnabled || !app.requestFullscreen) throw new Error('no fullscreen');
+    await app.requestFullscreen(); if (fsMode) { fsMode = 'native'; fsPaint(); }
+  } catch (e) { /* refused (for example inside an iframe): the overlay stays */ }
+}
+function exitFs() {
+  if (!fsMode) return;
+  const was = fsMode; fsMode = ''; fsPaint();
+  if (was === 'native' && document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+for (const b of fsBtns) b.onclick = () => fsMode ? exitFs() : enterFs();
+const onFsChange = () => { if (fsMode === 'native' && !document.fullscreenElement) { fsMode = ''; fsPaint(); } };
+document.addEventListener('fullscreenchange', onFsChange);
+const onEsc = e => {
+  if (e.key !== 'Escape' || !isShown()) return;
+  if (!morePop.hidden) { setMore(false); moreBtn.focus(); e.preventDefault(); return; }
+  if (fsMode === 'overlay' && !typing()) { exitFs(); e.preventDefault(); }
+};
+document.addEventListener('keydown', onEsc);
+
+return {
+  start() {
+    startDb();
+    layer = LAYER[store.get('ex44map-layer')] ? store.get('ex44map-layer') : 'all';
+    renderLegend(); render();
+    setView(store.get('ex44map-view') || 'tree');
+  },
+  setLayer, goTree, setView, enterFs, exitFs, get fullscreen() { return fsMode; }, get view() { return view; }, get layer() { return layer; },
+  counts: () => ({ files: T.c, dirs: dirs.length, cards: cardRecs.size, layouts: layouts.size, notes: notesById.size }),
+};
+}
+
+window.EX44Map = {
+  mount(host, opts) {
+    opts = opts || {};
+    if (!inst) inst = create(opts);
+    if (inst.el.parentNode !== host) host.appendChild(inst.el);
+    if (opts.theme) inst.setTheme(opts.theme);
+    inst.start();
+    return inst;
+  },
+  setTheme(t) { if (inst) inst.setTheme(t); },
+  get api() { return inst && inst.api; },
+  get root() { return inst && inst.root; },
+  get error() { return inst && inst.error; },
+};
+})();
+
+</script>
 <script>
 /* EX-44 Home, live data (P8.3). Reads the private repo ex44-state with the viewer's own GitHub key, kept in this
    browser only (the same key Work Map and Reading Mode use on this site). The page holds no data of its own.
@@ -1207,7 +2884,26 @@ function reqs(text, tid, comp){
     return window.confirm("Archive all " + js.length + " finished chats?\n\n" + js.join(", ")) ? js.map(n => ({ action: "archive", target: n })) : { local: true, cancel: true }; }
   return null;
 }
-window.__ex44live = { load, build, reqs, file, forget: () => { setKey(""); showConnect(""); } };
+// The Map tab. The scan lives on the branch "map-data" of ex44-state (one commit, replaced every time, so history never
+// grows): map-cards.json (the place cards, a few KB, read at the start and every 10 minutes) and map.json.gz (the whole scan,
+// about 10 MB, read only when the Map tab opens, with the viewer's key). Nothing of it is in this page's code.
+const MAPREF = "map-data";
+async function mapRead(name, bin){
+  const key = getKey(); if (!key) throw new Error("no key yet: connect this browser first");
+  const r = await fetch("https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/" + name + "?ref=" + MAPREF + "&t=" + Date.now(), { cache: "no-store",
+    headers: { Authorization: "Bearer " + key, Accept: "application/vnd.github.raw+json", "X-GitHub-Api-Version": "2022-11-28" } });
+  if (!r.ok) throw new Error("GitHub said " + r.status + (r.status === 404 ? " (no scan pushed yet)" : ""));
+  return bin ? r.arrayBuffer() : r.json();
+}
+async function mapData(){
+  const buf = await mapRead("map.json.gz", true);
+  const txt = await new Response(new Blob([buf]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+  return JSON.parse(txt);
+}
+async function mapCards(){ try { LIVE.map = await mapRead("map-cards.json"); redraw(); } catch (e) { LIVE.mapErr = String(e.message || e); } }
+setInterval(() => { if (!document.hidden && getKey()) mapCards(); }, 600000);
+setTimeout(() => { if (getKey()) mapCards(); }, 1500);
+window.__ex44live = { mapData, mapCards, load, build, reqs, file, forget: () => { setKey(""); showConnect(""); } };
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(true); });
 setInterval(() => { if (!document.hidden) load(); }, 5000);   // P8.7: 5 s; the old feed still reads once a minute inside load()
 setInterval(() => { paintAge(); if (Date.now() < FAST.until && !document.hidden) load(); }, 1000);   // the age line counts up by itself; fast reads after a press
@@ -1401,7 +3097,7 @@ class Component extends DCLogic {
     const heldList = HELD.filter(h => (!af || h[1]===af) && !stt.savedHeld[h[0]]);
     const heldRows = (stt.heldAllOn ? heldList : heldList.slice(0, 10)).map(h => Object.assign({ acct:h[1], hue:HUE[h[1]], repo:h[2], n:h[3], w: Math.max(4, Math.round(h[3]/maxp*100)) + "%", age:h[4], mdl: MDL((jb(h[0]) || {}).model)[0], mcls: MDL((jb(h[0]) || {}).model)[1], eff: EFF((jb(h[0]) || {}).eff)[0], ecls: EFF((jb(h[0]) || {}).eff)[1], save: () => this.act("Save " + h[0] + " into main (" + h[3] + " pieces)", () => this.setState({ savedHeld: Object.assign({}, this.state.savedHeld, {[h[0]]: true}) })) }, split(h[0])));
 
-    const MAP = {when:"",disk:["","","",0],ws:["",""],"else":["",""],sb:["","","","",""],repos:0,jobs:[]};
+    const MAP = LV.map || {when:"waiting for the scan",disk:["","","",0],ws:["",""],"else":["",""],sb:["","","","",""],repos:0,jobs:[]};
     const fmt = n => n.toLocaleString("en-US");
     const MAPD = {rows:[],files:{},ov:{tot:{files:0,k:[0,0,0,0,0,0,0,0,0,0]}}};
         const LY = [["all","Everything",-1,"var(--ink3)","Every file"],["G","In GitHub",0,"var(--blue)","Tracked in its git repo, pushed to GitHub"],["L","Reaches la57",1,"var(--held)","On its repo's la57 branch, so la57 pulls it"],["D","On Drive",2,"var(--ok)","Drive has a file at the same path"],["P","Drive pull writes here",6,"var(--amber)","The 30-minute Drive pull may add or update it"],["T","Sent by the top-up",3,"var(--ok)","In the nightly top-up set to Drive"],["B","Backed up",4,"var(--held)","In the nightly backup to the Storage Box"],["U","In a repo, not in git",5,"var(--bad)","Inside a repo folder but untracked or ignored"],["K","Links",7,"var(--ink3)","A link to another folder"]];
@@ -1465,7 +3161,7 @@ class Component extends DCLogic {
       ["Do it","Launch a chat","", () => this.setState({ pal:false, launch:true, lerr:"" })],
       ["Do it","Fold all cards","", () => { this.setState({ pal:false }); foldAll(); }],
       ["Do it","Switch theme","", () => this.setState({ pal:false, theme: theme==="dark" ? "light" : "dark" })],
-      ["Go to","Home","tab", () => this.setState({ pal:false, view:"home" })], ["Go to","Chats","tab", () => this.setState({ pal:false, view:"chats" })],
+      ["Go to","Home","tab", () => this.setState({ pal:false, view:"home" })], ["Go to","Chats","tab", () => this.setState({ pal:false, view:"chats" })], ["Go to","Map","tab", () => this.setState({ pal:false, view:"map" })],
       ["Go to","Truth layers","tab", () => this.setState({ pal:false, view:"truth" })], ["Go to","Skills","tab", () => this.setState({ pal:false, view:"skills" })], ["Go to","How it works","tab", () => this.setState({ pal:false, view:"how" })]
     ].concat(HELD.filter(h => !stt.savedHeld[h[0]]).slice(0, 12).map(h => ["Do it", "Save " + h[0] + " into main", h[3] + " pieces", () => { this.setState({ pal:false }); this.act("Save " + h[0] + " into main (" + h[3] + " pieces)", () => this.setState({ savedHeld: Object.assign({}, this.state.savedHeld, {[h[0]]: true}) })); }]));
     const CH = ALLJ.map(j => ["Chat", j.n, j.a + (j.ask ? ", asks you" : ""), openChat(j.n), (j.n + " " + (j.last || "") + " " + (j.ask || "")).toLowerCase()]);
@@ -1500,7 +3196,7 @@ class Component extends DCLogic {
       flip: () => this.setState({ theme: theme==="dark" ? "light" : "dark" }), flipLabel: theme==="dark" ? "Switch to light" : "Switch to dark",
       foldAll, foldAllLabel: anyOpen ? "Fold all" : "Open all", foldAllIcon: anyOpen ? "M7 20l5-5 5 5M7 4l5 5 5-5" : "M7 15l5 5 5-5M7 9l5-5 5 5",
       p: { day:F("day", (LN.recentN || 0) + " chats changed in the last half hour"), needs:F("needs", ALLT.length + " waiting: " + (LN.limits || 0) + " limits, " + (LN.clash || 0) + " clash, " + (LN.go || 0) + " GO, " + ALLT.filter(t => t.k === "question").length + " questions"), accts:F("accts", LN.acctWords || ""), log:F("log", stt.log.length + " actions"), board:F("board", (LN.open || 0) + " open chats in " + (LN.projects || 0) + " projects"), held:F("held", HELD.length + " jobs, " + (LN.pieces || 0) + " pieces"), branches:F("branches", (LV.branches || []).length + " held branches in ex44-system"), drive:F("drive", (LN.nAp || 0) + " approved, " + (LN.nPv || 0) + " in Preview") },
-      nav: [["Home","home","home"],["Chats","chat","chats"],["Truth layers","layers","truth"],["Skills","spark","skills"],["How it works","book","how"]].map(([label,ic,id]) => ({ label, d:I[ic].d, f:I[ic].f, cls: view===id ? "tab on" : "tab", pick: () => this.setState({ view:id }) })),
+      nav: [["Home","home","home"],["Chats","chat","chats"],["Map","map","map"],["Truth layers","layers","truth"],["Skills","spark","skills"],["How it works","book","how"]].map(([label,ic,id]) => ({ label, d:I[ic].d, f:I[ic].f, cls: view===id ? "tab on" : "tab", pick: () => this.setState({ view:id }) })),
       isHome: view==="home", isChats: view==="chats", isTruth: view==="truth", isSkills: view==="skills", isHow: view==="how", isMap: view==="map",
       tickets, qtabs, btabs, groups, bins,
       stats:[
@@ -1523,7 +3219,7 @@ class Component extends DCLogic {
       held: heldRows,
       branches: LV.branches || [],
       sktabs, skills, skgroups,
-      manual: [{"id": "m-top", "title": "The top bar", "intro": "Always there, on every tab.", "d": "M3 6h18M3 12h18M3 18h18", "bg": "var(--g2)", "fg": "var(--ink2)", "items": [{"ui": "The tabs", "x": "Home, Chats, Truth layers, Skills and How it works. Each one is a page of its own. Tap to switch.", "cls": "mui"}, {"ui": "Find a chat or run a command", "x": "Opens the command box: type a chat name, a tab or an action like save, then press Enter.", "cls": "mui"}, {"ui": "Ctrl K", "x": "Opens the same command box from anywhere. The / key does it too.", "cls": "mui key"}, {"ui": "Sun or moon", "x": "Switches between light and dark.", "cls": "mui"}, {"ui": "Fold all", "x": "Shuts every card on the page so only the titles show. Tap again to open them all.", "cls": "mui"}, {"ui": "Launch", "x": "Opens the form to start a new chat on the account you pick.", "cls": "mui you"}]}, {"id": "m-home", "title": "Home", "intro": "What needs you, what is running, what is stuck.", "d": "M4 11 12 4l8 7v9h-5v-6H9v6H4z", "bg": "var(--amber-d)", "fg": "var(--amber)", "items": [{"ui": "The four numbers", "x": "The four numbers. The small tags under each say what is inside, at a glance.", "cls": "mui"}, {"ui": "The last 24 hours", "x": "A bar for every half hour: how many chats changed. Colour shows what they are now: stuck, waiting, working, done.", "cls": "mui"}, {"ui": "Needs you", "x": "Everything that waits for you, one card each. The tabs above the cards filter by kind: questions, limits, clash, GO, TAFWEEZ, held.", "cls": "mui"}, {"ui": "Fold all (in Needs you)", "x": "Shuts or opens all the cards in Needs you at once.", "cls": "mui"}, {"ui": "Show all", "x": "Shows every card, not only one of each kind.", "cls": "mui"}, {"ui": "What you pressed", "x": "Your last presses, each going from sent to working to done.", "cls": "mui"}]}, {"id": "m-cards", "title": "A card in Needs you", "intro": "One thing waiting for you.", "d": "M4 5h16v14H4zM8 9h8M8 13h5", "bg": "var(--amber-d)", "fg": "var(--amber)", "items": [{"ui": "Tags under the title", "x": "The chat, its project, and short facts like protected or wakes at reset, so you know at a glance.", "cls": "mui"}, {"ui": "Yellow button", "x": "The main answer, for example GO, Yes or Save into main. It sends at once.", "cls": "mui you"}, {"ui": "Second button", "x": "The other answer, for example Later or Not now.", "cls": "mui"}, {"ui": "Open the chat", "x": "Opens the chat's side panel with everything about it.", "cls": "mui"}, {"ui": "Undo", "x": "After any press a bar appears at the bottom for 5 seconds. Tap Undo there and nothing is sent.", "cls": "mui"}, {"ui": "Arrow on the right", "x": "Folds or opens just this card.", "cls": "mui"}]}, {"id": "m-chats", "title": "Chats", "intro": "Every chat, grouped by project.", "d": "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z", "bg": "var(--blue-d)", "fg": "var(--blue)", "items": [{"ui": "Account cards", "x": "Tap an account to see only its chats everywhere on the page. Tap again, or Show all accounts, to see all.", "cls": "mui"}, {"ui": "Find a chat or a word", "x": "Type to keep only the chats whose name, last line or question has that word.", "cls": "mui"}, {"ui": "Status filter", "x": "Open, Working, Waiting, Done or All: filters the list by what each chat is doing.", "cls": "mui"}, {"ui": "Fold all groups", "x": "Shuts or opens every project group at once.", "cls": "mui"}, {"ui": "A row", "x": "Tap any chat to open its side panel.", "cls": "mui"}]}, {"id": "m-panel", "title": "A chat's side panel", "intro": "Everything about one chat, and what you can tell it.", "d": "M15 3h6v18h-6zM3 7h9M3 12h9M3 17h9", "bg": "var(--blue-d)", "fg": "var(--blue)", "items": [{"ui": "It asks you", "x": "Its question, with buttons to answer straight away.", "cls": "mui"}, {"ui": "Ready phrase list", "x": "Pick a ready phrase (go, continue, stop, save, publish, show me, quiet mode, yes to option 1, 2 or 3), then press Send.", "cls": "mui"}, {"ui": "Type anything", "x": "Free text. Write your own message and press Send.", "cls": "mui"}, {"ui": "Open the chat", "x": "Shows its account: open it in the Claude app there.", "cls": "mui"}, {"ui": "Save into main", "x": "Puts this chat's finished work into main, the master copy.", "cls": "mui"}, {"ui": "Hold or Release", "x": "Hold keeps its work off main until you say save. Release lets it flow in by itself.", "cls": "mui"}, {"ui": "Quiet on", "x": "The chat stays silent until a chunk ends, a blocker comes, or TAFWEEZ.", "cls": "mui"}, {"ui": "Move to", "x": "Shows the other accounts with their logos. Tap one to move the chat there.", "cls": "mui"}, {"ui": "Protect or Lift protection", "x": "A protected chat cannot be moved or closed. Lifting asks for a second tap.", "cls": "mui"}, {"ui": "Close chat", "x": "Ends the chat. Asks for a second tap. Off for protected chats.", "cls": "mui"}, {"ui": "J and K", "x": "Next and previous chat. Esc closes the panel.", "cls": "mui key"}]}, {"id": "m-truth", "title": "Truth layers", "intro": "Where each piece of work really is.", "d": "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5", "bg": "var(--held-d)", "fg": "var(--held)", "items": [{"ui": "Held off main", "x": "Jobs whose finished work waits for your save, biggest first.", "cls": "mui"}, {"ui": "Save", "x": "Puts that job's pieces into main.", "cls": "mui"}, {"ui": "Show all", "x": "Shows every held job, not only the top 10.", "cls": "mui"}, {"ui": "Branches with work not in main", "x": "Branches that hold something main does not have, and what each one is.", "cls": "mui"}]}, {"id": "m-skills", "title": "Skills", "intro": "The 70 skills, by group.", "d": "M12 3v4M12 17v4M3 12h4M17 12h4", "bg": "var(--ok-d)", "fg": "var(--ok)", "items": [{"ui": "A skill chip", "x": "Point at it (or tap it on a phone) to see when to use it and its sample job.", "cls": "mui"}, {"ui": "Group tabs", "x": "Show only one group, like Lesson decks or Fiqh.", "cls": "mui"}, {"ui": "Find a skill", "x": "Type to keep only skills with that word.", "cls": "mui"}]}],
+      manual: [{"id": "m-top", "title": "The top bar", "intro": "Always there, on every tab.", "d": "M3 6h18M3 12h18M3 18h18", "bg": "var(--g2)", "fg": "var(--ink2)", "items": [{"ui": "The tabs", "x": "Home, Chats, Map, Truth layers, Skills and How it works. Each one is a page of its own. Tap to switch.", "cls": "mui"}, {"ui": "Find a chat or run a command", "x": "Opens the command box: type a chat name, a tab or an action like save, then press Enter.", "cls": "mui"}, {"ui": "Ctrl K", "x": "Opens the same command box from anywhere. The / key does it too.", "cls": "mui key"}, {"ui": "Sun or moon", "x": "Switches between light and dark.", "cls": "mui"}, {"ui": "Fold all", "x": "Shuts every card on the page so only the titles show. Tap again to open them all.", "cls": "mui"}, {"ui": "Launch", "x": "Opens the form to start a new chat on the account you pick.", "cls": "mui you"}]}, {"id": "m-home", "title": "Home", "intro": "What needs you, what is running, what is stuck.", "d": "M4 11 12 4l8 7v9h-5v-6H9v6H4z", "bg": "var(--amber-d)", "fg": "var(--amber)", "items": [{"ui": "The four numbers", "x": "The four numbers. The small tags under each say what is inside, at a glance.", "cls": "mui"}, {"ui": "The last 24 hours", "x": "A bar for every half hour: how many chats changed. Colour shows what they are now: stuck, waiting, working, done.", "cls": "mui"}, {"ui": "Needs you", "x": "Everything that waits for you, one card each. The tabs above the cards filter by kind: questions, limits, clash, GO, TAFWEEZ, held.", "cls": "mui"}, {"ui": "Fold all (in Needs you)", "x": "Shuts or opens all the cards in Needs you at once.", "cls": "mui"}, {"ui": "Show all", "x": "Shows every card, not only one of each kind.", "cls": "mui"}, {"ui": "What you pressed", "x": "Your last presses, each going from sent to working to done.", "cls": "mui"}]}, {"id": "m-cards", "title": "A card in Needs you", "intro": "One thing waiting for you.", "d": "M4 5h16v14H4zM8 9h8M8 13h5", "bg": "var(--amber-d)", "fg": "var(--amber)", "items": [{"ui": "Tags under the title", "x": "The chat, its project, and short facts like protected or wakes at reset, so you know at a glance.", "cls": "mui"}, {"ui": "Yellow button", "x": "The main answer, for example GO, Yes or Save into main. It sends at once.", "cls": "mui you"}, {"ui": "Second button", "x": "The other answer, for example Later or Not now.", "cls": "mui"}, {"ui": "Open the chat", "x": "Opens the chat's side panel with everything about it.", "cls": "mui"}, {"ui": "Undo", "x": "After any press a bar appears at the bottom for 5 seconds. Tap Undo there and nothing is sent.", "cls": "mui"}, {"ui": "Arrow on the right", "x": "Folds or opens just this card.", "cls": "mui"}]}, {"id": "m-chats", "title": "Chats", "intro": "Every chat, grouped by project.", "d": "M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z", "bg": "var(--blue-d)", "fg": "var(--blue)", "items": [{"ui": "Account cards", "x": "Tap an account to see only its chats everywhere on the page. Tap again, or Show all accounts, to see all.", "cls": "mui"}, {"ui": "Find a chat or a word", "x": "Type to keep only the chats whose name, last line or question has that word.", "cls": "mui"}, {"ui": "Status filter", "x": "Open, Working, Waiting, Done or All: filters the list by what each chat is doing.", "cls": "mui"}, {"ui": "Fold all groups", "x": "Shuts or opens every project group at once.", "cls": "mui"}, {"ui": "A row", "x": "Tap any chat to open its side panel.", "cls": "mui"}]}, {"id": "m-panel", "title": "A chat's side panel", "intro": "Everything about one chat, and what you can tell it.", "d": "M15 3h6v18h-6zM3 7h9M3 12h9M3 17h9", "bg": "var(--blue-d)", "fg": "var(--blue)", "items": [{"ui": "It asks you", "x": "Its question, with buttons to answer straight away.", "cls": "mui"}, {"ui": "Ready phrase list", "x": "Pick a ready phrase (go, continue, stop, save, publish, show me, quiet mode, yes to option 1, 2 or 3), then press Send.", "cls": "mui"}, {"ui": "Type anything", "x": "Free text. Write your own message and press Send.", "cls": "mui"}, {"ui": "Open the chat", "x": "Shows its account: open it in the Claude app there.", "cls": "mui"}, {"ui": "Save into main", "x": "Puts this chat's finished work into main, the master copy.", "cls": "mui"}, {"ui": "Hold or Release", "x": "Hold keeps its work off main until you say save. Release lets it flow in by itself.", "cls": "mui"}, {"ui": "Quiet on", "x": "The chat stays silent until a chunk ends, a blocker comes, or TAFWEEZ.", "cls": "mui"}, {"ui": "Move to", "x": "Shows the other accounts with their logos. Tap one to move the chat there.", "cls": "mui"}, {"ui": "Protect or Lift protection", "x": "A protected chat cannot be moved or closed. Lifting asks for a second tap.", "cls": "mui"}, {"ui": "Close chat", "x": "Ends the chat. Asks for a second tap. Off for protected chats.", "cls": "mui"}, {"ui": "J and K", "x": "Next and previous chat. Esc closes the panel.", "cls": "mui key"}]}, {"id": "m-map", "title": "Map", "intro": "What is really on EX-44 and the Storage Box.", "d": "M9 4 3 6v14l6-2 6 2 6-2V4l-6 2zM9 4v14M15 6v14", "bg": "var(--held-d)", "fg": "var(--held)", "items": [{"ui": "Map views", "x": "Overview, Tree or Board: the flow picture, the folder tree, or a board of cards you arrange.", "cls": "mui"}, {"ui": "Search any file or folder name", "x": "Finds any file or folder and shows it in the tree.", "cls": "mui"}, {"ui": "Filter chips", "x": "Show only files that are in GitHub, on Drive, backed up, or only on EX-44.", "cls": "mui"}, {"ui": "More", "x": "Notes, show hidden, collapse all and the keys.", "cls": "mui"}, {"ui": "Full screen", "x": "On the tree card and on the board: puts that one on the whole screen. Esc comes back.", "cls": "mui"}, {"ui": "+ note", "x": "On every row of the tree: leave a note on what should change there. Board, next to it, sends that folder to the board.", "cls": "mui"}]}, {"id": "m-truth", "title": "Truth layers", "intro": "Where each piece of work really is.", "d": "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5", "bg": "var(--held-d)", "fg": "var(--held)", "items": [{"ui": "Held off main", "x": "Jobs whose finished work waits for your save, biggest first.", "cls": "mui"}, {"ui": "Save", "x": "Puts that job's pieces into main.", "cls": "mui"}, {"ui": "Show all", "x": "Shows every held job, not only the top 10.", "cls": "mui"}, {"ui": "Branches with work not in main", "x": "Branches that hold something main does not have, and what each one is.", "cls": "mui"}]}, {"id": "m-skills", "title": "Skills", "intro": "The 70 skills, by group.", "d": "M12 3v4M12 17v4M3 12h4M17 12h4", "bg": "var(--ok-d)", "fg": "var(--ok)", "items": [{"ui": "A skill chip", "x": "Point at it (or tap it on a phone) to see when to use it and its sample job.", "cls": "mui"}, {"ui": "Group tabs", "x": "Show only one group, like Lesson decks or Fiqh.", "cls": "mui"}, {"ui": "Find a skill", "x": "Type to keep only skills with that word.", "cls": "mui"}]}],
       how:[
         {t:"The home",x:"One screen answers three things: what needs you, what is running, what is stuck. Needs you sits on top; every chat lives on the Chats tab.",d:I.home.d,bg:"var(--amber-d)",fg:C.amber},
         {t:"Last said",x:"Each chat shows its last finished piece and what it asks you, from its own job note. Raw screen text never comes here, so no source text rides along.",d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",bg:"var(--tn)",fg:"var(--ink2)"},
@@ -1608,6 +3304,7 @@ function draw(){
   if (window.morphdom) { morphdom(root, next, { onBeforeElUpdated: (from, to) => { if (from.hasAttribute && from.hasAttribute("data-keep")) return false; if (from.classList && from.classList.contains("logo") && from.getAttribute("data-fam") === to.getAttribute("data-fam") && from.getAttribute("data-was") === to.getAttribute("data-was")) return false; return !from.isEqualNode(to); } }); }
   else { root.replaceChildren(...next.childNodes); }
   document.documentElement.setAttribute("data-theme-live", vals.isDark ? "dark" : "light");
+  { const mh = root.querySelector("#map-host"), th = vals.isDark ? "dark" : "light"; if (window.EX44Map) { if (mh) window.EX44Map.mount(mh, { theme: th, loader: window.__ex44live && window.__ex44live.mapData }); else window.EX44Map.setTheme(th); } }
   if (comp.state.pal && !palWas) setTimeout(() => { const i = document.getElementById("palq"); if (i) i.focus(); }, 30); palWas = comp.state.pal;
 }
 document.addEventListener("input", e => { const t = e.target.closest("[data-hi]"); if (t && root.contains(t) && H[t.getAttribute("data-hi")]) H[t.getAttribute("data-hi")](e); });
