@@ -964,7 +964,7 @@ function build(d, now){
       flow: j.flow || "held", pc: h ? h.pieces : ((j.held || {}).pieces || 0), prot: !!j.protected, q: false, role: j.role || null,
       par: j.parent && byName[j.parent] ? j.parent : null, last: L.doing || L.need || L.done || "", doing: L.doing || "", ask, age: ago(qAt || j.status_since, now),
       since: qAt || j.status_since || "", said: j.said || "", saidAt: j.said_at || "", saidT: j.said_at ? hhmm(Date.parse(j.said_at)) : "", saidD: dayOf(j.said_at, now), model: String(j.model || "").replace(/^claude-/, ""),   // the feed says claude-opus-5-5; the tags read opus..., sonnet..., fable...
-       eff: "", link: !!j.has_link, act: j.activity || "", trip: (j.trip || {}).line || "" }; });   // trip: P10.9, the six stamps   // act: the screen word (P8.7 timed check)
+       eff: "", link: !!j.has_link, rc: j.rc || "", act: j.activity || "", trip: (j.trip || {}).line || "" }; });   // trip: P10.9, the six stamps   // act: the screen word (P8.7 timed check)
   const jb = n => jobs.find(j => j.n === n) || {};
   const held = heldList.slice().sort((a, b) => (b.pieces || 0) - (a.pieces || 0)).map(h => [h.job, jb(h.job).a || "sc21", h.repo || "", h.pieces || 0, h.age || ago(h.oldest, now)]);
   const T = [];
@@ -1256,6 +1256,7 @@ class Component extends DCLogic {
     if (p && p.sel) this.state.sel = p.sel; if (p && p.panel === "launch") this.state.launch = true; if (p && p.panel === "palette") this.state.pal = true; }
   renderVals() {
     const LV = window.__LIVE || {}, LN = LV.nums || {};
+    const RCURL = id => "https://claude.ai/code/" + encodeURIComponent(id);   // P8.8: the feed holds only the bare session id
     const ageMin = a => { const t = String(a || ""), d = /(\d+) days?/.exec(t), h = /(\d+) h/.exec(t), m = /(\d+) m\b/.exec(t); return (d ? +d[1] * 1440 : 0) + (h ? +h[1] * 60 : 0) + (m ? +m[1] : 0); };
     const theme = this.state.theme || this.props.theme || "dark";
     const view = this.state.view || this.props.tab || "home";
@@ -1363,12 +1364,19 @@ class Component extends DCLogic {
     const GO = ["EX-44 tune-up","Tauheed","Adl"];
     const gmap = {}; ALLJ.forEach(j => { (gmap[j.g] = gmap[j.g] || []).push(j); });
     const gnames = Object.keys(gmap).sort((a, b) => (GO.indexOf(a) < 0 ? 99 : GO.indexOf(a)) - (GO.indexOf(b) < 0 ? 99 : GO.indexOf(b)) || gmap[b].length - gmap[a].length);
-    const ordered = list => { const out = []; list.filter(j => !j.par || !list.some(p => p.n === j.par)).forEach(p => { out.push(p); list.filter(k => k.par === p.n).forEach(k => out.push(k)); }); return out; };
-    const allGroups = gnames.map((g, gi) => ({ id: "G" + gi, name: g, rows: ordered(gmap[g]).map(j => Object.assign(R(j.n, j.st, j.a, j.flow === "held" && j.br ? "held" : (j.br ? "flow" : "none"), j.pc, j.last || "", j.ask, j.age || "", { lock: j.prot, kid: !!j.par && gmap[g].some(p => p.n === j.par), model: j.model, eff: j.eff, said: j.said, saidT: j.saidT, saidD: j.saidD, role: ROLEX[j.n] || (j.role === "orchestrator" || j.role === "thinker" ? j.role : "") }), { open: openChat(j.n) })) }));
+    const ordered = list => { const out = [], seen = new Set(), add = p => { if (seen.has(p.n)) return; seen.add(p.n); out.push(p); list.filter(k => k.par === p.n).forEach(add); };   // P8.8: any depth
+      list.filter(j => !j.par || !list.some(p => p.n === j.par)).forEach(add); list.forEach(add); return out; };
+    const allGroups = gnames.map((g, gi) => ({ id: "G" + gi, name: g, rows: ordered(gmap[g]).map(j => Object.assign(R(j.n, j.st, j.a, j.flow === "held" && j.br ? "held" : (j.br ? "flow" : "none"), j.pc, j.last || "", j.ask, j.age || "", { lock: j.prot, kid: !!j.par && gmap[g].some(p => p.n === j.par), model: j.model, eff: j.eff, said: j.said, saidT: j.saidT, saidD: j.saidD, role: ROLEX[j.n] || (j.role === "orchestrator" || j.role === "thinker" ? j.role : "") }), { open: openChat(j.n), par: j.par || "" })) }));
     const cq = (stt.cq || "").toLowerCase();
     const keep = { open:["work","wait","bad"], work:["work"], wait:["wait"], done:["done"], all:["work","wait","bad","done"] }[this.state.bf];
     const groups = allGroups.map(g => {
-      const rows = g.rows.filter(r => keep.includes(r.st) && (!af || r.acct===af) && (!cq || (r.name + " " + r.doing + " " + r.asks).toLowerCase().includes(cq))), s = !!shut[g.id];
+      // P8.8 (Ali: "p8-8 and all p10 never show up"): a parent that shows brings every child chat with it, whatever
+      // its state; a child that shows brings its parent; a search looks at every chat, whatever its state.
+      const pool = g.rows.filter(r => !af || r.acct===af), by = {}; pool.forEach(r => by[r.name] = r);
+      const on = new Set(pool.filter(r => cq ? (r.name + " " + r.doing + " " + r.note + " " + r.asks).toLowerCase().includes(cq) : keep.includes(r.st)).map(r => r.name));
+      [...on].forEach(n => { let p = by[n].par; while (p && by[p] && !on.has(p)) { on.add(p); p = by[p].par; } });   // a shown child brings its parent
+      for (let grew = true; grew; ) { grew = false; pool.forEach(r => { if (!on.has(r.name) && r.par && on.has(r.par)) { on.add(r.name); grew = true; } }); }
+      const rows = pool.filter(r => on.has(r.name)), s = !!shut[g.id];
       const n = x => rows.filter(r => r.st===x).length, counts = [];
       if (n("bad")) counts.push({t:n("bad")+" stuck",bg:"var(--bad-d)",fg:C.bad});
       if (n("wait")) counts.push({t:n("wait")+" waiting",bg:"var(--amber-d)",fg:C.amber});
@@ -1431,11 +1439,11 @@ class Component extends DCLogic {
       dr = Object.assign({ on:true, a:sj.a, hue:HUE[sj.a], dot:STL[sj.st][1], stl:STL[sj.st][0], stbg:STL[sj.st][2],
         chips: [(ROLEX[sj.n] || sj.role) ? (ROLEX[sj.n] || sj.role) + (sj.par ? " of " + sj.par : "") : "", sj.br ? (held ? "held" : "flowing") : "no branch", sj.q ? "quiet" : "", sj.prot ? "protected" : "", sj.test ? "test case" : ""].filter(Boolean), mdl: MDL(sj.model)[0], mcls: MDL(sj.model)[1], eff: EFF(sj.eff)[0], ecls: EFF(sj.eff)[1], dt: sj.said ? sj.saidT || "" : dsplit(sj.last).dt, yr: sj.said ? sj.saidD || "" : dsplit(sj.last).yr,
         hasAsk: !!sj.ask, ask: sj.ask, last: sj.said || dsplit(sj.last).rest || "No note line yet.",
-        answers: [{label:"Yes, go", cls:"btn you", run: () => this.act("Send \"go\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Yes to option 1", cls:"btn", run: () => this.act("Send \"yes to option 1\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Open the chat", cls:"btn ghost", run: () => this.flash("Open " + n + " in the Claude app, under its account.")}],
+        answers: [{label:"Yes, go", cls:"btn you", run: () => this.act("Send \"go\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Yes to option 1", cls:"btn", run: () => this.act("Send \"yes to option 1\" to " + n, () => setJ(n, {ask:"", st:"work"}))}, {label:"Open the chat", cls:"btn ghost", run: () => sj.rc ? window.open(RCURL(sj.rc), "_blank", "noopener") : this.flash("Open " + n + " in the Claude app, under its account.")}],
         facts: [["Account", sj.a], ["Project", sj.g], ["Repo", sj.repo || "none"], ["Branch", sj.br || "none"], ["Into main", sj.br ? (held ? "Held" + (sj.pc ? ": " + sj.pc + " pieces waiting" : "") : "Flowing: clean pieces go in by themselves") : "No branch"], ["For", sj.age || "now"], ["Trip", sj.trip || ""], ["Job note", sj.said ? dsplit(sj.last).rest : ""]].filter(([k, v]) => v).map(([k, v]) => ({k, v})),
         phrases: PH.map(ph => ({ label: ph, run: () => this.act("Send \"" + ph + "\" to " + n) })),
         sendPhrase: () => { const el = document.getElementById("ph"); const v = el ? el.value : "go"; this.act("Send \"" + v + "\" to " + n); },
-        openChat: () => this.flash("Open " + n + " in the Claude app, under its account."),
+        openChat: () => sj.rc ? window.open(RCURL(sj.rc), "_blank", "noopener") : this.flash("Open " + n + " in the Claude app, under its account."),
         enter: () => this.act("Press Enter in " + n), whenFree: () => this.act("Send \"go\" to " + n + " when it is free"),
         hasBranch: !!sj.br, save: () => this.act("Save " + n + " into main", () => setJ(n, {pc:0})),
         hold: () => this.act((held ? "Release " : "Hold ") + n, () => setJ(n, {flow: held ? "flowing" : "held"})), holdLabel: held ? "Release (let it flow)" : "Hold",
