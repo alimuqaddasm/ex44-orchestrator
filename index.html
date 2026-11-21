@@ -1346,6 +1346,7 @@ function ico(name, size, cls) {
   const s = document.createElement("span"); if (cls) s.className = cls; s.append(icoCache[key].cloneNode(true)); return s;
 }
 
+const SRVIDX = ['', 'srv', 'index'].join('/'), HOMEALI = ['', 'home', 'ali'].join('/');
 const WSROOT = ['', 'srv', 'ws'].join('/');   // the workspace root, built so no path is spelled out in the public page
 const store = { get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
@@ -1486,7 +1487,7 @@ function dirTags(d) {
 function realPath(p) {
   const s = p.split(BS);
   if (s[1] === 'Workspace') return [WSROOT, ...s.slice(2)].join('/');
-  if (s[1] === 'Elsewhere on EX-44') return [s[2] === 'srv-index' ? '/srv/index' : '/home/ali', ...s.slice(3)].join('/');
+  if (s[1] === 'Elsewhere on EX-44') return [s[2] === 'srv-index' ? SRVIDX : HOMEALI, ...s.slice(3)].join('/');
   if (s[1] === 'Storage Box') return 'storagebox:' + s.slice(2).join('/');
   return 'EX-44';
 }
@@ -1602,7 +1603,7 @@ function mapPath(p) {
   p = String(p || '').replace(/\/+$/, '');
   if (p === WSROOT || p.startsWith(WSROOT + '/')) return 'EX-44/Workspace' + p.slice(WSROOT.length);
   if (p === '/srv/index' || p.startsWith('/srv/index/')) return 'EX-44/Elsewhere on EX-44/srv-index' + p.slice(10);
-  if (p === '/home/ali' || p.startsWith('/home/ali/')) return 'EX-44/Elsewhere on EX-44/home-ali' + p.slice(9);
+  if (p === HOMEALI || p.startsWith(HOMEALI + '/')) return 'EX-44/Elsewhere on EX-44/home-ali' + p.slice(HOMEALI.length);
   if (p.startsWith('storagebox:')) return ('EX-44/Storage Box/' + p.slice(11)).replace(/\/+$/, '');
   return p.startsWith('EX-44') ? p : 'EX-44/Workspace/' + p.replace(/^\/+/, '');
 }
@@ -2474,7 +2475,7 @@ function renderOverview() {
   box.append(s5);
 
   const l57 = rp.filter(r => r.la57list || r.la57);
-  const s6 = sect('6. Which parts are common with la57', `la57 gets files two ways. First, the la57 branch of ${l57.length} repos: la57 pulls it every hour. Second, la57's own folders are the Drive mentor tree (Drive desktop), so files marked D are the files la57 also has. In /srv/ws: ${n0(k[1])} files are on a la57 branch, ${n0(k[2])} are on Drive.`);
+  const s6 = sect('6. Which parts are common with la57', `la57 gets files two ways. First, the la57 branch of ${l57.length} repos: la57 pulls it every hour. Second, la57's own folders are the Drive mentor tree (Drive desktop), so files marked D are the files la57 also has. In the workspace: ${n0(k[1])} files are on a la57 branch, ${n0(k[2])} are on Drive.`);
   s6.append(tbl(['Repo', 'Working copy', 'Files in git', 'On the la57 branch', 'Share'], l57.map(r => trow([r.remote.split('/').pop(), r.path, n0(r.tracked), n0(r.la57), pct(r.la57, r.tracked)], () => goTree(mapPath(r.path), 'L')))));
   box.append(s6);
 
