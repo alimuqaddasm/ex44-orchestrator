@@ -937,7 +937,9 @@ function group(j){
 }
 function stOf(j){
   if (j.activity === "limit" || j.status_why === "at a limit" || j.status === "paused") return "bad";
-  if (j.status === "working" || j.activity === "working") return "work";
+  // Ali, 2026-11-21: working only while the screen shows the working sign. The screen word (every 5 s) wins over
+  // a status line that has not caught up yet; with no screen word (a closed chat) the status line decides, as before.
+  if (j.activity === "working" || (j.status === "working" && !(j.activity && j.activity !== "closed"))) return "work";
   if (j.status === "waiting on Ali") return "wait";
   return "done";
 }
