@@ -1216,7 +1216,7 @@ window.DCLogic = DCLogic;
 
 class Component extends DCLogic {
   act(text, apply, tid){
-    // P8.4: the button's words become a request to EX-44 (live.js). Sent at once with 5 seconds to undo, then filed;
+    // P8.4: the button's words become a request to EX-44 (live.js). Sent at once with 2 seconds to undo, then filed;
     // Done (or why not) when EX-44's log shows it, within about a minute.
     const LX = window.__ex44live, rq = LX ? LX.reqs(text, tid, this) : null;
     if (!rq) { this.flash("This button has no action on EX-44."); return; }
@@ -1235,7 +1235,7 @@ class Component extends DCLogic {
       else if (res.status === "waiting") mark("waiting", res.reason);
       else { mark("failed", res.status + (res.reason ? ": " + res.reason : "")); this.flash("Not done: " + (res.reason || res.status));
         if (tid) { const s2 = Object.assign({}, this.state.sent); delete s2[tid]; this.setState({ sent: s2 }); } }
-    }, 5000);
+    }, 2000);   // the undo window: 2 s (Ali, 2026-11-21; was 5 s)
   }
   undo(){ const t = this.state.toastT; if (!t) return; clearTimeout(this._t[t.id]); const sent = Object.assign({}, this.state.sent); if (t.tid) delete sent[t.tid];
     this.setState({ toastT: null, sent, log: this.state.log.map(l => l.id === t.id ? Object.assign({}, l, {st:"undone"}) : l) }); }
@@ -1505,7 +1505,7 @@ class Component extends DCLogic {
       how:[
         {t:"The home",x:"One screen answers three things: what needs you, what is running, what is stuck. Needs you sits on top; every chat lives on the Chats tab.",d:I.home.d,bg:"var(--amber-d)",fg:C.amber},
         {t:"Last said",x:"Each chat shows its last finished piece and what it asks you, from its own job note. Raw screen text never comes here, so no source text rides along.",d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z",bg:"var(--tn)",fg:"var(--ink2)"},
-        {t:"Sent, then done",x:"Every button sends at once and shows Sent. You have 5 seconds to undo. EX-44 picks it up and it turns Done within the minute.",d:"M22 2 11 13M22 2l-7 20-4-9-9-4z",bg:"var(--blue-d)",fg:C.blue},
+        {t:"Sent, then done",x:"Every button sends at once and shows Sent. You have 2 seconds to undo. EX-44 picks it up and it turns Done within the minute.",d:"M22 2 11 13M22 2l-7 20-4-9-9-4z",bg:"var(--blue-d)",fg:C.blue},
         {t:"Big buttons ask twice",x:"Move, Close, GO and Lift protection need a second tap within 3 seconds. Small ones, like a ready phrase or Quiet, go on the first tap and can be undone.",d:"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z",bg:"var(--tn)",fg:"var(--ink2)"},
         {t:"Ready phrases only",x:"Talking to a chat uses fixed phrases: go, continue, stop, save, publish, show me, quiet mode, yes to option 1, 2 or 3. For anything else, open the chat.",d:"M4 5h16M4 12h10M4 19h7",bg:"var(--tn)",fg:"var(--ink2)"},
         {t:"Why a Tauheed chat cannot be closed",x:"Each Tauheed Bab chat holds days of planning in its head: the diagnosis, your rulings, the mentor's comments. Closing it throws that away. Lift the mark yourself and it closes like any other.",d:"M5 11h14v10H5zM8 11V8a4 4 0 0 1 8 0v3",bg:"var(--tn)",fg:"var(--ink2)"},
