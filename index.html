@@ -2689,6 +2689,11 @@ function build(d, now){
       tags: [["alert " + a.id, "you"]], title: String(a.text || "").replace(/^[A-Z]+ \d+:\s*/, ""), whyLab: "What it costs", wi: "cost",
       why: a.kind === "private" ? "Fix it in that repo; Seen only clears it here." : "Yes or No goes to EX-44, which carries it out within the minute.", primary: a.kind === "private" ? "Seen" : "Yes", secondary: a.kind === "private" ? "Later" : "No",
       req1: a.kind === "private" ? null : { action: "approve", alert: a.id }, req2: a.kind === "private" ? null : { action: "refuse", alert: a.id }, age: ago(a.created, now), agew: "0%" }); });
+  // Q7 (Ali, 2026-11-22): one queue of decisions, each a card with a lean; no chat waits on it. Answering records it (actions.py decide).
+  (feed.decisions || []).forEach(dq => T.push({ id: "d-" + dq.id, k: "decision", kind: "Decision waiting", chat: "decision", acct: "sc21", proj: "My lean: " + (dq.lean || ""),
+    tags: [[(dq.count || 1) + (dq.source === "publish" ? " parked files" : " waiting"), "you"], ["no chat waits", "clock"]], title: dq.what, whyLab: "My lean", wi: "next",
+    why: (dq.note ? dq.note + " " : "") + (dq.items && dq.items.length ? "Includes: " + dq.items.join(", ") + "." : ""), primary: "Yes, my lean", secondary: "Ask me later",
+    req1: { action: "decide", decision: dq.id, choice: "lean" }, req2: { action: "decide", decision: dq.id, choice: "later" }, age: "", agew: "0%" }));
   Object.keys(tf).forEach(n => { const t = tf[n] || {}, j = byName[n]; if (!j) return;
     T.push({ id: "f-" + n, k: "tafweez", kind: "TAFWEEZ", chat: n, acct: j.account, proj: group(j), tags: [[(t.checks || 0) + " checks passed", "ok"], ["archive is yours", "you"]],
       title: "Everything is done and checked. Nothing waits on you.", whyLab: "Your call", wi: "next", why: "Only you decide whether to archive it.",
@@ -3013,6 +3018,7 @@ class Component extends DCLogic {
       limit:{d:"M12 9v4M12 17h.01M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",f:"M10.3 3.9 2.4 18a2 2 0 0 0 1.7 3h15.8a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"},
       clash:{d:"M6 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM18 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 9v12M18 15V9a6 6 0 0 0-6-6h-2",f:"M6 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM18 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"},
       go:{d:"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6zM9 12l2 2 4-4",f:"M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"},
+      decision:{d:"M4 6h16M4 12h10M4 18h6M17 15l2 2 3-4",f:""},
       question:{d:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2zM9.5 8.5a2.5 2.5 0 1 1 3.3 2.4c-.5.2-.8.6-.8 1.1M12 14.5h.01",f:"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"},
       tafweez:{d:"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 12l3 3 5-6",f:"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z"},
       held:{d:"M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",f:"M12 2 2 7l10 5 10-5z"},
@@ -3027,7 +3033,7 @@ class Component extends DCLogic {
     };
     const K = {
       limit:{bg:"var(--bad-d)",fg:C.bad}, clash:{bg:"var(--bad-d)",fg:C.bad}, go:{bg:"var(--amber-d)",fg:C.amber},
-      question:{bg:"var(--amber-d)",fg:C.amber}, tafweez:{bg:"var(--ok-d)",fg:C.ok}, held:{bg:"var(--held-d)",fg:C.held}
+      decision:{bg:"var(--amber-d)",fg:C.amber}, question:{bg:"var(--amber-d)",fg:C.amber}, tafweez:{bg:"var(--ok-d)",fg:C.ok}, held:{bg:"var(--held-d)",fg:C.held}
     };
     const W = { next:"M5 12h14M13 6l6 6-6 6", why:"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 11v5M12 8h.01", pick:"M20 6 9 17l-5-5", cost:"M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2" };
     const T = (LV.tickets || []).map(t => Object.assign({}, t, { whyIcon: W[t.wi] || W.next }))
@@ -3062,7 +3068,7 @@ class Component extends DCLogic {
       send: () => PZ[t.acct] ? this.flash(pzWhy(t.acct)) : this.act(t.primary + ": " + t.chat, () => this.setState(t.id.startsWith("h-") ? { savedHeld: Object.assign({}, this.state.savedHeld, {[t.chat]: true}) } : { done: Object.assign({}, this.state.done, {[t.id]: true}) }), t.id),
       later: () => PZ[t.acct] ? this.flash(pzWhy(t.acct)) : this.act(t.secondary + ": " + t.chat, () => this.setState({ done: Object.assign({}, this.state.done, {[t.id]: true}) }), t.id),
       open: t.id === "t6" ? () => this.setState({ qf: "held" }) : (jb(t.chat) ? openChat(t.chat) : () => this.flash("Open " + t.chat + " in the Claude app, under its account.")) }); });
-    const KORD = ["limit","clash","go","question","held","tafweez"], KNAME = { limit:"Usage limits", clash:"Clashes", go:"GO requests", question:"Questions", held:"Held work", tafweez:"Finished" };
+    const KORD = ["limit","clash","go","decision","question","held","tafweez"], KNAME = { limit:"Usage limits", clash:"Clashes", go:"GO requests", decision:"Decisions waiting", question:"Questions", held:"Held work", tafweez:"Finished" };
     const gIsOpen = k => (k in (stt.gopen || {})) ? stt.gopen[k] : !["held","tafweez"].includes(k);
     const setG = (k, v) => this.setState({ gopen: Object.assign({}, this.state.gopen || {}, {[k]: v}) });
     const nopen = stt.nopen || {};
@@ -3087,7 +3093,7 @@ class Component extends DCLogic {
       toGrouped: () => this.setState({ nmode: "grouped" }), toFocus: () => this.setState({ nmode: "focus", fskip: 0 }),
       groups: nqGroups, hasCur: !!cur, empty: !cur, cur: cur ? Object.assign({}, cur, K[cur.k], { d: I[cur.k].d, f: I[cur.k].f }) : {}, pos: cur ? (fi + 1) + " of " + pending.length : "", fEnter, fLater, fOpen, fSkip, fBack };
     const nk = k => ALLT.filter(t => t.k === k).length;
-    const QT = [["all","All",ALLT.length,"all",""],["question","Questions",nk("question"),"question",C.amber],["limit","Limits",nk("limit"),"limit",C.bad],["clash","Clash",nk("clash"),"clash",C.bad],["go","GO",nk("go"),"go",C.amber],["tafweez","TAFWEEZ",nk("tafweez"),"tafweez",C.ok],["held","Held",HELDT.length,"held",C.held]];
+    const QT = [["all","All",ALLT.length,"all",""],["question","Questions",nk("question"),"question",C.amber],["limit","Limits",nk("limit"),"limit",C.bad],["clash","Clash",nk("clash"),"clash",C.bad],["go","GO",nk("go"),"go",C.amber],["decision","Decisions",nk("decision"),"decision",C.amber],["tafweez","TAFWEEZ",nk("tafweez"),"tafweez",C.ok],["held","Held",HELDT.length,"held",C.held]];
     const qtabs = QT.map(([k,l,n,ic,col]) => ({ label:l, n, d:I[ic].d, f:I[ic].f, color: col || "currentColor", on: qf===k ? "true":"false", cls: qf===k ? "tab on":"tab", pick: () => this.setState({ qf:k }) }));
     const nst = f => ALLJ.filter(j => f.includes(j.st)).length;
     const BT = [["open","Open",nst(["work","wait","bad"])],["work","Working",nst(["work"])],["wait","Waiting",nst(["wait"])],["done","Done",nst(["done"])],["all","All",ALLJ.length]];
