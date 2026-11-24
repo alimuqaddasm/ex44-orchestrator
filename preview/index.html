@@ -1337,7 +1337,7 @@ body{background:var(--page-bg);margin:0}
 (function () {
 "use strict";
 if (window.EX44CC) return;
-let D = ((window.__LIVE && window.__LIVE.cc) || {"tasks":[],"chats":{},"classes":[],"asks":{},"projects":[],"tree":{},"porder":[],"plevel":{},"needs":[],"today":"2026-11-24"});
+let D = ((window.__LIVE && window.__LIVE.cc) || {"tasks":[],"chats":{},"classes":[],"asks":{},"projects":[],"tree":{},"porder":[],"plevel":{},"needs":[],"today":"2026-11-25"});
 // cc-wire (M3, M4): on the preview home (window.__CCLIVE) the data comes from EX-44's cc.json through live.js, and every
 // change Ali makes is sent to EX-44 through the home's own button road (act: sent at once, then done). What stays in
 // this browser: the project layout, steps ticks, session numbers. The canvas copy keeps working with baked data.
@@ -1364,7 +1364,7 @@ const IC = {
 const ic = (n, s) => `<svg width="${s || 14}" height="${s || 14}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${IC[n]}"></path></svg>`;
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const fd = (d) => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(d || ""); return m ? (+m[3]) + " " + MON[+m[2] - 1] : d; };
-const nowStamp = () => new Date().toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const nowStamp = () => new Date().toLocaleString("en-GB", { timeZone: "Asia/Karachi", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false }) + " PKT";
 const mk = (n) => (window.EX44CC && window.EX44CC.marks ? `<span class="askm">Ask ${n}</span>` : "");
 const tm = (n) => (window.EX44CC && window.EX44CC.marks ? `<span class="trm">T${n}</span>` : "");
 const short = (t, n) => (t.length > n ? t.slice(0, n - 1) + "…" : t);
@@ -3786,8 +3786,10 @@ const redraw = () => { if (window.__ex44 && window.__ex44.draw) window.__ex44.dr
 
 const ago = (iso, now) => { const t = Date.parse(iso || ""); if (!t) return ""; const m = Math.max(0, Math.round((now - t) / 60000));
   return m < 1 ? "just now" : m < 60 ? m + " m" : m < 1440 ? Math.floor(m / 60) + " h" + (m % 60 && m < 600 ? " " + (m % 60) + " m" : "") : Math.floor(m / 1440) + (m < 2880 ? " day" : " days"); };
-const hhmm = t => { const d = new Date(t); return String(d.getUTCHours()).padStart(2, "0") + ":" + String(d.getUTCMinutes()).padStart(2, "0"); };
-const dayOf = (iso, now) => { const t = Date.parse(iso || ""); if (!t) return ""; const d = new Date(t), n = new Date(now);
+const PKT_MS = 5 * 3600e3;   // Pakistan time, UTC+5, no daylight saving: every time Ali reads is PKT
+const pk = t => new Date(t + PKT_MS);   // read with the getUTC* methods
+const hhmm = t => { const d = pk(t); return String(d.getUTCHours()).padStart(2, "0") + ":" + String(d.getUTCMinutes()).padStart(2, "0"); };
+const dayOf = (iso, now) => { const t = Date.parse(iso || ""); if (!t) return ""; const d = pk(t), n = pk(now);
   return d.toISOString().slice(0, 10) === n.toISOString().slice(0, 10) ? "today" : d.getUTCDate() + " " + ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getUTCMonth()]; };
 const plural = (n, a, b) => n + " " + (n === 1 ? a : (b || a + "s"));
 
@@ -3881,7 +3883,7 @@ function build(d, now){
   const qOld = jobs.filter(j => j.st === "wait" || j.st === "bad").map(j => Date.parse(j.since)).filter(Boolean);
   const oldest = qOld.length ? ago(new Date(Math.min.apply(null, qOld)).toISOString(), now) : "none";
   const fAge = Date.parse(feed.changed || ""), fMin = fAge ? Math.round((now - fAge) / 60000) : null;
-  const hr = new Date().getHours(), greet = hr < 5 ? "Good night, Ali." : hr < 12 ? "Good morning, Ali." : hr < 17 ? "Good afternoon, Ali." : "Good evening, Ali.";
+  const hr = pk(Date.now()).getUTCHours(), greet = hr < 5 ? "Good night, Ali." : hr < 12 ? "Good morning, Ali." : hr < 17 ? "Good afternoon, Ali." : "Good evening, Ali.";
   const skills = (feed.skills || []);
   Object.assign(LIVE, { ok: true, loading: false, pz: Object.fromEntries(Object.entries(feed.paused_accounts || {}).map(([k, v]) => [k, (v && v.reason) || "paused"])), jobs, held, tickets: T, bins, accts, skills, repos, branches, oldest,
     nums: { bad: nBad, work: nWork, wait: nWait, open: nOpen, pieces, heldJobs: held.length, limits: T.filter(t => t.k === "limit").length,
@@ -3890,9 +3892,9 @@ function build(d, now){
       screen: jobs.filter(j => j.st === "wait" && j.act === "asks").length, recentN, projects: new Set(jobs.filter(j => j.st !== "done").map(j => j.g)).size,
       acctWords: words.join(", ") },
     lv: { greet, sub: plural(nBad + T.filter(t => t.k === "clash" || t.k === "go").length, "thing is", "things are") + " stuck, " + nWait + " wait on you, " + nWork + " " + (nWork === 1 ? "is" : "are") + " working.",
-      age: BEAT.mode === "new" ? ageLine(now).text : fMin == null ? "Live feed: no time in the file." : "Live feed: changed " + (fMin < 1 ? "just now" : fMin + " min ago") + " (" + hhmm(fAge) + " UTC)." + (fMin > 15 ? " That is old: the feed on EX-44 may have stopped." : " Reads again every minute."),
+      age: BEAT.mode === "new" ? ageLine(now).text : fMin == null ? "Live feed: no time in the file." : "Live feed: changed " + (fMin < 1 ? "just now" : fMin + " min ago") + " (" + hhmm(fAge) + " PKT)." + (fMin > 15 ? " That is old: the feed on EX-44 may have stopped." : " Reads again every minute."),
       ageOld: BEAT.mode === "new" ? ageLine(now).red : fMin != null && fMin > 15,
-      axis: [hhmm(start) + " yesterday", hhmm(start + 12 * 1800e3), hhmm(start + 24 * 1800e3), hhmm(start + 36 * 1800e3), "now, " + hhmm(now) + " UTC"],
+      axis: [hhmm(start) + " yesterday", hhmm(start + 12 * 1800e3), hhmm(start + 24 * 1800e3), hhmm(start + 36 * 1800e3), "now, " + hhmm(now) + " PKT"],
       dayNote: "One bar per half hour: how many chats last changed state then. Colour shows what they are now.",
       heldWhy, branchNote: sysHeld.length > branches.length ? (sysHeld.length - branches.length) + " more are on the Held list above." : "Only held job branches show here; the rest of the branches hold nothing main lacks.",
       driveNote: units.length ? nAp + " of " + units.length + " units approved, " + nPv + " in Preview. Only you set these marks, with \"show mentor\" and \"approved\"." : "No units in the layers file yet.",
