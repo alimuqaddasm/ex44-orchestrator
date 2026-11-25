@@ -781,44 +781,90 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .ccleafw{flex-wrap:wrap;max-width:100%}
 .ex .ccleafw .ccleaf{width:auto;max-width:100%;flex:0 1 auto}
 .ex .cclayer .ccleaves{min-width:0;max-width:100%}
-/* sync round, laptop: the project map grows like a flowchart. Each layer is a node; its tasks and sub-layers branch out
-   to its right, joined by lines, so every new layer adds a column. The phone keeps the stacked tree. */
-@media (min-width: 900px){
-  .ex .ccmapv .ccbranches{padding-left:28px}
-  .ex .ccmapv .cclayer{display:grid;grid-template-columns:200px minmax(0,1fr);align-items:center;column-gap:30px;padding:4px 0}
-  .ex .ccmapv .cclayer>.ccsubh{position:relative;flex-wrap:wrap;align-content:center;background:var(--g0);border:1px solid var(--line2);border-radius:12px;padding:8px 10px;min-height:44px;box-shadow:0 2px 8px -4px oklch(20% 0.02 250 / .15)}
-  .ex .ccmapv .cclayer>.ccsubh .ccsubacts{margin-left:0;width:100%;justify-content:flex-end}
-  .ex .ccmapv .cclayer>.ccsubh::after{content:"";position:absolute;right:-31px;top:50%;width:30px;border-top:2px solid var(--line2)}
-  .ex .ccmapv .cclayer.empty>.ccsubh::after,.ex .ccmapv .cclayer.folded>.ccsubh::after{display:none}
-  .ex .ccmapv .cclkids{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;padding-left:16px}
-  .ex .ccmapv .cclkids::before{content:"";position:absolute;left:0;top:10px;bottom:10px;border-left:2px solid var(--line2);border-radius:2px}
-  .ex .ccmapv .cclkids:empty::before,.ex .ccmapv .cclayer.folded .cclkids::before{display:none}
-  .ex .ccmapv .cclkids>.ccbranches{padding-left:0}
-  .ex .ccmapv .cclkids>.ccbranches::before{display:none}
-  .ex .ccmapv .cclayer::before{left:-16px;width:14px}
-  .ex .ccmapv .cclayer>.ccbranches{padding-left:0}
-  .ex .ccmapv .ccleaves{display:flex;flex-wrap:wrap;gap:6px}
-  .ex .ccmapv .ccleafw .ccleaf{border:1px solid var(--line);background:var(--g1,var(--g0))}
-}
-@media (min-width: 900px){
-  .ex .ccmapv .ccpj>.ccbranches{overflow-x:auto;padding-bottom:6px}
-  .ex .ccmapv .cclayer{grid-template-columns:190px minmax(220px,1fr)}
-  .ex .ccmapv .cclayer>.ccsubh{display:flex;flex-wrap:nowrap;gap:4px}
-  .ex .ccmapv .cclayer>.ccsubh .ccpname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .ex .ccmapv .cclayer>.ccsubh .ccsubacts{width:auto;margin-left:0;flex:0 0 auto;opacity:0;transition:opacity .15s}
-  .ex .ccmapv .cclayer>.ccsubh:hover .ccsubacts,.ex .ccmapv .cclayer>.ccsubh:focus-within .ccsubacts{opacity:1}
-  .ex .ccmapv .cclayer>.ccsubh .ccstat,.ex .ccmapv .cclayer>.ccsubh .ccundo{position:absolute;top:-12px;right:8px}
-  .ex .ccmapv .cclayer>.ccsubh .ccundo{right:auto;left:8px}
-  .ex .ccmapv .ccleafw .ccleaf{flex:0 0 auto;max-width:260px}
-}
-@media (hover: none) and (min-width: 900px){.ex .ccmapv .cclayer>.ccsubh .ccsubacts{opacity:1}}
 .toast .ccundo{font-weight:600}
+/* sync round, laptop (Ali 25 Nov: the round 9 map is the skeleton; more layers; tasks under a layer in a column):
+   the project card on the left with its round plus; each layer is a grey tag with its count and pen; its tasks stand in
+   a column to its right, and its sub-layers sit in the same column, each branching out again. Rounded joining lines. */
 @media (min-width: 900px){
-  .ex .ccmapv .cclayer>.ccsubh{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;row-gap:0;column-gap:2px;padding:6px 8px 4px}
-  .ex .ccmapv .cclayer>.ccsubh .ccsubacts{grid-column:1/-1;justify-self:end;opacity:1;margin-top:-2px}
-  .ex .ccmapv .cclayer>.ccsubh .ccsubacts .ccicon{width:26px;height:26px}
-  .ex .ccmapv .cclayer{grid-template-columns:200px minmax(220px,1fr)}
+  .ex .ccmapv .ccpj{grid-template-columns:300px minmax(0,1fr);column-gap:0}
+  .ex .ccmapv .ccroot{margin-right:44px}
+  .ex .ccmapv .ccroot::after{content:"";position:absolute;right:-44px;top:50%;width:44px;border-top:2px solid var(--line2)}
+  .ex .ccmapv .ccroot .ccrootacts{display:none}
+  .ex .ccmapv .ccrplus{display:inline-flex}
+  .ex .ccmapv .ccpj>.ccbranches{padding-left:16px;overflow-x:auto;padding-top:4px;padding-bottom:4px}
+  .ex .ccmapv .ccpj>.ccbranches::before,.ex .ccmapv .ccbranches::before,.ex .ccmapv .cclayer::before{content:none}
+  /* every child column: tasks first, then sub-layers, one under another */
+  .ex .ccmapv .ccpj>.ccbranches,.ex .ccmapv .cclkids{display:flex;flex-direction:column;gap:8px;min-width:0}
+  .ex .ccmapv .ccpj>.ccbranches>.ccleaves,.ex .ccmapv .ccpj>.ccbranches>.ccbranches,.ex .ccmapv .cclkids>.ccleaves,.ex .ccmapv .cclkids>.ccbranches{display:contents}
+  .ex .ccmapv .ccaddbtn{display:none}
+  .ex .ccmapv .cclayer{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:start;column-gap:40px;padding:0;border-radius:0}
+  .ex .ccmapv .cclayer.over{background:transparent}
+  .ex .ccmapv .cclayer.over>.ccsubh,.ex .ccmapv .ccleafw.over .ccleaf{box-shadow:0 0 0 2px var(--amber);background:var(--amber-d)}
+  /* the joining lines: each item draws its piece of the spine and its stub; the last one turns the corner */
+  .ex .ccmapv :is(.ccpj>.ccbranches,.cclkids)>:is(.ccleaves,.ccbranches)>:is(.ccleafw,.cclayer,label,.lab){position:relative;--c:18px}
+  .ex .ccmapv :is(.ccpj>.ccbranches,.cclkids)>:is(.ccleaves,.ccbranches)>.cclayer{--c:19px}
+  .ex .ccmapv :is(.ccpj>.ccbranches,.cclkids)>:is(.ccleaves,.ccbranches)>*::after{content:"";position:absolute;left:-16px;top:var(--c);width:14px;border-top:2px solid var(--line2)}
+  /* the layer tag */
+  .ex .ccmapv .cclayer>.ccsubh{position:relative;display:inline-flex;align-items:center;gap:2px;height:38px;min-height:0;padding:0 6px 0 4px;border:1px solid var(--line);border-radius:12px;background:var(--g2);white-space:nowrap;transition:border-color .15s,box-shadow .15s}
+  .ex .ccmapv .cclayer>.ccsubh:hover{border-color:var(--line2);box-shadow:0 4px 14px -8px oklch(20% 0.02 250 / .35)}
+  .ex .ccmapv .cclayer>.ccsubh::after{content:"";position:absolute;right:-40px;top:18px;width:24px;border-top:2px solid var(--line2)}
+  .ex .ccmapv .cclayer.empty>.ccsubh::after,.ex .ccmapv .cclayer.folded>.ccsubh::after{content:none}
+  .ex .ccmapv .cclayer.empty>.ccsubh{opacity:1;background:transparent;border-style:dashed}
+  .ex .ccmapv .cclayer>.ccsubh .ccpname{font:650 15px/1 var(--id);letter-spacing:-.01em;padding:4px 4px}
+  .ex .ccmapv .cclayer.d2>.ccsubh .ccpname,.ex .ccmapv .cclayer.d3>.ccsubh .ccpname,.ex .ccmapv .cclayer.d4>.ccsubh .ccpname{font-size:14px}
+  .ex .ccmapv .cclayer.d2>.ccsubh,.ex .ccmapv .cclayer.d3>.ccsubh,.ex .ccmapv .cclayer.d4>.ccsubh{background:var(--g1,var(--g2))}
+  .ex .ccmapv .cclayer>.ccsubh .num{margin:0 4px 0 2px}
+  .ex .ccmapv .cclayer>.ccsubh .ccfold,.ex .ccmapv .cclayer>.ccsubh .ccgrip{opacity:.35;transition:opacity .15s}
+  .ex .ccmapv .cclayer>.ccsubh:hover :is(.ccfold,.ccgrip){opacity:1}
+  .ex .ccmapv .cclayer>.ccsubh .ccsubacts{display:inline-flex;margin-left:0;gap:0}
+  .ex .ccmapv .cclayer>.ccsubh .ccsubacts>button:not([data-pedit]){width:0;overflow:hidden;opacity:0;padding:0;transition:width .15s,opacity .15s}
+  .ex .ccmapv .cclayer>.ccsubh:is(:hover,:focus-within) .ccsubacts>button{width:26px;opacity:1}
+  .ex .ccmapv .cclayer>.ccsubh .ccstat{position:absolute;top:-11px;right:10px}
+  .ex .ccmapv .cclayer>.ccsubh .ccundo{position:absolute;top:-11px;left:10px}
+  .ex .ccmapv .cclayer.folded>.cclkids{padding-top:9px}
+  /* the task chips, one under another */
+  .ex .ccmapv .ccleafw{flex-wrap:nowrap;gap:8px;max-width:none}
+  .ex .ccmapv .ccleafw .ccleaf{flex:0 0 auto;width:auto;max-width:340px;height:36px;padding:0 14px 0 12px;border:1px solid var(--line);border-radius:11px;background:var(--g0);font:500 14px/1.2 var(--f);transition:border-color .15s,box-shadow .15s,transform .15s}
+  .ex .ccmapv .ccleafw .ccleaf:hover{border-color:var(--line2);box-shadow:0 4px 14px -8px oklch(20% 0.02 250 / .35);transform:translateY(-1px)}
+  .ex .ccmapv .ccleafw .ccleaf.merged{opacity:.55}
 }
+@media (min-width: 900px) and (hover: none){.ex .ccmapv .cclayer>.ccsubh .ccsubacts>button{width:26px;opacity:1}.ex .ccmapv .cclayer>.ccsubh :is(.ccfold,.ccgrip){opacity:1}}
+@media (prefers-reduced-motion: reduce){.ex .ccmapv .ccleafw .ccleaf,.ex .ccmapv .cclayer>.ccsubh,.ex .ccmapv .ccsubacts>button{transition:none}}
+.ex .ccmapv .ccrplus{display:grid}
+.ex .ccpmenu{position:absolute;right:-14px;top:calc(50% + 18px);z-index:3;display:flex;flex-direction:column;min-width:170px;padding:4px;border:1px solid var(--line2);border-radius:10px;background:var(--g0);box-shadow:0 10px 30px -12px oklch(20% 0.02 250 / .45)}
+.ex .ccpmenu button{display:flex;align-items:center;gap:8px;height:34px;padding:0 10px;border:0;border-radius:7px;background:transparent;color:var(--ink);font:500 13.5px/1 var(--f);text-align:left;cursor:pointer}
+.ex .ccpmenu button:hover,.ex .ccpmenu button:focus-visible{background:var(--g2);outline:none}
+@media (max-width: 899px){.ex .ccmapv .ccrplus,.ex .ccpmenu{display:none}}
+@media (min-width: 900px){
+  /* the spine of each column is drawn from the measured centres (wireLines in the page script) */
+  .ex .ccmapv :is(.ccpj>.ccbranches,.cclkids){position:relative}
+  .ex .ccmapv :is(.ccpj>.ccbranches,.cclkids)::before{content:"";position:absolute;left:0;top:var(--s0,0);height:var(--s1,0);border-left:2px solid var(--line2);border-radius:2px}
+  .ex .ccmapv :is(.ccpj>.ccbranches,.cclkids)>:is(.ccleaves,.ccbranches)>*::after{content:"";position:absolute;left:-16px;top:var(--c);width:14px;border-top:2px solid var(--line2)}
+  .ex .ccmapv .cclayer.folded>.cclkids::before,.ex .ccmapv .cclayer.empty>.cclkids::before{content:none}
+}
+/* sync round, laptop: the joining lines are drawn as one SVG per project (wireLines), with rounded corners and one weight;
+   the CSS stubs and spines are switched off */
+@media (min-width: 900px){
+  .ex .ccmapv .cclayer>.ccsubh{border:1px solid var(--line2)}
+  .ex .ccmapv .cclayer>.ccsubh:hover{border-color:var(--ink3)}
+  .ex .ccmapv .cclayer.empty>.ccsubh{border:1px dashed var(--line2)}
+  .ex .ccmapv :is(.ccpj>.ccbranches,.cclkids)::before,.ex .ccmapv :is(.ccpj>.ccbranches,.cclkids)>:is(.ccleaves,.ccbranches)>*::after,.ex .ccmapv .cclayer>.ccsubh::after{content:none}
+  .ex .ccmapv .ccpj>.ccbranches{position:relative}
+  .ex .ccmapv .cclines{position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:0}
+  .ex .ccmapv .cclines path{fill:none;stroke:var(--line2);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .ex .ccmapv .ccpj>.ccbranches>*:not(.cclines){position:relative;z-index:1}
+  .ex .ccmapv .ccroot::after{top:50%;height:0;border-top:1.6px solid var(--line2)}
+}
+@media (min-width: 900px){
+  .ex .ccmapv .cclayer>.ccsubh{border:1px solid var(--g3);background-clip:padding-box}
+  .ex .ccmapv .cclayer>.ccsubh:hover{border-color:var(--ink3)}
+  .ex .ccmapv .cclayer.empty>.ccsubh{border:1px dashed var(--g3)}
+  .ex .ccmapv .ccpj>.ccbranches{padding-left:44px}
+  .ex .ccmapv .ccroot{margin-right:20px}
+  .ex .ccmapv .ccroot::after{right:-20px;width:20px}
+}
+@media (min-width: 900px){.ex .ccmapv .cclayer>.ccsubh{transition:box-shadow .15s}.ex .ccmapv .ccleafw .ccleaf{transition:box-shadow .15s,transform .15s}}
+@media (min-width: 900px){.ex .ccmapv .cclayer>.ccsubh .ccsubacts>button:not([data-pedit]){width:26px;padding:0;opacity:0;transition:opacity .15s}.ex .ccmapv .cclayer>.ccsubh:is(:hover,:focus-within) .ccsubacts>button{opacity:1}}
 
 
 :root{--page-bg:oklch(97.3% 0.004 250)}
@@ -1767,6 +1813,36 @@ function addLeaf(p) {
   if (U.ptitle === p) return `<label class="ccleaf typing"><span class="dot" style="background:var(--ink3);width:7px;height:7px"></span><input data-ptitle="${esc(p)}" placeholder="Title of the new task" aria-label="New task in ${esc(p)}" value="${esc(U.ptext || "")}"><span class="cckbd">Enter: add details</span></label>`;
   return `<button type="button" class="ccaddbtn" data-pplus="${esc(p)}">${ic("plus", 13)}Add a task here</button>`;
 }
+// the joining lines of the laptop map: each column's spine runs from its highest to its lowest centre, the parent's
+// own centre included, measured after each draw (so they always meet, whatever the tree's shape)
+function wireLines(root) {
+  if (!root || root.clientWidth < 900) return;
+  const NS = "http://www.w3.org/2000/svg";
+  root.querySelectorAll(".ccmapv .ccpj > .ccbranches").forEach((box) => {
+    box.querySelectorAll(":scope > .cclines").forEach((x) => x.remove());
+    const B = box.getBoundingClientRect(), sx = box.scrollLeft, sy = box.scrollTop;
+    const pt = (el, side) => { const r = el.getBoundingClientRect(); return { x: (side === "r" ? r.right : r.left) - B.left + sx, y: r.top + r.height / 2 - B.top + sy }; };
+    const paths = [];
+    const join = (from, kids) => {   // from: {x, y}; kids: [{x, y}] -> one rounded path per child, sharing the trunk
+      if (!kids.length) return;
+      const minx = Math.min(...kids.map((k) => k.x)), xm = Math.max(from.x + 12, minx - 20);   // the trunk: between the parent and its children
+      kids.forEach((k) => {
+        const dy = k.y - from.y, r = Math.min(9, Math.abs(dy) / 2), sg = dy > 0 ? 1 : -1;
+        if (Math.abs(dy) < 1) { paths.push(`M${from.x},${from.y}H${k.x}`); return; }
+        paths.push(`M${from.x},${from.y}H${xm - r}Q${xm},${from.y} ${xm},${from.y + sg * r}V${k.y - sg * r}Q${xm},${k.y} ${xm + r},${k.y}H${k.x}`);
+      });
+    };
+    const kidsOf = (col) => [...col.querySelectorAll(":scope > .ccleaves > .ccleafw > .ccleaf, :scope > .ccleaves > label, :scope > .ccbranches > .cclayer > .ccsubh")].map((el) => pt(el, "l"));
+    const root0 = box.parentElement.querySelector(":scope > .ccroot");
+    if (root0) { const rr = root0.getBoundingClientRect(); join({ x: 0, y: rr.top + rr.height / 2 - B.top + sy }, kidsOf(box)); }
+    box.querySelectorAll(".cclayer:not(.folded) > .cclkids").forEach((col) => { const h = col.parentElement.querySelector(":scope > .ccsubh"); if (h) join(pt(h, "r"), kidsOf(col)); });
+    const svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "cclines"); svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("width", box.scrollWidth); svg.setAttribute("height", box.scrollHeight);
+    paths.forEach((d) => { const p = document.createElementNS(NS, "path"); p.setAttribute("d", d); svg.appendChild(p); });
+    box.prepend(svg);
+  });
+}
+let wlT = 0; window.addEventListener("resize", () => { cancelAnimationFrame(wlT); wlT = requestAnimationFrame(() => { if (U.view === "projects" && host) wireLines(host); }); });
 function projectsHtml(all) {
   // sync round (Ali 25 Nov: move tasks around, rename in place, deeper layers, as fluid as the board). A tree of any depth:
   // each layer folds by its own button, its name renames in place, a plus adds a task or a sub-layer right there; drag a
@@ -1803,7 +1879,9 @@ function projectsHtml(all) {
       <div class="ccrow" style="flex-wrap:nowrap"><span class="ccgrip" draggable="true" data-pgrip="${esc(p)}" title="Drag to arrange, or onto a layer to put it inside" aria-label="Drag ${esc(p)}">${ic("grip", 14)}</span>${nameBtn(p, "ccpjt")}<span style="flex:1"></span>${statChip("proj:" + p)}<button class="ccicon" type="button" data-pfold="${esc(p)}" aria-expanded="${!fold}" aria-label="${fold ? "Unfold" : "Fold"} ${esc(p)}" title="${fold ? "Unfold" : "Fold"}">${ic("chev", 13)}</button><button class="ccicon" type="button" data-pedit="${esc(p)}" aria-label="Project settings" title="Move it inside another project, or set its level">${ic("pen", 13)}</button></div>
       <div class="ccrow">${lv.map(lvl).join("")}${st("done", "done", "check", `${done}/${every.length}`)}${you ? st("you", "wait on you", "", you) : ""}</div>
       <div class="ccbar"><i style="width:${every.length ? Math.round(done * 100 / every.length) : 0}%"></i></div>
-      <div class="ccrow ccrootacts"><button class="btn ghost sm" type="button" data-pplus="${esc(p)}">${ic("plus", 12)}Task</button><button class="btn ghost sm" type="button" data-psub="${esc(p)}">${ic("layers", 12)}Sub-layer</button></div></div>
+      <div class="ccrow ccrootacts"><button class="btn ghost sm" type="button" data-pplus="${esc(p)}">${ic("plus", 12)}Task</button><button class="btn ghost sm" type="button" data-psub="${esc(p)}">${ic("layers", 12)}Sub-layer</button></div>
+      <button class="ccrplus" type="button" data-pmenu="${esc(p)}" aria-expanded="${U.pmenu === p}" aria-label="Add to ${esc(p)}" title="Add a task or a sub-layer">${ic("plus", 13)}</button>
+      ${U.pmenu === p ? `<div class="ccpmenu" role="menu"><button type="button" role="menuitem" data-pplus="${esc(p)}">${ic("plus", 13)}A task here</button><button type="button" role="menuitem" data-psub="${esc(p)}">${ic("layers", 13)}A sub-layer</button></div>` : ""}</div>
       <div class="ccbranches">${fold ? `<span class="lab">${every.length} tasks folded in. Unfold to see them.</span>` : body(p, own, subs, 0).replace(/^<div class="ccleaves"/, '<div class="ccleaves top"')}</div></section>`;
   };
   const singles = shown.filter((c) => !c.project);
@@ -2111,6 +2189,7 @@ function draw() {
     ${openC ? drawerHtml(openC, marks) : ""}${U.form ? formOut(U.form) : ""}
     ${U.toast ? `<div class="toast" role="status"><span>${esc(U.toast)}</span>${U.toastUndo && UNDO[U.toastUndo] ? `<button type="button" class="btn ghost ccundo" data-undo="${esc(U.toastUndo)}">${ic("undo")}Undo</button>` : ""}</div>` : ""}</div>`, true);
   glide(host); U.slideFrom = null;
+  if (U.view === "projects") { wireLines(host); setTimeout(() => wireLines(host), 250); if (document.fonts && !wireLines.f) { wireLines.f = 1; document.fonts.ready.then(() => wireLines(host)); } }
   if (host.querySelector(".cctl2")) U.weekFrom = Math.round((all.filter((c) => !isMerged(c) && c.col === "done").length) * 100 / (all.filter((c) => !isMerged(c)).length || 1));
   if (keepC) { const c2 = host.querySelector("[data-comment]"); if (c2 && document.activeElement !== c2) { c2.focus(); c2.setSelectionRange(c2.value.length, c2.value.length); } }
   nav();
@@ -2413,6 +2492,8 @@ function wire(h) {
     const pc = t.closest("[data-pcol]"); if (pc) { U.phoneCol = pc.dataset.pcol; draw(); return; }
     const gg = t.closest("[data-go]"); if (gg) { goHome(gg.dataset.go); return; }
     const chb = t.closest("[data-chat]"); if (chb) { goHome("chats", chb.dataset.chat); return; }
+    const pm = t.closest("[data-pmenu]"); if (pm) { U.pmenu = U.pmenu === pm.dataset.pmenu ? null : pm.dataset.pmenu; draw(); return; }
+    if (U.pmenu && !t.closest(".ccpmenu")) { U.pmenu = null; }
     const prn = t.closest("[data-prename]"); if (prn) { U.prename = prn.dataset.prename; U.prenameText = U.prename; draw(); const i = host.querySelector("[data-prename-in]"); if (i) { i.focus(); i.select(); } return; }
     const pf = t.closest("[data-pfold]"); if (pf) { const p0 = pf.dataset.pfold; if (S.pfold[p0]) delete S.pfold[p0]; else S.pfold[p0] = 1; save(); draw(); return; }
     const psb = t.closest("[data-psub]"); if (psb) { U.psub = psb.dataset.psub; if (S.pfold[U.psub]) delete S.pfold[U.psub]; draw(); const i = host.querySelector("[data-psub-in]"); if (i) i.focus(); return; }
@@ -2550,7 +2631,7 @@ function wire(h) {
   new ResizeObserver(() => { const ph = h.clientWidth < 760; if (ph !== h._ph) { h._ph = ph; if (h === host) draw(); } }).observe(h);
 }
 // Esc closes the form, then an opened item, from anywhere on the page
-document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; if (U.pk && U.pk.open && U.open) { U.pk.open = false; draw(); } else if (U.more) { U.more = false; draw(); } else if (U.ptitle != null || U.psub != null || U.prename != null) { U.ptitle = null; U.psub = null; U.prename = null; draw(); } else if (U.form) { U.form = null; draw(); } else if (U.nopen) { U.nopen = null; drawNeeds(); } else if (U.open && host && document.contains(host)) { U.open = null; draw(); } });
+document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; if (U.pk && U.pk.open && U.open) { U.pk.open = false; draw(); } else if (U.more) { U.more = false; draw(); } else if (U.pmenu || U.ptitle != null || U.psub != null || U.prename != null) { U.pmenu = null; U.ptitle = null; U.psub = null; U.prename = null; draw(); } else if (U.form) { U.form = null; draw(); } else if (U.nopen) { U.nopen = null; drawNeeds(); } else if (U.open && host && document.contains(host)) { U.open = null; draw(); } });
 
 // ---------- QA pass: Back and Forward (the brief: "back and forward"; the page had none, so Back left the home) ----------
 // Each tab of the home, each opened card and each Command Centre view is a step in the browser's history, with an
