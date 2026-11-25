@@ -731,6 +731,23 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
   .ex .ccgrab{display:block;width:40px;height:4px;border-radius:2px;background:var(--line2);margin:0 auto 4px}
   .ex .ccpkgo{display:inline-flex;width:100%;justify-content:center}
 }
+/* QA pass (25 Nov): a change shows its state on its own card at once; gentle motion; the opened card's tabs fade */
+.ex .ccstat{font:500 12px/1 var(--f);height:22px;box-sizing:border-box;padding:0 8px;border-radius:6px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;animation:ccpop .18s cubic-bezier(.2,.8,.2,1)}
+.ex .ccstat.s-done{animation:ccpop .18s cubic-bezier(.2,.8,.2,1),ccout .4s ease-in 2.6s forwards}
+.ex .ccdots{display:inline-flex;gap:2px;margin-left:1px}.ex .ccdots b{width:3px;height:3px;border-radius:50%;background:currentColor;animation:ccdot 1s infinite ease-in-out}
+.ex .ccdots b:nth-child(2){animation-delay:.15s}.ex .ccdots b:nth-child(3){animation-delay:.3s}
+.ex .ccstatline{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.ex .ccm .ccdrw .dbd{animation:ccfade .18s ease-out}
+.ex .ccm>.ccwrap{animation:ccfade .2s ease-out}
+.ex .cccard{transition:box-shadow .15s,border-color .15s,background-color .15s}
+@keyframes ccpop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+@keyframes ccout{to{opacity:0}}
+@keyframes ccfade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes ccdot{0%,80%,100%{opacity:.25}40%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.ex .ccstat,.ex .ccstat.s-done,.ex .ccm .ccdrw .dbd,.ex .ccm>.ccwrap,.ex .ccdots b{animation:none}}
+/* QA pass (25 Nov): on a phone a day is narrow; the task's name shows, the "late" word gives way (the amber pin already says it) */
+.ex .ccweek.ph .ccpin em{display:none}
+.ex .ccweek.ph .ccpin svg{display:none}
 
 
 :root{--page-bg:oklch(97.3% 0.004 250)}
@@ -1379,7 +1396,7 @@ body{background:var(--page-bg);margin:0}
 "use strict";
 if (window.EX44CC) return;
 let D = ((window.__LIVE && window.__LIVE.cc) || {"tasks":[],"chats":{},"classes":[],"asks":{},"projects":[],"tree":{},"porder":[],"plevel":{},"needs":[],"today":"2026-11-25"});
-// cc-wire (M3, M4): on the preview home (window.__CCLIVE) the data comes from EX-44's cc.json through live.js, and every
+// The wiring pass (M3, M4): on the preview home (window.__CCLIVE) the data comes from EX-44's cc.json through live.js, and every
 // change Ali makes is sent to EX-44 through the home's own button road (act: sent at once, then done). What stays in
 // this browser: the project layout, steps ticks, session numbers. The canvas copy keeps working with baked data.
 const LIVEM = () => !!(window.__CCLIVE && window.__ex44live);
@@ -1431,14 +1448,28 @@ const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch
 // or 90 s after EX-44 said done; a refusal takes it back at once and says why.
 const LP = {};
 const PEND = {};
-function ship(label, reqs, pend) {
+// QA pass (Ali 25 Nov, "where is the fluidity"): every change shows its state on its own card at once: Sending (the 2 s undo
+// window and the trip to EX-44), then Done for a few seconds, or Not done with the reason. STAT[card id] = {st, why, at}.
+const STAT = {};
+const FRESH = {};   // cards Ali made on this page: never hidden behind "N more in Planned" for 10 minutes
+const fresh = (c) => c.kind === "own" || (FRESH[c.id] && Date.now() - FRESH[c.id] < 600000);
+let soonH = 0;
+const soon = () => { if (!soonH) soonH = requestAnimationFrame(() => { soonH = 0; draw(); }); };   // one redraw per frame at most
+function mark(cid, st, why) { if (!cid) return; STAT[cid] = { st, why: why || "", at: Date.now() }; soon();
+  if (st !== "sending") setTimeout(() => { const x = STAT[cid]; if (x && x.st === st && Date.now() - x.at >= (st === "done" ? 3000 : 7000) - 50) { delete STAT[cid]; soon(); } }, st === "done" ? 3000 : 7000); }
+function ship(label, reqs, pend, cid) {
   const app = window.__ex44;
   if (!LIVEM() || !app || !app.comp) return false;
   PEND[label] = reqs;
   if (pend) { pend.at = Date.now(); LP[pend.key] = pend; }
-  app.comp.act(label, () => { if (pend) pend.done = Date.now(); }, null, (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); draw(); } toast(why ? "Not done: " + why : "Taken back."); });
+  cid = cid || (reqs[0] && reqs[0].task) || U.open || "";
+  mark(cid, "sending");
+  app.comp.act(label, () => { if (pend) pend.done = Date.now(); mark(cid, "done"); }, null, (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); } mark(cid, why ? "failed" : "undone", why); toast(why ? "Not done: " + why : "Taken back."); });
   return true;
 }
+const statChip = (id) => { const x = STAT[id]; if (!x) return "";
+  const w = { sending: ["chat", "Sending", "clock"], done: ["done", "Done", "check"], failed: ["bad", "Not done", "x"], undone: ["park", "Taken back", "undo"] }[x.st];
+  return `<span class="ccstat s-${x.st}" role="status" title="${esc(x.why)}" style="background:${ST[w[0]][0]};color:${ST[w[0]][1]}">${ic(w[2], 12)}${w[1]}${x.st === "sending" ? '<i class="ccdots"><b></b><b></b><b></b></i>' : ""}</span>`; };
 function reconcile() {
   Object.keys(LP).forEach((k) => { const p = LP[k]; let hit = false; try { hit = p.test(); } catch (e) {}
     if (hit || (p.done && Date.now() - p.done > 90000) || Date.now() - p.at > 300000) { try { p.clear(); } catch (e) {} delete LP[k]; } });
@@ -1513,20 +1544,20 @@ function cardHtml(c, mark) {
       <div class="ccdate"><span>${esc((c.c.dname || "").toUpperCase())}</span><b class="num">${esc(dp[0] || "")}</b><span>${esc((dp[1] || "").toUpperCase())}</span></div>
       <div class="cccbody"><span class="cct">${esc(c.c.code)} Class Kit</span>${m(4)}
       <div class="ccmeta">${c.levels[0] !== "G" ? lvl(c.levels[0]) : ""}${mono(c.session)}</div>
-      <div class="ccrow">${st(cdk, c.c.cd.charAt(0).toUpperCase() + c.c.cd.slice(1), "clock")}${kit}${m(5)}</div></div></div>`;
+      <div class="ccrow">${statChip(c.id)}${st(cdk, c.c.cd.charAt(0).toUpperCase() + c.c.cd.slice(1), "clock")}${kit}${m(5)}</div></div></div>`;
   }
   const n = allComments(c).length;
   if (c.col === "done") {   // Done layout: what was achieved first
     const a = achieved(c);
     return `<div class="cccard done${isMerged(c) ? " merged" : ""}" draggable="true" tabindex="0" role="button" data-card="${esc(c.id)}" aria-label="${esc(c.title)}">
       <div class="ccdt2">${ic(isMerged(c) ? "merge" : "check", 15)}<span class="cct">${esc(shownTitle(c))}</span></div>
-      <p class="ccach2">${esc(isMerged(c) ? c.t.merged : a.length ? short(a[0], 140) : "Done")}</p>
+      <p class="ccach2">${esc(isMerged(c) ? c.t.merged : a.length ? short(a[0], 140) : "Done")}</p>${STAT[c.id] ? `<div class="ccrow">${statChip(c.id)}</div>` : ""}
       ${meta(c.klass ? mono(c.klass) + (c.session ? mono(c.session) : "") : "")}</div>`;
   }
   const due = dueOf(c), nl = nowLine(c), nd = needOf(c);
   const status = nl ? `<div class="ccnow"><span class="dot" style="background:${DOT[nl.k]};width:7px;height:7px"></span><b class="${nl.k === "you" ? "amb" : ""}">${esc(nl.w)}.</b> ${esc(nl.text)}</div>`
     : `<div class="ccnow"><span class="dot" style="background:var(--ink3);width:7px;height:7px"></span><b>Your task.</b> ${ownSteps(c).length ? `${ownSteps(c).filter((x) => x.d).length} of ${ownSteps(c).length} steps done` : esc(short(scopeOf(c) || "No scope written yet.", 90))}</div>`;
-  let foot = "";
+  let foot = statChip(c.id);
   if (nd) foot += isCleared(nd) ? st("done", "You answered", "check") : `<button type="button" class="pill tgx ccstatbtn" data-need="${esc(nd.chat)}" style="background:var(--amber-d);color:var(--amber)">${ic("bolt", 12)}Needs you</button>`;
   if (due) foot += due === D.today ? st("you", "Due today", "cal") : gr("Due " + fd(due), "cal");
   if (c.kind === "own") foot += st("you", "Your card", "plus");
@@ -1541,7 +1572,7 @@ function colInner(k, cs, marks) {
   const html = (list) => list.map((c) => cardHtml(c, marks && c.id === first)).join("");
   if (!cs.length) return `<div class="ccempty">Nothing here with this filter.</div>`;
   const cut = k === "planned" && !U.allPlanned && !U.q && !U.project && U.level === "all" && cs.length > 9 ? 8 : 0;
-  if (!U.lanes && cut) return html(cs.slice(0, cut).concat(cs.slice(cut).filter((c) => c.kind === "own"))) + `<button type="button" class="ccmoreplanned" data-act="allplanned">${cs.slice(cut).filter((c) => c.kind !== "own").length} more in Planned ${ic("chev", 13)}</button>`;
+  if (!U.lanes && cut) return html(cs.slice(0, cut).concat(cs.slice(cut).filter(fresh))) + `<button type="button" class="ccmoreplanned" data-act="allplanned">${cs.slice(cut).filter((c) => !fresh(c)).length} more in Planned ${ic("chev", 13)}</button>`;
   if (!U.lanes) return html(cs) + (k === "planned" && U.allPlanned && cs.length > 9 ? `<button type="button" class="ccmoreplanned" data-act="allplanned">Show fewer</button>` : "");
   const groups = {}; cs.forEach((c) => { const g = c.project ? pathOf(c.project) : "Single tasks"; (groups[g] = groups[g] || []).push(c); });
   return Object.keys(groups).sort().map((g) => `<div class="cclane"><div class="cclaneh">${ic("layers", 12)}<span>${esc(g)}</span><span class="ccnum">${groups[g].length}</span></div>${html(groups[g])}</div>`).join("");
@@ -1756,7 +1787,8 @@ function drawerHtml(c, marks) {
     body = c.kind === "class" ? `<section class="dsec"><span class="lab">Session number</span><div style="display:flex;gap:6px"><label class="srch" style="flex:1"><input type="text" data-session value="${esc(c.session === "S-00x" ? "" : c.session)}" placeholder="S-00x until you know it, for example S-012" aria-label="Session number"></label><button class="btn" type="button" data-act="session">Save</button></div><p class="lab" style="margin:0">Each class counts its own sessions. Set it once; the next week's kit counts on from it.</p></section>` : `<section class="dsec"><div class="ccrow"><button class="btn" type="button" data-act="edit">${ic("pen")}Edit the card</button>${c.kind !== "class" ? `<button class="btn ghost" type="button" data-act="hide">${ic("x")}Take off the board</button>` : ""}</div></section>`;
     if (c.kind !== "class" && scopeOf(c)) body += `<section class="dsec"><span class="lab">Scope</span><p style="margin:0;font-size:14px">${esc(scopeOf(c))}</p></section>`;
     if (t && t.facts.length) body += `<section class="dsec"><span class="lab">Facts</span><dl class="dfacts">${t.facts.map((f) => `<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join("")}</dl></section>`;
-    if (t && t.chats.length) body += `<section class="dsec"><span class="lab">Its chats</span><div class="ccrow">${t.chats.map((nm2) => `<button type="button" class="btn" data-chat="${esc(nm2)}"><span class="dot" style="background:${DOT[D.chats[nm2].k]};width:8px;height:8px"></span>${esc(nm2)}</button><span class="lab">${esc(D.chats[nm2].w)} since ${esc(D.chats[nm2].since)}</span>`).join("")}${tm(6)}</div></section>`;
+    if (t && t.chats.length) body += `<section class="dsec"><span class="lab">Its chats</span><div class="ccrow">${t.chats.map((nm2) => { const k2 = D.chats[nm2] || { k: "park", w: "linked", since: "now" }; return `<button type="button" class="btn" data-chat="${esc(nm2)}"><span class="dot" style="background:${DOT[k2.k]};width:8px;height:8px"></span>${esc(nm2)}</button><span class="lab">${esc(k2.w)} since ${esc(k2.since)}</span>`; }).join("")}${tm(6)}</div></section>`;
+    if (c.kind === "task" && LIVEM()) body += linkBlock(c);
     if (t && t.brief.length) body += `<details class="ccbrief"><summary class="lab">The full brief its chat was given</summary><div class="cccm soft"><p>${esc(t.brief[0].text)}</p><span class="lab num">${esc(t.brief[0].at)}</span></div></details>`;
     body += `<section class="dsec"><span class="lab">Same card elsewhere on EX-44 ${mk(6)}</span><div class="ccrow">${go("Needs you", "home", "home")}${go("Chats", "chat", "chats")}${go("Jobs (in Chats)", "layers", "chats")}${go("Map", "map", "map")}</div></section>`;
   } else if (c.kind === "class") {
@@ -1800,8 +1832,9 @@ function drawerHtml(c, marks) {
     }
     if (coms.length) body += `<section class="dsec"><span class="lab">Latest comment</span><div class="cccm"><p>${esc(short(coms[0].text, 280))}</p><span class="lab num">You${coms[0].at ? ", " + esc(coms[0].at) : ""} · <button type="button" class="cclink" data-tab="comments">all ${coms.length} comments</button></span></div></section>`;
   }
-  return `<div class="scrim" data-act="close"></div><aside class="drawer ccdrw" aria-label="Card opened"><header class="dhd">${head}</header>
-    <div class="dbd">${body}<p class="lab" style="margin:0">${LIVEM() ? "Every change here goes to EX-44 and shows in What you pressed. Project layout, steps and session numbers stay in this browser." : "Buttons with a dotted edge ask a chat or la57 to act, so they work on the real EX-44 home. Everything else works here and is kept in this browser."}</p></div></aside>`;
+  const sx = STAT[c.id], sline = sx ? `<div class="ccstatline">${statChip(c.id)}<span class="lab">${esc(sx.st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 10 seconds." : sx.st === "done" ? "EX-44 has it." : sx.st === "failed" ? "Not done: " + sx.why : "Taken back.")}</span></div>` : "";
+  return `<div class="scrim" data-act="close"></div><aside class="drawer ccdrw" aria-label="Card opened"><header class="dhd">${head}${sline}</header>
+    <div class="dbd" id="ccdbd-${esc(c.id)}-${esc(U.tab)}">${body}<p class="lab" style="margin:0">${LIVEM() ? "Every change here goes to EX-44 and shows in What you pressed. Steps, session numbers and the order of top projects stay in this browser." : "Buttons with a dotted edge ask a chat or la57 to act, so they work on the real EX-44 home. Everything else works here and is kept in this browser."}</p></div></aside>`;
 }
 
 // ---------- mentor view ----------
@@ -1819,6 +1852,46 @@ function mentorHtml(all) {
 
 // ---------- draw ----------
 let host = null;
+// ---------- QA pass: change only what changed (Ali 25 Nov: "it snaps and shows the next page; where is the fluidity") ----------
+// The tab used to be rebuilt from scratch on every click and every data beat: the opened card slid in again, the toast
+// popped again, scroll and half-typed fields were lost. Now the new drawing is patched onto the old one (morphdom, already
+// on the home): unchanged parts stay as they are, cards keep their element (key = card id) and glide to their new place
+// (FLIP, 220 ms), new cards fade in, and what Ali has typed in a field that the page does not hold itself is kept.
+const REDUCED = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } };
+const BOUND = "[data-q],[data-comment],[data-nreply],[data-ptitle]";   // fields the page keeps in U itself
+function typedKeep(from, to) {
+  if (!from._typed) return true;
+  const tg = from.tagName;
+  if (tg === "SELECT" || from.type === "checkbox" || from.type === "radio") return false;   // keep Ali's pick as it is
+  if (tg === "INPUT" || tg === "TEXTAREA") to.value = from.value;
+  return true;
+}
+const MOPT = {
+  childrenOnly: true,
+  getNodeKey: (n) => (n.nodeType === 1 ? (n.getAttribute("data-card") ? "card:" + n.getAttribute("data-card") : n.id || undefined) : undefined),
+  onBeforeElUpdated: (from, to) => { if (from.isEqualNode(to)) return false;
+    if (from.id && from.id === to.id && /^ccf\d/.test(from.id)) return false;   // an open form is Ali's while it is open: no redraw touches it
+    return typedKeep(from, to); },
+};
+function patch(el, html, flip) {
+  if (window.morphdom) el.classList.add("ccm");   // the motion below is only for the patched page (the canvas copy redraws whole)
+  if (!window.morphdom || !el.firstElementChild) { el.innerHTML = html; return; }
+  const before = {};
+  if (flip && !REDUCED()) el.querySelectorAll("[data-card]").forEach((c) => { before[c.dataset.card] = c.getBoundingClientRect(); });
+  window.morphdom(el, "<div>" + html + "</div>", MOPT);
+  if (!flip || REDUCED()) return;
+  let n = 0;
+  el.querySelectorAll("[data-card]").forEach((c) => {
+    if (n > 40 || !c.animate) return;
+    const b = before[c.dataset.card], a = c.getBoundingClientRect();
+    if (!b) { if (Object.keys(before).length) { n++; c.animate([{ opacity: 0, transform: "scale(.97)" }, { opacity: 1, transform: "none" }], { duration: 200, easing: "cubic-bezier(.2,.8,.2,1)" }); } return; }
+    const dx = b.left - a.left, dy = b.top - a.top;
+    if (Math.abs(dx) < 1 && Math.abs(dy) < 1) return;
+    n++; c.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: "none" }], { duration: 220, easing: "cubic-bezier(.2,.8,.2,1)" });
+  });
+}
+let formSeq = 0, formObj = null;
+const formOut = (f) => { if (f !== formObj) { formObj = f; formSeq++; } return formHtml(f).replace('class="modal ccform', `id="ccf${formSeq}" class="modal ccform`); };
 function draw() {
   drawNeeds();
   if (!host || !document.contains(host)) return;
@@ -1830,18 +1903,19 @@ function draw() {
   const openC = U.open ? all.find((c) => c.id === U.open) : null;
   const main = U.view === "mentor" ? mentorHtml(all) : U.view === "projects" ? projectsHtml(all) : segs + `<div class="ccboard${phone ? " ph" : ""}">${boardHtml(all, phone, marks)}</div>`;
   const t0 = new Date(Date.parse(D.today + "T00:00:00Z"));
-  host.innerHTML = `<div class="ccwrap">
+  patch(host, `<div class="ccwrap">
     <div class="cchead"><div><p class="cceyebrow">Week of ${t0.getUTCDate()} ${MON[t0.getUTCMonth()]}</p><h1>Command Centre</h1></div><span style="flex:1"></span>
       <button class="btn" type="button" data-act="pnew">${ic("layers")}New project</button><button class="btn you" type="button" data-act="new">${ic("plus")}New task</button></div>
     ${weekHtml(all, phone)}
     ${toolbarHtml(all, marks)}
     <div class="ccmain">${main}</div>
-    ${openC ? drawerHtml(openC, marks) : ""}${U.form ? formHtml(U.form) : ""}
-    ${U.toast ? `<div class="toast" role="status"><span>${esc(U.toast)}</span></div>` : ""}</div>`;
+    ${openC ? drawerHtml(openC, marks) : ""}${U.form ? formOut(U.form) : ""}
+    ${U.toast ? `<div class="toast" role="status"><span>${esc(U.toast)}</span></div>` : ""}</div>`, true);
   glide(host); U.slideFrom = null;
   if (host.querySelector(".cctl2")) U.weekFrom = Math.round((all.filter((c) => !isMerged(c) && c.col === "done").length) * 100 / (all.filter((c) => !isMerged(c)).length || 1));
-  if (keepC) { const c2 = host.querySelector("[data-comment]"); if (c2) { c2.focus(); c2.setSelectionRange(c2.value.length, c2.value.length); } }
-  if (keepQ) { const i = host.querySelector("[data-q]"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
+  if (keepC) { const c2 = host.querySelector("[data-comment]"); if (c2 && document.activeElement !== c2) { c2.focus(); c2.setSelectionRange(c2.value.length, c2.value.length); } }
+  nav();
+  if (keepQ) { const i = host.querySelector("[data-q]"); if (i && document.activeElement !== i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }
 }
 
 
@@ -1866,6 +1940,15 @@ const pkName = (k) => (PKM.find((m) => m[0] === k) || PKM[0])[1];
 const pkLogo = (a, s) => { const svg = (window.__EX44MARKS || {})[a]; return svg ? `<span class="ccpklogo" style="width:${s}px;height:${s}px" aria-hidden="true">${svg}</span>` : ""; };
 const pkTag = (k) => { const m = PKM.find((x) => x[0] === k) || PKM[0]; return `<span class="mtag ${m[2]}">${m[1]}</span>`; };
 function pkLine(p) { return `Starts on ${esc(p.acct)} with ${pkName(p.model)}, ${p.effort} effort`; }
+// QA pass (25 Nov): link a chat that is already running to this card (EX-44 had the step, the page had no button)
+const linkable = (c) => { const on = (c.t && c.t.chats) || []; return ((window.__LIVE && window.__LIVE.jobs) || []).filter((j) => j.act !== "closed" && !on.includes(j.n)).map((j) => j.n).sort(); };
+function linkBlock(c) {
+  const busy = Object.keys(LP).filter((k) => k.startsWith("link:" + c.id + ":")).map((k) => k.split(":").slice(2).join(":"));
+  const opts = linkable(c).filter((n) => !busy.includes(n));
+  return `<section class="dsec"><span class="lab">Link a chat that is already running</span>
+    ${busy.map((n) => `<div class="ccrow"><span class="btn ghost" aria-disabled="true">${ic("chat")}${esc(n)}</span><span class="lab">linking</span></div>`).join("")}
+    ${opts.length ? `<div style="display:flex;gap:6px"><label class="srch" style="flex:1;min-width:0"><select data-linkchat aria-label="Chat to link"><option value="">Pick a chat</option>${opts.map((n) => `<option>${esc(n)}</option>`).join("")}</select></label><button class="btn" type="button" data-act="linkchat">${ic("plus")}Link</button></div>` : `<div class="sempty">No other open chat to link.</div>`}</section>`;
+}
 function startGroup(label) {
   const p = pkNow(), rows = pkAccts();
   const chip = `<button class="ccpick${p.open ? " open" : ""}" type="button" data-act="pick" aria-haspopup="dialog" aria-expanded="${p.open}" aria-label="Model, effort and account: ${esc(pkLine(p))}">${pkTag(p.model)}<span class="ccpkeff">${esc(PKE.find((e) => e[0] === p.effort)[1])}</span><span class="ccpkdiv"></span>${pkLogo(p.acct, 16)}<span class="ccpkacct">${esc(p.acct)}</span>${ic("chev", 12)}</button>`;
@@ -1908,7 +1991,7 @@ function drawNeeds() {
   if (!hostN || !document.contains(hostN)) return;
   const n = U.nopen ? NEEDS.find((x) => x.chat === U.nopen) : null;
   const t = U.toast && !(host && document.contains(host));
-  hostN.innerHTML = n || t ? `<div class="ccwrap">${n ? needDrawer(n) : ""}${t ? `<div class="toast" role="status"><span>${esc(U.toast)}</span></div>` : ""}</div>` : "";
+  patch(hostN, n || t ? `<div class="ccwrap">${n ? needDrawer(n) : ""}${t ? `<div class="toast" role="status"><span>${esc(U.toast)}</span></div>` : ""}</div>` : "");
 }
 function needTickets(W) {
   return NEEDS.filter((n) => !isCleared(n)).map((n) => {
@@ -2027,7 +2110,11 @@ function saveForm() {
     if (!name) { toast("Give the project a name."); return; }
     const p = S.pnew.find((x) => x.name === name);
     if (p) p.levels = o.levels; else if (f.isNew || o.levels.length) S.pnew.push({ name, levels: o.levels });
-    S.ptree[name] = o.parent || ""; save(); U.form = null; draw(); toast(f.isNew ? `Project "${name}" made.` : "Saved."); return;
+    S.ptree[name] = o.parent || "";
+    // QA pass (25 Nov): a project is kept on EX-44 too, so it shows on every device (it lived in this browser only)
+    if (LIVEM()) ship(`${f.isNew ? "New project" : "Save project"} "${name}"`, [{ action: "task", op: "project", project: name, value: o.parent || "", level: o.levels, target: "new" }],
+      { key: "proj:" + name, test: () => (D.projects || []).includes(name) && ((D.tree || {})[name] || "") === (o.parent || ""), clear: () => {} }, "proj:" + name);
+    save(); U.form = null; draw(); toast(f.isNew ? `Project "${name}" made.` : "Saved."); return;
   }
   let project = o.project;
   if (project === "__new") { project = (o.newproj || "").trim(); if (!project) { toast("Type the new project's name."); return; } if (!allProjects().includes(project)) S.pnew.push({ name: project, levels: o.levels }); }
@@ -2053,8 +2140,13 @@ function saveForm() {
     const steps0 = (o.steps || "").split("\n").map((x) => x.trim()).filter(Boolean);
     const scope = (o.scope || "") + (steps0.length ? (o.scope ? "\n" : "") + "First steps:\n" + steps0.map((x, i) => (i + 1) + ". " + x).join("\n") : "");
     const title = o.title.trim();
-    ship(`New task "${title}"`, [{ action: "task", op: "add", title, state: o.col, level: o.levels, project: project || "", class: o.klass || "", scope, due: o.due || "", target: "new" }],
-      { key: "add:" + id, test: () => (D.tasks || []).some((t) => t.title === title), clear: () => { S.added = S.added.filter((x) => x.id !== id); delete S.pos[id]; } });
+    const pnew = S.pnew.find((x) => x.name === project && !(D.projects || []).includes(project));   // a project typed in the task form
+    ship(`New task "${title}"`, (pnew ? [{ action: "task", op: "project", project, value: "", level: pnew.levels || [], target: "new" }] : []).concat([{ action: "task", op: "add", title, state: o.col, level: o.levels, project: project || "", class: o.klass || "", scope, due: o.due || "", target: "new" }]),
+      { key: "add:" + id, test: () => (D.tasks || []).some((t) => t.title === title), clear: () => { S.added = S.added.filter((x) => x.id !== id); delete S.pos[id];
+        // QA pass: the card EX-44 made takes over from this browser's copy: its steps, the open drawer, and it stays in view
+        const t = (D.tasks || []).find((x) => x.title === title); if (!t) return;
+        if (S.steps[id] && !S.steps[t.id]) S.steps[t.id] = S.steps[id]; delete S.steps[id];
+        FRESH[t.id] = Date.now(); if (U.open === id) U.open = t.id; if (STAT[id]) { STAT[t.id] = STAT[id]; delete STAT[id]; } } }, id);
   }
   S.pos[id] = { col: o.col, order: 999 };
   const steps = (o.steps || "").split("\n").map((x) => x.trim()).filter(Boolean); if (steps.length) S.steps[id] = steps.map((t) => ({ t, d: false }));
@@ -2085,7 +2177,7 @@ function wire(h) {
     const pka = t.closest("[data-pka]"); if (pka) { const r = pkAccts().find((x) => x.tag === pka.dataset.pka); if (r && (r.pz || r.out)) { toast(r.pz ? `${r.tag} is paused (${r.pz}), so it cannot take a new chat.` : `${r.tag} is logged out.`); return; } pkNow().acct = pka.dataset.pka; draw(); return; }
     const mc = t.closest("[data-machine]"); if (mc) { if (LIVEM() && machine(mc.dataset.machine, mc)) return; toast(`"${mc.dataset.machine}" asks a chat or la57 to act, so it runs on the real EX-44 home. Nothing was sent from this copy.`); return; }
     const dd = t.closest("[data-due]"); if (dd) { const box = dd.closest(".ccform"); box.querySelector('[data-f="due"]').value = dd.dataset.due; box.querySelectorAll("[data-due],.ccdate2").forEach((x) => x.classList.toggle("on", x === dd)); return; }
-    const dr = t.closest("[data-delrow]"); if (dr) { dr.closest(".ccstepr").remove(); return; }
+    const dr = t.closest("[data-delrow]"); if (dr) { const row = dr.closest(".ccstepr"), i = [...row.parentNode.children].indexOf(row); if (U.form && U.form.steps) U.form.steps.splice(i, 1); row.remove(); return; }
     const ds = t.closest("[data-delstep]"); if (ds) { e.preventDefault(); (S.steps[U.open] || []).splice(+ds.dataset.delstep, 1); save(); draw(); return; }
     const a = t.closest("[data-act]");
     if (a) { const k = a.dataset.act;
@@ -2105,12 +2197,17 @@ function wire(h) {
       if (k === "reset") { U.more = false; if (confirm("Put every card back where the task list has it? Your comments, edits and projects stay.")) { S.pos = {}; S.proj = {}; save(); } draw(); return; }
       if (k === "remove") { const id = (U.form && U.form.id) || U.open; S.added = S.added.filter((x) => x.id !== id); S.removed[id] = 1; U.open = null; U.form = null; save(); draw(); return; }
       if (k === "session") { const i = host.querySelector("[data-session]"); const v2 = (i && i.value.trim().toUpperCase()) || ""; if (v2) S.sessions[U.open] = v2; else delete S.sessions[U.open]; save(); draw(); toast(v2 ? "Session set to " + v2 + "." : "Back to S-00x."); return; }
-      if (k === "late") { const i = host.querySelector("[data-late]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.late[U.open] = S.late[U.open] || []).push({ text: v2, at: nowStamp() }); save(); draw();
+      if (k === "late") { const i = host.querySelector("[data-late]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.late[U.open] = S.late[U.open] || []).push({ text: v2, at: nowStamp() }); i.value = ""; i._typed = false; save(); draw();
         const cc0 = cards().find((x) => x.id === U.open), oid = U.open;
         if (cc0 && cc0.kind === "class" && ship(`Add to the ${cc0.c.code} kit: ${v2}`, [{ action: "kit-add", class: cc0.c.key, date: cc0.c.iso, text: v2, target: cc0.c.key }],
           { key: "late:" + oid + ":" + v2, test: () => { const k = ((D.classes || []).find((x) => x.id === oid) || {}).kit; return k && k.said.includes(v2); }, clear: () => { S.late[oid] = (S.late[oid] || []).filter((x) => x.text !== v2); } })) { toast("Sent: EX-44 turns it into files and sends the kit to la57."); return; }
         toast("Added to this class's list. Turning it into files runs on the real home."); return; }
-      if (k === "step") { const i = host.querySelector("[data-newstep]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.steps[U.open] = S.steps[U.open] || []).push({ t: v2, d: false }); save(); draw(); const n2 = host.querySelector("[data-newstep]"); if (n2) n2.focus(); return; }
+      if (k === "linkchat") { const sl = host.querySelector("[data-linkchat]"), nm = sl && sl.value, c0 = cards().find((x) => x.id === U.open);
+        if (!nm) { sl && sl.focus(); toast("Pick a chat first."); return; }
+        if (c0 && c0.kind === "task") { const id = c0.id; ship(`Link ${nm} to "${shownTitle(c0)}"`, [{ action: "task", op: "link", task: id, chat: nm, target: id }],
+          { key: "link:" + id + ":" + nm, test: () => { const t2 = dTask(id); return !!(t2 && t2.chats.includes(nm)); }, clear: () => {} }); draw(); }
+        return; }
+      if (k === "step") { const i = host.querySelector("[data-newstep]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.steps[U.open] = S.steps[U.open] || []).push({ t: v2, d: false }); i.value = ""; i._typed = false; save(); draw(); const n2 = host.querySelector("[data-newstep]"); if (n2) n2.focus(); return; }
       if (k === "post") { const ta = host.querySelector("[data-comment]"); const v2 = ta && ta.value.trim(); if (!v2) { ta && ta.focus(); return; } (S.comments[U.open] = S.comments[U.open] || []).push({ text: ta.value, at: nowStamp() }); U.draft[U.open] = ""; save(); draw();
         const oid = U.open, txt = ta.value, cc0 = cards().find((x) => x.id === oid);
         if (cc0 && cc0.kind === "task" && ship(`Comment on "${shownTitle(cc0)}"`, [{ action: "task", op: "note", task: oid, text: txt, target: oid }],
@@ -2127,12 +2224,13 @@ function wire(h) {
     if (e.key === "Enter" && e.target.matches("[data-late]")) { e.preventDefault(); host.querySelector('[data-act="late"]').click(); }
     if (e.key === "Enter" && e.target.matches("[data-ptitle]")) { e.preventDefault(); const v2 = e.target.value.trim(); if (!v2) return; U.form = { mode: "task", title: v2, project: e.target.dataset.ptitle, col: "planned" }; U.ptitle = null; U.ptext = ""; draw(); const sc = host.querySelector('.ccform [data-f="scope"]'); if (sc) sc.focus(); return; }
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && e.target.closest && e.target.closest(".ccform")) { e.preventDefault(); saveForm(); return; }
-    if (e.key === "Enter" && e.target.matches("[data-addstep]")) { e.preventDefault(); const v2 = e.target.value.trim(); if (!v2) return; const row = document.createElement("div"); row.className = "ccstepr"; row.innerHTML = `<span class="ccbox"></span><span data-stepv>${esc(v2)}</span><button type="button" class="ccicon sm" data-delrow aria-label="Remove step">${ic("x", 12)}</button>`; e.target.closest(".ccfield").querySelector(".ccsteplist").appendChild(row); e.target.value = ""; return; }
+    if (e.key === "Enter" && e.target.matches("[data-addstep]")) { e.preventDefault(); const v2 = e.target.value.trim(); if (!v2) return; if (U.form) U.form.steps = (U.form.steps || []).concat(v2); e.target._typed = false; const row = document.createElement("div"); row.className = "ccstepr"; row.innerHTML = `<span class="ccbox"></span><span data-stepv>${esc(v2)}</span><button type="button" class="ccicon sm" data-delrow aria-label="Remove step">${ic("x", 12)}</button>`; e.target.closest(".ccfield").querySelector(".ccsteplist").appendChild(row); e.target.value = ""; return; }
     if (e.key === "Enter" && e.target.matches("[data-newstep]")) { e.preventDefault(); host.querySelector('[data-act="step"]').click(); }
   });
-  h.addEventListener("input", (e) => { if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); } });
+  const typed = (e) => { const t = e.target; if (t.matches && t.matches("input,textarea,select") && !t.matches(BOUND)) t._typed = true; };
+  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); } });
   h.addEventListener("change", (e) => {
-    const t = e.target;
+    const t = e.target; typed(e);
     if (t.closest && t.closest(".ccform")) {
       const box = t.closest(".ccform");
       if (t.matches('[data-f="due"]')) { box.querySelectorAll("[data-due]").forEach((x) => x.classList.remove("on")); box.querySelector(".ccdate2").classList.toggle("on", !!t.value); return; }
@@ -2187,7 +2285,35 @@ function wire(h) {
 // Esc closes the form, then an opened item, from anywhere on the page
 document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; if (U.pk && U.pk.open && U.open) { U.pk.open = false; draw(); } else if (U.more) { U.more = false; draw(); } else if (U.ptitle != null) { U.ptitle = null; draw(); } else if (U.form) { U.form = null; draw(); } else if (U.nopen) { U.nopen = null; drawNeeds(); } else if (U.open && host && document.contains(host)) { U.open = null; draw(); } });
 
-window.EX44CC = { marks: false, mount(h) { if (host === h) return; host = h; wire(h); draw(); },
+// ---------- QA pass: Back and Forward (the brief: "back and forward"; the page had none, so Back left the home) ----------
+// Each tab of the home, each opened card and each Command Centre view is a step in the browser's history, with an
+// address Ali can reload (#cc, #cc/board, #cc/card/<id>). Back and Forward (buttons, keys, the phone's swipe) walk it.
+let navLast = "", navBusy = false, navFirst = "";
+const navKey = () => { const app = window.__ex44, v = (app && app.comp && app.comp.state.view) || "home";
+  return v !== "cc" ? v : U.open ? "cc/card/" + U.open : U.view !== "board" ? "cc/" + U.view : "cc"; };
+function nav() {
+  if (!window.__CCLIVE || navBusy || navFirst || !window.history || !history.pushState) return;
+  const k = navKey(); if (k === navLast) return;
+  const url = location.pathname + location.search + "#" + k;
+  try { if (!navLast) history.replaceState({ k }, "", url); else history.pushState({ k }, "", url); } catch (e) {}
+  navLast = k;
+}
+function navGo(k) {
+  const app = window.__ex44; if (!app || !app.comp || !k) return;
+  const m = /^cc(?:\/(card)\/(.+)|\/(board|projects|mentor))?$/.exec(k);
+  navBusy = true;
+  try {
+    if (m) { U.open = m[1] && cards().some((c) => c.id === m[2]) ? m[2] : null; if (m[1]) U.tab = "overview"; U.view = m[3] || (m[1] ? U.view : "board"); U.form = null; U.pk = null; app.comp.setState({ view: "cc" }); draw(); }
+    else app.comp.setState({ view: k });
+  } finally { navLast = k; setTimeout(() => { navBusy = false; }, 0); }
+}
+if (window.__CCLIVE) {
+  window.addEventListener("popstate", (e) => navGo((e.state && e.state.k) || location.hash.slice(1) || "home"));
+  const first = location.hash.slice(1);   // an address with a place in it opens there once the data is in
+  if (first && first !== "home") { navFirst = first; const tryGo = (n) => { if ((D.tasks || []).length || n > 40) { navFirst = ""; navGo(first); try { history.replaceState({ k: first }, "", location.pathname + location.search + "#" + first); } catch (e) {} } else setTimeout(() => tryGo(n + 1), 250); }; setTimeout(() => tryGo(0), 0); }
+}
+
+window.EX44CC = { marks: false, nav, mount(h) { if (host === h) return; host = h; wire(h); draw(); },
   needCount: () => NEEDS.filter((n) => !isCleared(n)).length, needTickets, clearNeed: (chat, text) => clearNeed(chat, text), openNeed: (chat) => { U.nopen = chat; drawNeeds(); },
   needOldest: () => { const o = NEEDS.filter((n) => !isCleared(n)); return o.length ? o[o.length - 1].age : ""; },
   needChips: () => { const o = NEEDS.filter((n) => !isCleared(n)); const c = o.filter((n) => n.task).length, u = o.filter((n) => n.unsent).length, f = o.length - c;
@@ -4263,8 +4389,11 @@ class Component extends DCLogic {
     const PZ = Object.assign({}, LV.pz || {});
     const PZL = this.state.pzl || {};   // A1: a pause or resume just done shows at once, until the next feed says the same
     Object.keys(PZL).forEach(k => { if (Date.now() - PZL[k].at < 15000) { if (PZL[k].r) PZ[k] = PZL[k].r; else delete PZ[k]; } });
-    const pauseWith = (tag, why) => this.act("Pause " + tag + ": " + why, () => this.setState({ pzask: null, pzl: Object.assign({}, this.state.pzl, {[tag]: { r: why, at: Date.now() }}) }));
-    const resumeAcct = tag => this.act("Resume " + tag, () => this.setState({ pzl: Object.assign({}, this.state.pzl, {[tag]: { r: null, at: Date.now() }}) }));   // paused accounts: account -> reason (the page reads it from the feed)
+    // QA pass (25 Nov): the tile changes on the tap itself; Undo or a refusal puts it back
+    const pzSet = (tag, r) => this.setState({ pzask: null, pzl: Object.assign({}, this.state.pzl, {[tag]: { r, at: Date.now() }}) });
+    const pzBack = tag => { const l = Object.assign({}, this.state.pzl); delete l[tag]; this.setState({ pzl: l }); };
+    const pauseWith = (tag, why) => { pzSet(tag, why); this.act("Pause " + tag + ": " + why, () => pzSet(tag, why), null, () => pzBack(tag)); };
+    const resumeAcct = tag => { pzSet(tag, null); this.act("Resume " + tag, () => pzSet(tag, null), null, () => pzBack(tag)); };   // paused accounts: account -> reason (the page reads it from the feed)
     const HAIKU_LAUNCH = false;   // Haiku 5.5 is shown as a tag, but not offered at launch until Ali answers the worker GO
     const pzWhy = a => PZ[a] ? a + " is paused: " + PZ[a] : "";
     const MOCKSUM = {};
@@ -4629,7 +4758,7 @@ function draw(){
   else { root.replaceChildren(...next.childNodes); }
   document.documentElement.setAttribute("data-theme-live", vals.isDark ? "dark" : "light");
   { const mh = root.querySelector("#map-host"), th = vals.isDark ? "dark" : "light"; if (window.EX44Map) { if (mh) window.EX44Map.mount(mh, { theme: th, loader: window.__ex44live && window.__ex44live.mapData }); else window.EX44Map.setTheme(th); } }
-  { const ch = root.querySelector("#cc-host"); if (ch && window.EX44CC) window.EX44CC.mount(ch); const nh = root.querySelector("#ny-host"); if (nh && window.EX44CC) window.EX44CC.mountNeeds(nh); }
+  { const ch = root.querySelector("#cc-host"); if (ch && window.EX44CC) window.EX44CC.mount(ch); const nh = root.querySelector("#ny-host"); if (nh && window.EX44CC) window.EX44CC.mountNeeds(nh); if (window.EX44CC && window.EX44CC.nav) window.EX44CC.nav(); }
   if (comp.state.pal && !palWas) setTimeout(() => { const i = document.getElementById("palq"); if (i) i.focus(); }, 30); palWas = comp.state.pal;
 }
 document.addEventListener("input", e => { const t = e.target.closest("[data-hi]"); if (t && root.contains(t) && H[t.getAttribute("data-hi")]) H[t.getAttribute("data-hi")](e); });
