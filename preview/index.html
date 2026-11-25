@@ -4393,9 +4393,9 @@ class Component extends DCLogic {
     Object.keys(PZL).forEach(k => { if (Date.now() - PZL[k].at < 15000) { if (PZL[k].r) PZ[k] = PZL[k].r; else delete PZ[k]; } });
     // QA pass (25 Nov): the tile changes on the tap itself; Undo or a refusal puts it back
     const pzSet = (tag, r) => this.setState({ pzask: null, pzl: Object.assign({}, this.state.pzl, {[tag]: { r, at: Date.now() }}) });
-    const pzBack = tag => { const l = Object.assign({}, this.state.pzl); delete l[tag]; this.setState({ pzl: l }); };
-    const pauseWith = (tag, why) => { pzSet(tag, why); this.act("Pause " + tag + ": " + why, () => pzSet(tag, why), null, () => pzBack(tag)); };
-    const resumeAcct = tag => { pzSet(tag, null); this.act("Resume " + tag, () => pzSet(tag, null), null, () => pzBack(tag)); };   // paused accounts: account -> reason (the page reads it from the feed)
+    const pzBack = (tag, prev) => { const l = Object.assign({}, this.state.pzl); if (prev) l[tag] = Object.assign({}, prev, { at: Date.now() }); else delete l[tag]; this.setState({ pzl: l }); };
+    const pauseWith = (tag, why) => { const prev = (this.state.pzl || {})[tag]; pzSet(tag, why); this.act("Pause " + tag + ": " + why, () => pzSet(tag, why), null, () => pzBack(tag, prev)); };
+    const resumeAcct = tag => { const prev = (this.state.pzl || {})[tag]; pzSet(tag, null); this.act("Resume " + tag, () => pzSet(tag, null), null, () => pzBack(tag, prev)); };   // paused accounts: account -> reason (the page reads it from the feed)
     const HAIKU_LAUNCH = false;   // Haiku 5.5 is shown as a tag, but not offered at launch until Ali answers the worker GO
     const pzWhy = a => PZ[a] ? a + " is paused: " + PZ[a] : "";
     const MOCKSUM = {};
