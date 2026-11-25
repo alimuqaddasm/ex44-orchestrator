@@ -748,6 +748,13 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 /* QA pass (25 Nov): on a phone a day is narrow; the task's name shows, the "late" word gives way (the amber pin already says it) */
 .ex .ccweek.ph .ccpin em{display:none}
 .ex .ccweek.ph .ccpin svg{display:none}
+/* sync round: Undo after Done (on the card and in the toast), a move made by its chat, the Now block of an opened card */
+.ccundo{border:0;cursor:pointer;font:inherit;background:var(--tn);color:var(--ink)}
+.ccundo:hover,.ccundo:focus-visible{background:var(--g2);outline:none;box-shadow:0 0 0 2px var(--blue)}
+.ccwrap .toast:has(.ccundo){display:flex;align-items:center;gap:12px}
+.toast .ccundo{height:30px;padding:0 12px;border-radius:8px;background:color-mix(in oklab,currentColor 16%,transparent);color:inherit;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.ccauto{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ccnowb .ccslb{display:inline-flex;align-items:center}
 
 
 :root{--page-bg:oklch(97.3% 0.004 250)}
@@ -1440,7 +1447,7 @@ const projq = (p) => (p ? `<span class="ccproj">${ic("layers", 11)}${esc(pathOf(
 // ---------- state (this browser) ----------
 let S = { sessions: {}, pos: {}, added: [], comments: {}, steps: {}, ticks: {}, due: {}, proj: {}, removed: {}, late: {}, cleared: {}, answers: {}, edits: {}, ptree: {}, porder: null, pnew: [] };
 try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && typeof v === "object") S = Object.assign(S, v); } catch (e) {}
-["steps", "cleared", "answers", "edits", "ptree", "sessions"].forEach((k) => { S[k] = S[k] || {}; }); S.pnew = S.pnew || [];
+["steps", "cleared", "answers", "edits", "ptree", "sessions", "followAsked"].forEach((k) => { S[k] = S[k] || {}; }); S.pnew = S.pnew || [];
 if (window.__CCLIVE) { S.pos = {}; S.due = {}; S.edits = {}; S.comments = {}; S.added = []; S.removed = {}; S.late = {}; S.answers = {}; }   // EX-44 holds these; only a change in flight is kept here
 const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
 // ---------- sending to EX-44 (live only) ----------
@@ -1455,21 +1462,45 @@ const FRESH = {};   // cards Ali made on this page: never hidden behind "N more 
 const fresh = (c) => c.kind === "own" || (FRESH[c.id] && Date.now() - FRESH[c.id] < 600000);
 let soonH = 0;
 const soon = () => { if (!soonH) soonH = requestAnimationFrame(() => { soonH = 0; draw(); }); };   // one redraw per frame at most
+const UNDO_MS = 20000;   // sync round: after Done, Undo stays offered for 20 s (on the card and in the toast)
 function mark(cid, st, why) { if (!cid) return; STAT[cid] = { st, why: why || "", at: Date.now() }; soon();
-  if (st !== "sending") setTimeout(() => { const x = STAT[cid]; if (x && x.st === st && Date.now() - x.at >= (st === "done" ? 3000 : 7000) - 50) { delete STAT[cid]; soon(); } }, st === "done" ? 3000 : 7000); }
-function ship(label, reqs, pend, cid) {
+  const ms = st === "done" ? (UNDO[cid] ? UNDO_MS : 3000) : 7000;
+  if (st !== "sending") setTimeout(() => { const x = STAT[cid]; if (x && x.st === st && Date.now() - x.at >= ms - 50) { delete STAT[cid]; if (UNDO[cid] && Date.now() - UNDO[cid].at >= UNDO_MS - 50) delete UNDO[cid]; soon(); } }, ms); }
+// sync round (Ali 25 Nov: "should have an undo option"): before sending, the home's 2 s undo; after Done, Undo sends the
+// opposite action (move back, the old due date, the comment taken off, the chat closed...), logged like any press.
+// undo = { reqs: [...] | (reason) => [...], pend: (reason) => overlay, local: () => {} } or { no: "why it cannot be taken back" }.
+const UNDO = {};
+function ship(label, reqs, pend, cid, undo) {
   const app = window.__ex44;
   if (!LIVEM() || !app || !app.comp) return false;
   PEND[label] = reqs;
   if (pend) { pend.at = Date.now(); LP[pend.key] = pend; }
   cid = cid || (reqs[0] && reqs[0].task) || U.open || "";
+  delete UNDO[cid];
   mark(cid, "sending");
-  app.comp.act(label, () => { if (pend) pend.done = Date.now(); mark(cid, "done"); }, null, (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); } mark(cid, why ? "failed" : "undone", why); toast(why ? "Not done: " + why : "Taken back."); });
+  app.comp.act(label, (reason) => { if (pend) pend.done = Date.now();
+      if (undo && undo.reqs) { UNDO[cid] = { label, undo, reason: reason || "", at: Date.now() }; toast("Done: " + label + ".", cid); }
+      else if (undo && undo.no) toast("Done. " + undo.no);
+      mark(cid, "done"); }, null,
+    (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); } mark(cid, why ? "failed" : "undone", why); toast(why ? "Not done: " + why + ". The card is back as it was." : "Taken back."); });
   return true;
+}
+function runUndo(cid) {
+  const u = UNDO[cid]; if (!u) { toast("Too late to undo here: change it back by hand."); return; }
+  delete UNDO[cid]; U.toastUndo = ""; FRESH[cid] = Date.now();   // a card brought back stays in view, never behind "N more in Planned"
+  const r = typeof u.undo.reqs === "function" ? u.undo.reqs(u.reason) : u.undo.reqs;
+  if (!r || !r.length) { toast("Nothing to take back for this one."); return; }
+  if (u.undo.local) { try { u.undo.local(u.reason); } catch (e) {} save(); }
+  ship("Undo: " + u.label, r, u.undo.pend ? u.undo.pend(u.reason) : null, cid, null);
+  draw();
 }
 const statChip = (id) => { const x = STAT[id]; if (!x) return "";
   const w = { sending: ["chat", "Sending", "clock"], done: ["done", "Done", "check"], failed: ["bad", "Not done", "x"], undone: ["park", "Taken back", "undo"] }[x.st];
-  return `<span class="ccstat s-${x.st}" role="status" title="${esc(x.why)}" style="background:${ST[w[0]][0]};color:${ST[w[0]][1]}">${ic(w[2], 12)}${w[1]}${x.st === "sending" ? '<i class="ccdots"><b></b><b></b><b></b></i>' : ""}</span>`; };
+  return `<span class="ccstat s-${x.st}" role="status" title="${esc(x.why)}" style="background:${ST[w[0]][0]};color:${ST[w[0]][1]}">${ic(w[2], 12)}${w[1]}${x.st === "sending" ? '<i class="ccdots"><b></b><b></b><b></b></i>' : ""}</span>`
+    + (x.st === "done" && UNDO[id] ? `<button type="button" class="pill tgx ccundo" data-undo="${esc(id)}" title="Send the opposite action to EX-44">${ic("undo", 12)}Undo</button>` : ""); };
+// a card moved by its chat (sync round): shown for 12 hours with the time, and an Undo that moves it back
+const autoChip = (c) => { const a = c.t ? c.t.auto : c.c ? c.c.auto : null; if (!a || !a.at || Date.now() - Date.parse(a.at) > 12 * 3600e3 || STAT[c.id]) return "";
+  return `<span class="pill tgx ccauto" title="${esc((a.chat || "its chat") + ": " + (a.why || ""))}" style="background:var(--tn);color:var(--ink2)">${ic("bolt", 12)}Moved by its chat, ${esc((a.when || "").replace(/^\d+ \w+, /, ""))}</span><button type="button" class="pill tgx ccundo" data-autoundo="${esc(c.id)}" title="Move it back to ${esc(CNAME[a.from] || a.from)}">${ic("undo", 12)}Undo</button>`; };
 function reconcile() {
   Object.keys(LP).forEach((k) => { const p = LP[k]; let hit = false; try { hit = p.test(); } catch (e) {}
     if (hit || (p.done && Date.now() - p.done > 90000) || Date.now() - p.at > 300000) { try { p.clear(); } catch (e) {} delete LP[k]; } });
@@ -1503,7 +1534,8 @@ function cards() {
   return out.filter((c) => !S.removed[c.id]);
 }
 const shownTitle = (c) => { const m = /^(P|S|M)\s+(.+)$/.exec(c.title); return m && c.levels.includes(m[1]) ? m[2] : c.title; };
-const chatOf = (c) => (c && c.t && c.t.chats[0] ? D.chats[c.t.chats[0]] : null);
+const leadOf = (c) => (c && c.t ? c.t.lead || c.t.chats[0] : c && c.c && c.c.chats && c.c.chats.length ? c.c.chats[c.c.chats.length - 1] : null);
+const chatOf = (c) => { const n = leadOf(c); return n ? D.chats[n] || null : null; };
 const dueOf = (c) => (S.due[c.id] !== undefined ? S.due[c.id] : (S.edits[c.id] || {}).due !== undefined ? S.edits[c.id].due : c.t ? c.t.due : c.a ? c.a.due || "" : "");
 const scopeOf = (c) => ((S.edits[c.id] || {}).scope !== undefined ? S.edits[c.id].scope : c.a ? c.a.scope || "" : c.t ? c.t.next || "" : "");
 const isMerged = (c) => !!(c.t && c.t.merged);
@@ -1520,7 +1552,9 @@ const allComments = (c) => (S.comments[c.id] || []).map((m) => ({ text: m.text, 
   .concat((c.t ? c.t.comments : c.c ? c.c.comments : []).slice().reverse())
   .concat(c.t && c.t.carried ? c.t.carried.map((m) => Object.assign({}, m, { from: `the merged card "${m.was}"` })) : []);
 const nowLine = (c) => { const ch = chatOf(c); if (!ch) return null; const pick = (k) => (ch.lines.find((l) => l[0] === k) || [])[1] || "";
-  return { k: ch.k, w: ch.w, text: ch.k === "you" ? pick("You can help by") : ch.k === "done" ? pick("Done") : pick("Left") }; };
+  // sync round: what it is doing now, in its own words, with the time (its last message); the For Ali line when it said nothing
+  const tm = (ch.now_at || "").replace(/^\d+ \w+, /, "").replace(/ PKT$/, "");
+  return { k: ch.k, w: ch.w, tm, text: ch.k === "you" ? (pick("You can help by") || ch.now) : (ch.now || (ch.k === "done" ? pick("Done") : pick("Left"))) }; };
 const ownSteps = (c) => S.steps[c.id] || [];
 const achieved = (c) => (c.t && c.t.achieved && c.t.achieved.length ? c.t.achieved : (S.answers[c.id] ? [S.answers[c.id].text] : []));
 
@@ -1544,20 +1578,20 @@ function cardHtml(c, mark) {
       <div class="ccdate"><span>${esc((c.c.dname || "").toUpperCase())}</span><b class="num">${esc(dp[0] || "")}</b><span>${esc((dp[1] || "").toUpperCase())}</span></div>
       <div class="cccbody"><span class="cct">${esc(c.c.code)} Class Kit</span>${m(4)}
       <div class="ccmeta">${c.levels[0] !== "G" ? lvl(c.levels[0]) : ""}${mono(c.session)}</div>
-      <div class="ccrow">${statChip(c.id)}${st(cdk, c.c.cd.charAt(0).toUpperCase() + c.c.cd.slice(1), "clock")}${kit}${m(5)}</div></div></div>`;
+      <div class="ccrow">${statChip(c.id)}${autoChip(c)}${st(cdk, c.c.cd.charAt(0).toUpperCase() + c.c.cd.slice(1), "clock")}${kit}${m(5)}</div></div></div>`;
   }
   const n = allComments(c).length;
   if (c.col === "done") {   // Done layout: what was achieved first
     const a = achieved(c);
     return `<div class="cccard done${isMerged(c) ? " merged" : ""}" draggable="true" tabindex="0" role="button" data-card="${esc(c.id)}" aria-label="${esc(c.title)}">
       <div class="ccdt2">${ic(isMerged(c) ? "merge" : "check", 15)}<span class="cct">${esc(shownTitle(c))}</span></div>
-      <p class="ccach2">${esc(isMerged(c) ? c.t.merged : a.length ? short(a[0], 140) : "Done")}</p>${STAT[c.id] ? `<div class="ccrow">${statChip(c.id)}</div>` : ""}
+      <p class="ccach2">${esc(isMerged(c) ? c.t.merged : a.length ? short(a[0], 140) : "Done")}</p>${STAT[c.id] || autoChip(c) ? `<div class="ccrow">${statChip(c.id)}${autoChip(c)}</div>` : ""}
       ${meta(c.klass ? mono(c.klass) + (c.session ? mono(c.session) : "") : "")}</div>`;
   }
   const due = dueOf(c), nl = nowLine(c), nd = needOf(c);
-  const status = nl ? `<div class="ccnow"><span class="dot" style="background:${DOT[nl.k]};width:7px;height:7px"></span><b class="${nl.k === "you" ? "amb" : ""}">${esc(nl.w)}.</b> ${esc(nl.text)}</div>`
+  const status = nl ? `<div class="ccnow"><span class="dot" style="background:${DOT[nl.k]};width:7px;height:7px"></span><b class="${nl.k === "you" ? "amb" : ""}">${esc(nl.w)}${nl.tm ? `, ${esc(nl.tm)}` : ""}.</b> ${esc(short(nl.text || "", 160))}</div>`
     : `<div class="ccnow"><span class="dot" style="background:var(--ink3);width:7px;height:7px"></span><b>Your task.</b> ${ownSteps(c).length ? `${ownSteps(c).filter((x) => x.d).length} of ${ownSteps(c).length} steps done` : esc(short(scopeOf(c) || "No scope written yet.", 90))}</div>`;
-  let foot = statChip(c.id);
+  let foot = statChip(c.id) + autoChip(c);
   if (nd) foot += isCleared(nd) ? st("done", "You answered", "check") : `<button type="button" class="pill tgx ccstatbtn" data-need="${esc(nd.chat)}" style="background:var(--amber-d);color:var(--amber)">${ic("bolt", 12)}Needs you</button>`;
   if (due) foot += due === D.today ? st("you", "Due today", "cal") : gr("Due " + fd(due), "cal");
   if (c.kind === "own") foot += st("you", "Your card", "plus");
@@ -1739,6 +1773,16 @@ function readForm() {
 }
 
 // ---------- the opened card: a summary from its job note first ----------
+// sync round (Ali 25 Nov: "the most updated with what is going on there"): the chat it follows, its state, its last
+// message and the time, read live from EX-44 (status, For Ali block, last message, CHUNK DONE or archived)
+function nowBlock(c) {
+  const n = leadOf(c), ch = chatOf(c); if (!n || !ch) return "";
+  const a = c.t ? c.t.auto : c.c ? c.c.auto : null;
+  return `<section class="ccsumm ccnowb"><div class="ccsmh"><span class="lab">${ic("chat", 12)}Now, in its chat</span><span class="ccage">${esc(ch.now_at || ch.since || "")}</span></div>
+    <div class="ccsl"><span class="ccslb"><span class="dot" style="background:${DOT[ch.k]};width:8px;height:8px;display:inline-block;margin-right:6px"></span>${esc(ch.w)}</span><span class="ccstx">${esc(ch.now || "It has said nothing yet.")}</span></div>
+    ${a ? `<div class="ccsl"><span class="ccslb">Moved</span><span class="ccstx">by its chat to ${esc(CNAME[a.to] || a.to)}, ${esc(a.when || "")} (${esc(a.why || "")}). You can move it anywhere; a card in Done stays there.</span></div>` : ""}
+    <div class="ccrow"><button type="button" class="btn ghost" data-chat="${esc(n)}">${ic("chat")}Open ${esc(n)}</button></div></section>`;
+}
 function summaryBlock(c, n) {
   const ch = c ? chatOf(c) : null;
   const lines = ch ? ch.lines : n ? [["This chat", n.about], ["You can help by", n.ask], ["Stuck", n.stuck], ["Left", n.left], ["Done", n.done]].filter((l) => l[1]) : [];
@@ -1807,7 +1851,11 @@ function drawerHtml(c, marks) {
       body += `</section><section class="dsec"><span class="lab">3. Make the zip</span><div class="ccrow">${machine(LIVEM() ? "Gather into a zip and send to la57" : "Gather into a zip (small Haiku chat)", "dl", true)}${machine("Make PDFs too?", "file")}</div></section>`;
       if (LIVEM()) body += `<section class="dsec"><span class="lab">Class prep</span><div class="ccrow">${machine("Start class prep", "chat", true)}<span class="lab">A Sonnet chat with this kit in its brief, for late asks and fixes.</span></div></section>`;
       if (k.folder) body += `<section class="dsec"><span class="lab">4. On la57 ${tm(9)}</span><div class="ccatt">${ic("folder", 16)}<div style="flex:1;min-width:0"><div style="font-weight:500">${esc(k.zip)}</div><div class="lab num" style="overflow-wrap:anywhere">${esc(k.folder)}</div></div><button class="btn" type="button" data-copy="${esc(k.folder)}">${ic("copy")}Copy folder</button></div></section>`;
-      body += `<section class="dsec"><span class="lab">5. Send it</span><div class="ccrow">${machine("Mark sent to the mentor", "check")}</div></section>`;
+      body += `<section class="dsec"><span class="lab">5. Send it</span><div class="ccrow">${k.sent ? st("done", "Marked sent " + (k.sentAt || ""), "check") : machine("Mark sent to the mentor", "check")}</div>
+        <p class="lab" style="margin:0">Marking it sent only stamps the kit. The card stays where it is until you move it.</p>
+        ${U.follow === c.id && c.col !== "done" ? `<div class="askbox ccask"><p class="ccq" style="margin:0">The kit is marked sent. Move this card to Done too?</p><div class="ccrow"><button class="btn you" type="button" data-follow="yes">${ic("check")}Move to Done</button><button class="btn ghost" type="button" data-follow="no">Leave it where it is</button></div></div>` : ""}</section>`;
+    }
+    if (c.c.task && chatOf(c)) { body += nowBlock(c); body += summaryBlock(c, null);
     }
   } else {
     const done = c.col === "done";
@@ -1818,6 +1866,7 @@ function drawerHtml(c, marks) {
       body += `<section class="askbox ccask"><span class="cceyebrow" style="color:var(--amber)">It asks you</span><p class="ccq">${esc(nd && !isCleared(nd) ? nd.ask : D.asks[c.id])}</p>
         <div class="ccrow">${opts.map((o, i) => `<button class="btn${i === 0 ? " you" : ""}" type="button" data-canswer="${esc(o)}"><span class="num">${i + 1}</span>&nbsp;${esc(o)}</button>`).join("")}<button class="btn ghost" type="button" data-tab="comments">${ic("note")}Answer in words</button></div></section>`;
     }
+    if (ch && !isMerged(c)) body += nowBlock(c);
     if (!done) body += summaryBlock(c, null);
     if (ch && !done && !isMerged(c)) {
       body += `<section class="dsec"><span class="lab">Do</span><div class="ccrow">${machine("Open its chat", "chat")}</div>${startGroup("Start another chat")}${mk(5)}
@@ -1832,7 +1881,7 @@ function drawerHtml(c, marks) {
     }
     if (coms.length) body += `<section class="dsec"><span class="lab">Latest comment</span><div class="cccm"><p>${esc(short(coms[0].text, 280))}</p><span class="lab num">You${coms[0].at ? ", " + esc(coms[0].at) : ""} · <button type="button" class="cclink" data-tab="comments">all ${coms.length} comments</button></span></div></section>`;
   }
-  const sx = STAT[c.id], sline = sx ? `<div class="ccstatline">${statChip(c.id)}<span class="lab">${esc(sx.st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 10 seconds." : sx.st === "done" ? "EX-44 has it." : sx.st === "failed" ? "Not done: " + sx.why : "Taken back.")}</span></div>` : "";
+  const sx = STAT[c.id], sline = sx ? `<div class="ccstatline">${statChip(c.id)}<span class="lab">${esc(sx.st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 5 seconds." : sx.st === "done" ? "EX-44 has it." : sx.st === "failed" ? "Not done: " + sx.why : "Taken back.")}</span></div>` : "";
   return `<div class="scrim" data-act="close"></div><aside class="drawer ccdrw" aria-label="Card opened"><header class="dhd">${head}${sline}</header>
     <div class="dbd" id="ccdbd-${esc(c.id)}-${esc(U.tab)}">${body}<p class="lab" style="margin:0">${LIVEM() ? "Every change here goes to EX-44 and shows in What you pressed. Steps, session numbers and the order of top projects stay in this browser." : "Buttons with a dotted edge ask a chat or la57 to act, so they work on the real EX-44 home. Everything else works here and is kept in this browser."}</p></div></aside>`;
 }
@@ -1910,7 +1959,7 @@ function draw() {
     ${toolbarHtml(all, marks)}
     <div class="ccmain">${main}</div>
     ${openC ? drawerHtml(openC, marks) : ""}${U.form ? formOut(U.form) : ""}
-    ${U.toast ? `<div class="toast" role="status"><span>${esc(U.toast)}</span></div>` : ""}</div>`, true);
+    ${U.toast ? `<div class="toast" role="status"><span>${esc(U.toast)}</span>${U.toastUndo && UNDO[U.toastUndo] ? `<button type="button" class="btn ghost ccundo" data-undo="${esc(U.toastUndo)}">${ic("undo")}Undo</button>` : ""}</div>` : ""}</div>`, true);
   glide(host); U.slideFrom = null;
   if (host.querySelector(".cctl2")) U.weekFrom = Math.round((all.filter((c) => !isMerged(c) && c.col === "done").length) * 100 / (all.filter((c) => !isMerged(c)).length || 1));
   if (keepC) { const c2 = host.querySelector("[data-comment]"); if (c2 && document.activeElement !== c2) { c2.focus(); c2.setSelectionRange(c2.value.length, c2.value.length); } }
@@ -2008,6 +2057,7 @@ function clearNeed(chat, text) { const n = NEEDS.find((x) => x.chat === chat); i
 function wireNeeds(h) {
   h.addEventListener("click", (e) => {
     const t = e.target;
+    const un = t.closest("[data-undo]"); if (un) { runUndo(un.dataset.undo); return; }
     const a = t.closest("[data-nanswer]"); if (a) { const n0 = NEEDS.find((x) => x.chat === U.nopen); if (LIVEM() && n0) { sendAnswer(n0, a.dataset.nanswer.replace(/ \(its pick\)$/, "")); return; } clearNeed(U.nopen, a.dataset.nanswer); toast(`Answer "${a.dataset.nanswer}" kept and the row cleared. On the real home it goes to the chat as a ready reply.`); return; }
     const cg = t.closest("[data-cardgo]"); if (cg) { U.nopen = null; U.open = cg.dataset.cardgo; U.tab = "overview"; drawNeeds(); if (window.__ex44) window.__ex44.comp.setState({ view: "cc" }); return; }
     const ch = t.closest("[data-chat]"); if (ch) { goHome("chats", ch.dataset.chat); return; }
@@ -2015,11 +2065,13 @@ function wireNeeds(h) {
     const k = t.closest("[data-act]"); if (!k) return;
     const act = k.dataset.act;
     if (act === "nclose") { U.nopen = null; drawNeeds(); }
-    else if (act === "nclear") { const ch0 = U.nopen; clearNeed(ch0, ""); if (LIVEM()) ship(`Answered elsewhere: ${ch0}`, [{ action: "answered", target: ch0 }]); toast("Cleared. It comes back only if the chat asks something new."); }
+    else if (act === "nclear") { const ch0 = U.nopen; clearNeed(ch0, ""); if (LIVEM()) ship(`Answered elsewhere: ${ch0}`, [{ action: "answered", target: ch0 }], null, "n:" + ch0,
+        { reqs: [{ action: "unanswered", target: ch0 }], local: () => { delete S.cleared[ch0]; } }); else toast("Cleared. It comes back only if the chat asks something new."); }
     else if (act === "nkeep") { const n = NEEDS.find((x) => x.chat === U.nopen), v = (U.draft["n:" + U.nopen] || "").trim(); if (!v) { const ta = hostN.querySelector("[data-nreply]"); ta && ta.focus(); return; }
       (S.comments[n.task] = S.comments[n.task] || []).push({ text: v, at: nowStamp() }); clearNeed(n.chat, v);
       if (LIVEM()) ship(`Keep as a comment: ${n.chat}`, [{ action: "task", op: "note", task: n.task, text: v, target: n.task }, { action: "answered", target: n.chat }],
-        { key: "com:" + n.task + ":" + Date.now(), test: () => { const t = dTask(n.task); return t && t.comments.some((m) => m.text === v); }, clear: () => { S.comments[n.task] = (S.comments[n.task] || []).filter((m) => m.text !== v); } });
+        { key: "com:" + n.task + ":" + Date.now(), test: () => { const t = dTask(n.task); return t && t.comments.some((m) => m.text === v); }, clear: () => { S.comments[n.task] = (S.comments[n.task] || []).filter((m) => m.text !== v); } }, n.task,
+        { reqs: [{ action: "task", op: "unnote", task: n.task, text: v, target: n.task }, { action: "unanswered", target: n.chat }], local: () => { S.comments[n.task] = (S.comments[n.task] || []).filter((m) => m.text !== v); delete S.cleared[n.chat]; } });
       toast("Your answer is a comment on its card now, word for word. The row is cleared."); }
     else if (act === "nadd") { const n = NEEDS.find((x) => x.chat === U.nopen); U.nopen = null; drawNeeds(); U.view = "board"; U.form = { mode: "task", title: n.title, project: n.project, col: "waiting on Ali" }; if (window.__ex44) window.__ex44.comp.setState({ view: "cc" }); setTimeout(draw, 60); }
   });
@@ -2035,41 +2087,50 @@ function machine(label, el) {
     if (c.kind !== "task") { toast("Save the card first: it is still on its way to EX-44."); return true; }
     const p = pkNow(), r = pkAccts().find((x) => x.tag === p.acct);
     if (!r || r.pz || r.out) { toast(r && r.pz ? `${p.acct} is paused (${r.pz}): pick another account.` : `${p.acct} cannot take a chat now: pick another account.`); return true; }
-    ship(`Start a chat for "${shownTitle(c)}" on ${p.acct} with ${pkName(p.model)}, ${p.effort} effort`, [{ action: "task-chat", task: c.id, account: p.acct, model: p.model, effort: p.effort, target: c.id }]);
+    const col0 = c.col;
+    ship(`Start a chat for "${shownTitle(c)}" on ${p.acct} with ${pkName(p.model)}, ${p.effort} effort`, [{ action: "task-chat", task: c.id, account: p.acct, model: p.model, effort: p.effort, target: c.id }], null, c.id,
+      { reqs: (reason) => { const m = /started (\S+)/.exec(reason || ""); return m ? [{ action: "close", target: m[1] }, { action: "task", op: "unlink", task: c.id, chat: m[1], target: c.id }].concat(col0 !== "doing" ? [{ action: "task", op: "move", task: c.id, state: col0, target: c.id }] : []) : []; } });
     U.pk = null;
     toast(`Sent: EX-44 starts a ${pkName(p.model)} chat (${p.effort} effort) for this task on ${p.acct}, links it here and moves the card to Doing.`); return true; }
   if (label === "Send") {
     const sel = el.closest(".dsec").querySelector("select"), v = sel ? sel.value : "";
     if (!ch) return true;
-    if (/^Act on my comments/.test(v)) ship(`Act on my notes: ${ch}`, [{ action: "notes", task: c.id, target: ch }]);
-    else if (v === "Continue") ship(`Send "continue" to ${ch}`, [{ action: "send", target: ch, text: "continue", mode: "plain" }]);
-    else if (v === "Say where you are") ship(`Send "say where you are" to ${ch}`, [{ action: "send", target: ch, text: "say where you are", mode: "plain" }]);
+    if (/^Act on my comments/.test(v)) ship(`Act on my notes: ${ch}`, [{ action: "notes", task: c.id, target: ch }], null, c.id, { no: "It was typed into the chat, so it cannot be taken back. Tell the chat in words if you need to." });
+    else if (v === "Continue") ship(`Send "continue" to ${ch}`, [{ action: "send", target: ch, text: "continue", mode: "plain" }], null, c.id, { no: "It was typed into the chat, so it cannot be taken back. Tell the chat in words if you need to." });
+    else if (v === "Say where you are") ship(`Send "say where you are" to ${ch}`, [{ action: "send", target: ch, text: "say where you are", mode: "plain" }], null, c.id, { no: "It was typed into the chat, so it cannot be taken back. Tell the chat in words if you need to." });
     return true; }
   if (c.kind === "class") {
     const k = c.c.key, d = c.c.iso, kit = c.c.kit;
-    if (label === "Start class prep") { ship(`Start class prep for ${c.c.code}, ${c.c.dname} ${c.c.date}`, [{ action: "class-prep", class: k, date: d, account: "sc21", target: k }]);
+    if (label === "Start class prep") { ship(`Start class prep for ${c.c.code}, ${c.c.dname} ${c.c.date}`, [{ action: "class-prep", class: k, date: d, account: "sc21", target: k }], null, c.id,
+        { reqs: (reason) => { const m = /started (\S+)/.exec(reason || ""); return m ? [{ action: "close", target: m[1] }].concat(c.c.task ? [{ action: "task", op: "unlink", task: c.c.task, chat: m[1], target: c.c.task }] : []) : []; } });
       toast("Sent: EX-44 starts the class chat with this kit in its brief."); return true; }
-    if (label === "Mark sent to the mentor") { ship(`Mark the ${c.c.code} kit sent`, [{ action: "kit-sent", class: k, date: d, target: k }]); return true; }
-    if (label.startsWith("Gather into a zip")) { ship(`Send the ${c.c.code} kit to la57 with its zip`, [{ action: "kit-send", class: k, date: d, target: k }]); return true; }
-    if (label === "Make PDFs too?") { if (confirm("Ask la57 for the PDFs of this kit's Word and deck files? They join the zip when they are back.")) ship(`PDFs for the ${c.c.code} kit`, [{ action: "kit-pdfs", class: k, date: d, target: k }]); return true; }
+    // one card, one meaning (sync round): "sent" stamps the kit only; the card moves only if Ali says so (asked once)
+    if (label === "Mark sent to the mentor") { const cid0 = c.id; ship(`Mark the ${c.c.code} kit sent`, [{ action: "kit-sent", class: k, date: d, target: k }], null, cid0,
+        { reqs: [{ action: "kit-unsent", class: k, date: d, target: k }] });
+      if (c.c.task && c.col !== "done" && !S.followAsked[cid0]) { U.follow = cid0; S.followAsked[cid0] = 1; save(); draw(); } return true; }
+    if (label.startsWith("Gather into a zip")) { ship(`Send the ${c.c.code} kit to la57 with its zip`, [{ action: "kit-send", class: k, date: d, target: k }], null, c.id,
+        { no: "The kit is on la57 now; taking files off la57 needs your GO, so it is left there." }); return true; }
+    if (label === "Make PDFs too?") { if (confirm("Ask la57 for the PDFs of this kit's Word and deck files? They join the zip when they are back.")) ship(`PDFs for the ${c.c.code} kit`, [{ action: "kit-pdfs", class: k, date: d, target: k }], null, c.id,
+        { no: "la57 was asked for the PDFs; that request cannot be called back." }); return true; }
     return !kit;
   }
   return false;
 }
 function sendAnswer(n, text) {
   clearNeed(n.chat, text);
-  ship(`Answer ${n.chat}: ${text}`, [{ action: "answer", target: n.chat, text, task: n.task || "" }]);
+  ship(`Answer ${n.chat}: ${text}`, [{ action: "answer", target: n.chat, text, task: n.task || "" }], null, n.task || "n:" + n.chat, { no: "It was typed into the chat, so it cannot be taken back. Tell the chat in words if you need to." });
   toast(`Sent to ${n.chat}: "${text}". The row is cleared.`);
 }
 function needMachine(label) {
   const n = NEEDS.find((x) => x.chat === U.nopen); if (!n) return false;
   if (label === "Open the chat") { goHome("chats", n.chat); return true; }
-  if (label === "Send it now") { clearNeed(n.chat, n.unsent); ship(`Press Enter in ${n.chat}`, [{ action: "key", target: n.chat, key: "enter" }]); return true; }
+  if (label === "Send it now") { clearNeed(n.chat, n.unsent); ship(`Press Enter in ${n.chat}`, [{ action: "key", target: n.chat, key: "enter" }], null, "n:" + n.chat, { no: "It was typed into the chat, so it cannot be taken back. Tell the chat in words if you need to." }); return true; }
   if (label === "Send to the chat") { const v = (U.draft["n:" + n.chat] || "").trim(); if (!v) { const ta = hostN.querySelector("[data-nreply]"); ta && ta.focus(); return true; } sendAnswer(n, v); return true; }
   return false;
 }
 function setData(d) {
   if (!d || !d.tasks) return;
+  if (D && D.changed && d.changed && d.changed < D.changed) return;   // sync round: an older copy (a slow answer) never undoes a newer one
   D = d; NEEDS = D.needs || [];
   reconcile(); draw(); if (window.__ex44 && window.__ex44.draw) setTimeout(() => window.__ex44.draw(), 0);
 }
@@ -2079,24 +2140,33 @@ function reqFor(tid, text) {   // the home's own Needs you rows: the first butto
   if (opt && text.startsWith(opt + ":")) return [{ action: "answer", target: n.chat, text: opt, task: n.task || "" }];
   return [{ action: "answered", target: n.chat }];
 }
-function toast(t) { U.toast = t; draw(); clearTimeout(toast.h); toast.h = setTimeout(() => { U.toast = ""; draw(); }, 3600); }
+function toast(t, undoId) { U.toast = t; U.toastUndo = undoId || ""; draw(); clearTimeout(toast.h); toast.h = setTimeout(() => { U.toast = ""; U.toastUndo = ""; draw(); }, undoId ? 8000 : 3600); }
 function openCard(id) { U.open = id; U.tab = "overview"; draw(); }
 function goHome(view, sel) { const app = window.__ex44; if (!app) return; const known = sel && (app.comp._order || []).includes(sel);   // an opened card stays open for when Ali comes back
   U.nopen = null; drawNeeds(); app.comp.setState(known ? { view, sel } : { view }); if (sel && !known) setTimeout(() => toast(LIVEM() ? `"${sel}" is not among the open chats right now.` : `This copy of the home is from 20 Nov and does not know "${sel}" yet. On the real home this opens the chat.`), 50); }
 
-function moveCard(id, col, beforeId) {
+// where a card is in the feed (a class card's place is its task's state, sync round)
+const feedCol = (id) => { const t = dTask(id); if (t) return t.col; const k = (D.classes || []).find((x) => x.id === id); return k ? k.col : null; };
+function moveCard(id, col, beforeId, why) {
   const all = cards(); const list = colCards(col, all).filter((c) => c.id !== id);
   const me0 = all.find((c) => c.id === id);
-  if (me0 && me0.kind === "task" && LIVEM()) {   // live: only this card's place is kept until EX-44 shows it
+  const tid = me0 ? (me0.kind === "task" ? id : me0.kind === "class" ? me0.c.task : "") : "";
+  if (me0 && tid && LIVEM()) {   // live: only this card's place is kept until EX-44 shows it (one card, one meaning: it moves the task only)
     const bi = beforeId ? list.findIndex((c) => c.id === beforeId) : -1;
     const order = bi >= 0 ? list[bi].order - 0.5 : (list.length ? list[list.length - 1].order + 1 : 1);
-    const same = me0.col === col;
-    S.pos[id] = { col, order }; save(); draw();
-    ship(same ? `Reorder "${shownTitle(me0)}" in ${CNAME[col]}` : `Move "${shownTitle(me0)}" to ${CNAME[col]}`,
-      [{ action: "task", op: same ? "order" : "move", task: id, state: col, before: beforeId || "", target: id }],
-      { key: "pos:" + id, test: () => { const t = dTask(id); return t && t.col === col; }, clear: () => { delete S.pos[id]; } });
+    const same = me0.col === col, from = me0.col, fromOrder = me0.order;
+    const old = colCards(from, all), oi = old.findIndex((c) => c.id === id), oldNext = oi >= 0 && old[oi + 1] ? old[oi + 1].id : "";
+    const oldNextT = oldNext && (all.find((c) => c.id === oldNext) || {}).kind === "task" ? oldNext : "";
+    S.pos[id] = { col, order }; FRESH[id] = Date.now(); save(); draw();
+    const pendAt = (c2, o2) => ({ key: "pos:" + id, test: () => feedCol(id) === c2, clear: () => { delete S.pos[id]; } });
+    ship((why || "") + (same ? `Reorder "${shownTitle(me0)}" in ${CNAME[col]}` : `Move "${shownTitle(me0)}" to ${CNAME[col]}`),
+      [{ action: "task", op: same ? "order" : "move", task: tid, state: col, before: beforeId && dTask(beforeId) ? beforeId : "", target: tid }],
+      pendAt(col), id,
+      { reqs: [{ action: "task", op: same ? "order" : "move", task: tid, state: from, before: oldNextT, target: tid }],
+        local: () => { S.pos[id] = { col: from, order: fromOrder }; }, pend: () => pendAt(from) });
     return;
   }
+  if (me0 && me0.kind === "class" && LIVEM()) { toast("This class has no task on EX-44 yet, so its card follows its kit. Open it to work on the kit."); return; }
   let idx = beforeId ? list.findIndex((c) => c.id === beforeId) : list.length; if (idx < 0) idx = list.length;
   const me = all.find((c) => c.id === id); if (!me) return;
   list.splice(idx, 0, me);
@@ -2112,8 +2182,11 @@ function saveForm() {
     if (p) p.levels = o.levels; else if (f.isNew || o.levels.length) S.pnew.push({ name, levels: o.levels });
     S.ptree[name] = o.parent || "";
     // QA pass (25 Nov): a project is kept on EX-44 too, so it shows on every device (it lived in this browser only)
+    const oldPar = (D.tree || {})[name] || "", oldLv = ((D.plevel || {})[name] || []).slice();
     if (LIVEM()) ship(`${f.isNew ? "New project" : "Save project"} "${name}"`, [{ action: "task", op: "project", project: name, value: o.parent || "", level: o.levels, target: "new" }],
-      { key: "proj:" + name, test: () => (D.projects || []).includes(name) && ((D.tree || {})[name] || "") === (o.parent || ""), clear: () => {} }, "proj:" + name);
+      { key: "proj:" + name, test: () => (D.projects || []).includes(name) && ((D.tree || {})[name] || "") === (o.parent || ""), clear: () => {} }, "proj:" + name,
+      { reqs: f.isNew ? [{ action: "task", op: "unproject", project: name, target: "new" }] : [{ action: "task", op: "project", project: name, value: oldPar, level: oldLv, target: "new" }],
+        local: () => { if (f.isNew) { S.pnew = S.pnew.filter((x) => x.name !== name); delete S.ptree[name]; } else S.ptree[name] = oldPar; } });
     save(); U.form = null; draw(); toast(f.isNew ? `Project "${name}" made.` : "Saved."); return;
   }
   let project = o.project;
@@ -2127,8 +2200,18 @@ function saveForm() {
       const rq = [T("title", o.title.trim()), T("level", o.levels), T("project", project || ""), T("class", o.klass || ""), T("scope", o.scope || ""),
         { action: "task", op: "due", task: f.id, due: o.due || "none", target: f.id }].concat(c.col !== o.col ? [{ action: "task", op: "move", task: f.id, state: o.col, target: f.id }] : []);
       if (c.col !== o.col) S.pos[f.id] = { col: o.col, order: 999 };
+      const t0 = c.t || {}, oldCol = c.col;
+      // Undo sends back only what this save changed (a field left as it was is not touched)
+      const same = (a, b) => JSON.stringify(a == null ? "" : a) === JSON.stringify(b == null ? "" : b);
+      const oldLv = (t0.levels && t0.levels.length ? t0.levels : ["G"]).slice();
+      const back = [].concat(!same(o.title.trim(), t0.title || c.title) ? [T("title", t0.raw || t0.title || c.title)] : [],
+        !same((o.levels || []).slice().sort(), oldLv.slice().sort()) && (t0.levels || []).length ? [T("level", t0.levels.slice())] : [],
+        !same(project || "", t0.project || "") ? [T("project", t0.project || "")] : [], !same(o.klass || "", t0.klass || "") ? [T("class", t0.klass || "")] : [],
+        !same(o.scope || "", t0.next || "") ? [T("scope", t0.scope_raw || "")] : [], !same(o.due || "", t0.due || "") ? [{ action: "task", op: "due", task: f.id, due: t0.due || "none", target: f.id }] : [],
+        c.col !== o.col ? [{ action: "task", op: "move", task: f.id, state: oldCol, target: f.id }] : []);
       ship(`Save the card "${o.title.trim()}"`, rq, { key: "edit:" + f.id, test: () => { const t = dTask(f.id); return t && t.title === o.title.trim().replace(/\s*\((?:PC|SC|PC & SC|P & S)\)/, "") && (t.due || "") === (o.due || "") && (c.col === o.col || t.col === o.col); },
-        clear: () => { delete S.edits[f.id]; delete S.pos[f.id]; } });
+        clear: () => { delete S.edits[f.id]; delete S.pos[f.id]; } }, f.id,
+        { reqs: back, pend: () => ({ key: "edit:" + f.id, test: () => { const t = dTask(f.id); return t && (t.due || "") === (t0.due || "") && t.col === oldCol; }, clear: () => {} }) });
       draw(); toast("Saved here; sent to EX-44."); return;
     }
     if (c && c.col !== o.col) moveCard(f.id, o.col, null); else draw();
@@ -2141,12 +2224,15 @@ function saveForm() {
     const scope = (o.scope || "") + (steps0.length ? (o.scope ? "\n" : "") + "First steps:\n" + steps0.map((x, i) => (i + 1) + ". " + x).join("\n") : "");
     const title = o.title.trim();
     const pnew = S.pnew.find((x) => x.name === project && !(D.projects || []).includes(project));   // a project typed in the task form
+    const newUndo = { reqs: (reason) => { const m = /added (\S+)/.exec(reason || ""), t = m ? { id: m[1] } : (D.tasks || []).find((x) => x.title === title);
+        return (t ? [{ action: "task", op: "shelve", task: t.id, target: t.id }] : []).concat(pnew ? [{ action: "task", op: "unproject", project, target: "new" }] : []); },
+      local: (reason) => { const m = /added (\S+)/.exec(reason || ""); if (m) S.removed[m[1]] = 1; } };
     ship(`New task "${title}"`, (pnew ? [{ action: "task", op: "project", project, value: "", level: pnew.levels || [], target: "new" }] : []).concat([{ action: "task", op: "add", title, state: o.col, level: o.levels, project: project || "", class: o.klass || "", scope, due: o.due || "", target: "new" }]),
       { key: "add:" + id, test: () => (D.tasks || []).some((t) => t.title === title), clear: () => { S.added = S.added.filter((x) => x.id !== id); delete S.pos[id];
         // QA pass: the card EX-44 made takes over from this browser's copy: its steps, the open drawer, and it stays in view
         const t = (D.tasks || []).find((x) => x.title === title); if (!t) return;
         if (S.steps[id] && !S.steps[t.id]) S.steps[t.id] = S.steps[id]; delete S.steps[id];
-        FRESH[t.id] = Date.now(); if (U.open === id) U.open = t.id; if (STAT[id]) { STAT[t.id] = STAT[id]; delete STAT[id]; } } }, id);
+        FRESH[t.id] = Date.now(); if (U.open === id) U.open = t.id; if (STAT[id]) { STAT[t.id] = STAT[id]; delete STAT[id]; } if (UNDO[id]) { UNDO[t.id] = UNDO[id]; delete UNDO[id]; } } }, id, newUndo);
   }
   S.pos[id] = { col: o.col, order: 999 };
   const steps = (o.steps || "").split("\n").map((x) => x.trim()).filter(Boolean); if (steps.length) S.steps[id] = steps.map((t) => ({ t, d: false }));
@@ -2162,6 +2248,10 @@ function wire(h) {
     const f = t.closest("[data-level]"); if (f) { U.level = f.dataset.level; draw(); return; }
     const v = t.closest("[data-view]"); if (v) { U.view = v.dataset.view; draw(); return; }
     const tb = t.closest("[data-tab]"); if (tb) { U.tab = tb.dataset.tab; draw(); if (U.tab === "comments") { const ta = host.querySelector("[data-comment]"); if (ta) ta.focus(); } return; }
+    const un = t.closest("[data-undo]"); if (un) { runUndo(un.dataset.undo); return; }
+    const au = t.closest("[data-autoundo]"); if (au) { const c0 = cards().find((x) => x.id === au.dataset.autoundo), a0 = c0 && (c0.t ? c0.t.auto : c0.c ? c0.c.auto : null);
+      if (c0 && a0) moveCard(c0.id, a0.from, null, "Undo the move by its chat: "); return; }
+    const fo = t.closest("[data-follow]"); if (fo) { const id0 = U.follow; U.follow = null; if (fo.dataset.follow === "yes" && id0) moveCard(id0, "done", null); else draw(); return; }
     const ca = t.closest("[data-canswer]"); if (ca) { const nd2 = needOf(cards().find((x) => x.id === U.open)); if (nd2 && LIVEM()) { sendAnswer(nd2, ca.dataset.canswer.replace(/ \(its pick\)$/, "")); return; } if (nd2) { clearNeed(nd2.chat, ca.dataset.canswer); toast(`Answer "${ca.dataset.canswer}" kept and cleared from Needs you. On the real home it goes to the chat as a ready reply.`); } return; }
     const sc = t.closest("[data-setcol]"); if (sc) { const kk = host.querySelector(".ccsknob"); if (kk) U.slideFrom = { id: U.open, pos: +kk.getAttribute("aria-valuenow") }; moveCard(U.open, sc.dataset.setcol, null); return; }
     const op = t.closest("[data-open]"); if (op) { openCard(op.dataset.open); return; }
@@ -2191,7 +2281,8 @@ function wire(h) {
       if (k === "pnew") { U.form = { mode: "project", isNew: true }; draw(); const ti = host.querySelector('.ccform [data-f="name"]'); if (ti) ti.focus(); return; }
       if (k === "edit") { U.form = { mode: "task", id: U.open }; draw(); return; }
       if (k === "hide") { if (confirm(LIVEM() ? "Take this card off the board? EX-44 keeps it in the task list, under shelved." : "Take this card off the board here? The task list keeps it.")) { const id = U.open, c0 = cards().find((x) => x.id === id); S.removed[id] = 1; U.open = null; save(); draw();
-        if (c0 && c0.kind === "task") ship(`Take "${shownTitle(c0)}" off the board`, [{ action: "task", op: "shelve", task: id, target: id }], { key: "hide:" + id, test: () => !dTask(id), clear: () => { delete S.removed[id]; } }); } return; }
+        if (c0 && c0.kind === "task") ship(`Take "${shownTitle(c0)}" off the board`, [{ action: "task", op: "shelve", task: id, target: id }], { key: "hide:" + id, test: () => !dTask(id), clear: () => { delete S.removed[id]; } }, id,
+          { reqs: [{ action: "task", op: "unshelve", task: id, target: id }], local: () => { delete S.removed[id]; }, pend: () => ({ key: "unhide:" + id, test: () => !!dTask(id), clear: () => {} }) }); } return; }
       if (k === "allplanned") { U.allPlanned = !U.allPlanned; draw(); return; }
       if (k === "more") { U.more = !U.more; draw(); return; }
       if (k === "lanes") { U.lanes = !U.lanes; U.more = false; draw(); return; }
@@ -2202,18 +2293,21 @@ function wire(h) {
       if (k === "late") { const i = host.querySelector("[data-late]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.late[U.open] = S.late[U.open] || []).push({ text: v2, at: nowStamp() }); i.value = ""; i._typed = false; save(); draw();
         const cc0 = cards().find((x) => x.id === U.open), oid = U.open;
         if (cc0 && cc0.kind === "class" && ship(`Add to the ${cc0.c.code} kit: ${v2}`, [{ action: "kit-add", class: cc0.c.key, date: cc0.c.iso, text: v2, target: cc0.c.key }],
-          { key: "late:" + oid + ":" + v2, test: () => { const k = ((D.classes || []).find((x) => x.id === oid) || {}).kit; return k && k.said.includes(v2); }, clear: () => { S.late[oid] = (S.late[oid] || []).filter((x) => x.text !== v2); } })) { toast("Sent: EX-44 turns it into files and sends the kit to la57."); return; }
+          { key: "late:" + oid + ":" + v2, test: () => { const k = ((D.classes || []).find((x) => x.id === oid) || {}).kit; return k && k.said.includes(v2); }, clear: () => { S.late[oid] = (S.late[oid] || []).filter((x) => x.text !== v2); } }, oid,
+          { no: "The kit went to la57 with it; taking files off la57 needs your GO. Add a late ask that says what to drop." })) { return; }
         toast("Added to this class's list. Turning it into files runs on the real home."); return; }
       if (k === "linkchat") { const sl = host.querySelector("[data-linkchat]"), nm = sl && sl.value, c0 = cards().find((x) => x.id === U.open);
         if (!nm) { sl && sl.focus(); toast("Pick a chat first."); return; }
         if (c0 && c0.kind === "task") { const id = c0.id; ship(`Link ${nm} to "${shownTitle(c0)}"`, [{ action: "task", op: "link", task: id, chat: nm, target: id }],
-          { key: "link:" + id + ":" + nm, test: () => { const t2 = dTask(id); return !!(t2 && t2.chats.includes(nm)); }, clear: () => {} }); draw(); }
+          { key: "link:" + id + ":" + nm, test: () => { const t2 = dTask(id); return !!(t2 && t2.chats.includes(nm)); }, clear: () => {} }, id,
+          { reqs: [{ action: "task", op: "unlink", task: id, chat: nm, target: id }] }); draw(); }
         return; }
       if (k === "step") { const i = host.querySelector("[data-newstep]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.steps[U.open] = S.steps[U.open] || []).push({ t: v2, d: false }); i.value = ""; i._typed = false; save(); draw(); const n2 = host.querySelector("[data-newstep]"); if (n2) n2.focus(); return; }
       if (k === "post") { const ta = host.querySelector("[data-comment]"); const v2 = ta && ta.value.trim(); if (!v2) { ta && ta.focus(); return; } (S.comments[U.open] = S.comments[U.open] || []).push({ text: ta.value, at: nowStamp() }); U.draft[U.open] = ""; save(); draw();
         const oid = U.open, txt = ta.value, cc0 = cards().find((x) => x.id === oid);
         if (cc0 && cc0.kind === "task" && ship(`Comment on "${shownTitle(cc0)}"`, [{ action: "task", op: "note", task: oid, text: txt, target: oid }],
-          { key: "com:" + oid + ":" + Date.now(), test: () => { const t = dTask(oid); return t && t.comments.some((m) => m.text === txt); }, clear: () => { S.comments[oid] = (S.comments[oid] || []).filter((m) => m.text !== txt); } })) { toast("Comment kept word for word and sent to EX-44."); return; }
+          { key: "com:" + oid + ":" + Date.now(), test: () => { const t = dTask(oid); return t && t.comments.some((m) => m.text === txt); }, clear: () => { S.comments[oid] = (S.comments[oid] || []).filter((m) => m.text !== txt); } }, oid,
+          { reqs: [{ action: "task", op: "unnote", task: oid, text: txt, target: oid }], local: () => { S.comments[oid] = (S.comments[oid] || []).filter((m) => m.text !== txt); } })) { return; }
         toast("Comment kept, word for word."); return; }
     }
     const card = t.closest("[data-card]"); if (card && !t.closest("button,input,select,textarea,label")) openCard(card.dataset.card);
@@ -2321,7 +2415,7 @@ window.EX44CC = { marks: false, nav, mount(h) { if (host === h) return; host = h
   needChips: () => { const o = NEEDS.filter((n) => !isCleared(n)); const c = o.filter((n) => n.task).length, u = o.filter((n) => n.unsent).length, f = o.length - c;
     return [["you", "On a card", c, "layers"], ["park", "Not on the board", f, ""]].concat(u ? [["you", "Typed, not sent", u, "clock"]] : []); },
   mountNeeds(h) { if (hostN === h) return; hostN = h; wireNeeds(h); drawNeeds(); }, redraw: draw, ui: (o) => { Object.assign(U, o || {}); draw(); }, _state: () => S,
-  setData, reqFor, pending: PEND, _lp: () => LP, _data: () => D };
+  setData, reqFor, pending: PEND, _lp: () => LP, _data: () => D, _marks: { STAT, UNDO, FRESH } };   // _marks: the canvas capture sets a state to draw it
 })();
 
 </script>
@@ -4248,9 +4342,16 @@ async function put(q){
     const e = new Error("GitHub said " + r.status); e.status = r.status; throw e;
   }
 }
+// sync round: the answer is looked for every 0.5 s with a conditional read; an unchanged log answers 304, which is free
+const LOGC = { tag: "", data: [] };
 async function readLog(){
-  const r = await fetch(notesUrl("requests/log.json") + "?t=" + Date.now(), { cache: "no-store", headers: { Authorization: "Bearer " + getKey(), Accept: "application/vnd.github.raw+json" } });
-  return r.ok ? r.json() : [];
+  const h = { Authorization: "Bearer " + getKey(), Accept: "application/vnd.github.raw+json" };
+  if (LOGC.tag) h["If-None-Match"] = LOGC.tag;
+  const r = await fetch(notesUrl("requests/log.json"), { cache: "no-store", headers: h });
+  if (r.status === 304) return LOGC.data;
+  if (!r.ok) return [];
+  const d = await r.json(); LOGC.tag = r.headers.get("ETag") || ""; LOGC.data = d;
+  return d;
 }
 let seq = 0;
 const FAST = { until: 0 };
@@ -4263,12 +4364,12 @@ async function file(reqs){
   const end = Date.now() + 180000;
   FAST.until = Date.now() + 60000;   // P8.7: for a minute after a press, the beat is asked every second (unchanged answers are free)
   while (Date.now() < end) {
-    await new Promise(x => setTimeout(x, 1500));   // P8.7: EX-44 reads requests every 3 s; its answer is looked for every 1.5 s
+    await new Promise(x => setTimeout(x, 500));   // sync round: EX-44 stays awake after a press and answers in 2 to 3 s; looked for every 0.5 s
     let log = []; try { log = await readLog(); } catch (e) {}
     const got = ids.map(id => log.find(l => l.id === id)).filter(Boolean);
     if (got.length === ids.length) {
       const bad = got.find(g => g.status !== "done");
-      load(true); setTimeout(() => load(true), 4000);   // show the change at once, and again when the loop has pushed it
+      load(true); setTimeout(() => load(true), 1500); setTimeout(() => load(true), 4000);   // show the change at once, and again when the loop has pushed it
       return bad ? { status: bad.status, reason: bad.reason || "" } : { status: "done", reason: got.length > 1 ? got.length + " done" : (got[0].reason || "") };
     }
   }
@@ -4366,7 +4467,7 @@ class Component extends DCLogic {
       if (rq.local) { if (apply) apply(); mark("done", "on this page only"); return; }
       mark("working");
       const res = await LX.file(rq);
-      if (res.status === "done") { if (apply) apply(); mark("done"); }
+      if (res.status === "done") { if (apply) apply(res.reason || ""); mark("done"); }   // sync round: EX-44's answer goes to the card (its Undo needs it)
       else if (res.status === "waiting") mark("waiting", res.reason);
       else { mark("failed", res.status + (res.reason ? ": " + res.reason : "")); this.flash("Not done: " + (res.reason || res.status)); if (fail) fail(res.reason || res.status);
         if (tid) { const s2 = Object.assign({}, this.state.sent); delete s2[tid]; this.setState({ sent: s2 }); } }
