@@ -1789,7 +1789,7 @@ function drawerHtml(c, marks) {
     if (t && t.facts.length) body += `<section class="dsec"><span class="lab">Facts</span><dl class="dfacts">${t.facts.map((f) => `<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join("")}</dl></section>`;
     if (t && t.chats.length) body += `<section class="dsec"><span class="lab">Its chats</span><div class="ccrow">${t.chats.map((nm2) => { const k2 = D.chats[nm2] || { k: "park", w: "linked", since: "now" }; return `<button type="button" class="btn" data-chat="${esc(nm2)}"><span class="dot" style="background:${DOT[k2.k]};width:8px;height:8px"></span>${esc(nm2)}</button><span class="lab">${esc(k2.w)} since ${esc(k2.since)}</span>`; }).join("")}${tm(6)}</div></section>`;
     if (c.kind === "task" && LIVEM()) body += linkBlock(c);
-    if (t && t.brief.length) body += `<details class="ccbrief"><summary class="lab">The full brief its chat was given</summary><div class="cccm soft"><p>${esc(t.brief[0].text)}</p><span class="lab num">${esc(t.brief[0].at)}</span></div></details>`;
+    if (t && t.brief.length) body += `<details class="ccbrief"${U.briefOpen === c.id ? " open" : ""}><summary class="lab">The full brief its chat was given</summary><div class="cccm soft"><p>${esc(t.brief[0].text)}</p><span class="lab num">${esc(t.brief[0].at)}</span></div></details>`;
     body += `<section class="dsec"><span class="lab">Same card elsewhere on EX-44 ${mk(6)}</span><div class="ccrow">${go("Needs you", "home", "home")}${go("Chats", "chat", "chats")}${go("Jobs (in Chats)", "layers", "chats")}${go("Map", "map", "map")}</div></section>`;
   } else if (c.kind === "class") {
     const k = c.c.kit;
@@ -2154,6 +2154,8 @@ function saveForm() {
 }
 
 function wire(h) {
+  // QA pass: the full brief stays as Ali left it (it folded shut by itself on each data beat)
+  h.addEventListener("toggle", (e) => { if (e.target.matches && e.target.matches(".ccbrief")) U.briefOpen = e.target.open ? U.open : null; }, true);
   h.addEventListener("click", (e) => {
     const t = e.target;
     if (U.more && !t.closest(".ccmore")) { U.more = false; draw(); }
