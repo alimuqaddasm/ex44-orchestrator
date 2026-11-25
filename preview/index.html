@@ -887,148 +887,6 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .cctren{font:600 20px/1.25 var(--id);width:100%;box-sizing:border-box}
 .ex .ccmapv .cclayer>.ccsubh .num{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 7px;margin:0 6px 0 4px;border-radius:10px;background:var(--g0);border:1px solid var(--g3);font:600 11.5px/1 var(--m);color:var(--ink2)}
 
-/* Lesson status panel (25 Nov 2026), top of the mentor view. Home tokens only, plus one teal for "revised / made from" */
-.ex-light .lsp{--lsM:oklch(52% 0.09 190 / .28);--lsT:oklch(52% 0.09 190);--lsTd:oklch(60% 0.09 190 / .13);--lsF:oklch(52% 0.09 190);--lsH:oklch(52% 0.09 190 / .45);--lsE:var(--g3)}
-.ex-dark .lsp{--lsM:oklch(74% 0.09 190 / .3);--lsT:oklch(80% 0.09 190);--lsTd:oklch(80% 0.09 190 / .14);--lsF:oklch(74% 0.09 190);--lsH:oklch(74% 0.09 190 / .4);--lsE:var(--g3)}
-.ex .lsp{display:flex;flex-direction:column;gap:14px;padding:18px;overflow:visible}
-.ex .lshead h2{margin:0;font:600 20px/1.15 var(--id);letter-spacing:-.015em}
-.ex .lsq{margin:0;color:var(--ink3);font-size:12.5px;line-height:1.4}
-.ex .lshead .lsq{margin-top:4px;font-size:13px;color:var(--ink2)}
-.ex .lsts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
-.ex .lsp.ph .lsts{grid-template-columns:minmax(0,1fr)}
-.ex .lst{box-sizing:border-box;display:flex;flex-direction:column;gap:6px;padding:12px 12px 10px;border-radius:10px;background:var(--g1);border:1px solid var(--line);min-width:0;transition:border-color .12s,background .12s}
-.ex .lst:hover{border-color:var(--line2);background:var(--g2)}
-.ex .lst:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-.ex .lst.on{border-color:var(--lsT);box-shadow:inset 0 0 0 1px var(--lsT);background:var(--g0)}
-.ex .lsth{display:flex;align-items:center;gap:6px;justify-content:space-between;margin-bottom:2px}
-.ex .lsth b{font:600 15px/1.2 var(--id);letter-spacing:-.01em;color:var(--ink)}
-.ex .lswarn{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border-radius:6px;background:var(--amber-d);color:var(--amber);font:500 11px/1 var(--f);white-space:nowrap}
-.ex .lsrow{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:4px}
-.ex .lsl{font-size:12.5px;color:var(--ink2);line-height:1.3}
-.ex .lsn{font:600 20px/1 var(--m);color:var(--ink);white-space:nowrap}
-.ex .lsn em{font:500 11.5px/1 var(--m);font-style:normal;color:var(--ink3);margin-left:4px}
-.ex .lsseg{display:flex;gap:2px;height:8px;width:100%}
-.ex .lsseg i{display:block;min-width:3px;border-radius:2px;background:var(--lsE)}
-.ex .lsseg i.f{background:var(--lsF)}
-.ex .lsseg i.h{background:var(--lsH)}
-.ex .lsseg i.r{background:var(--amber)}
-.ex .lsseg i.e{background:var(--lsH)}
-.ex .lsids{display:flex;flex-wrap:wrap;gap:4px;min-height:20px}
-.ex .lsopen{all:unset;box-sizing:border-box;cursor:pointer;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;margin-top:auto;padding-top:6px;font:500 12px/1 var(--f);color:var(--ink3)}
-.ex .lst.on .lsopen{color:var(--lsT)}
-.ex .lst:not(.on) .lsopen svg{transform:rotate(-90deg)}
-/* the opened subject */
-.ex .lsd{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:10px;background:var(--g1);border:1px solid var(--line)}
-.ex .lsdh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.ex .lsdh h3{margin:0;font:600 17px/1.2 var(--id)}
-.ex .lsgcs{display:flex;flex-wrap:wrap;gap:6px}
-.ex .lsgc{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:7px;background:var(--g0);border:1px solid var(--line2);font:500 12.5px/1 var(--f);color:var(--ink);cursor:pointer}
-.ex .lsgc .num{font:500 11px/1 var(--m);color:var(--ink3)}
-.ex .lsgc.empty{color:var(--ink3);border-style:dashed}
-.ex .lsgc.on{background:var(--lsTd);border-color:var(--lsT);color:var(--ink)}
-.ex .lsgc:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-.ex .lsdot{width:6px;height:6px;border-radius:50%;background:var(--lsT)}
-.ex .lslane{display:flex;flex-direction:column;gap:8px}
-.ex .lslh{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.ex .lslh .ccnum{margin-left:0}
-.ex .lsleg{margin-left:auto;display:inline-flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--ink3)}
-.ex .lsleg span{display:inline-flex;align-items:center;gap:4px}
-.ex .lsus{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px}
-.ex .lsu{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:8px;background:var(--g0);border:1px solid var(--line);min-width:0}
-.ex .lsu.fed{border-color:var(--lsT);box-shadow:inset 3px 0 0 var(--lsT)}
-.ex .lsu.ghost{border-style:dashed;background:transparent;color:var(--ink3);font-size:12px;justify-content:center}
-.ex .lsu .ccmono{align-self:flex-start}
-.ex .lspp{display:inline-flex;gap:3px}
-.ex .lspp i,.ex .lsleg i{display:inline-grid;place-items:center;min-width:18px;height:16px;padding:0 3px;border-radius:4px;font:600 9.5px/1 var(--m);font-style:normal;color:var(--ink3);box-shadow:inset 0 0 0 1px var(--line2);box-sizing:border-box}
-.ex .lspp i.on,.ex .lsleg i.on{background:var(--lsTd);color:var(--lsT);box-shadow:inset 0 0 0 1px var(--lsT)}
-.ex .lsleg i.lk-rev{background:var(--lsT);box-shadow:none;min-width:10px;width:10px;height:10px;border-radius:3px}
-.ex .lsto{display:inline-flex;align-items:center;gap:3px;font:600 11.5px/1 var(--m);color:var(--lsT)}
-.ex .lsl2{display:grid;grid-template-columns:minmax(150px,auto) 20px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;background:var(--g0);border:1px solid var(--line)}
-.ex .lsp.ph .lsl2{grid-template-columns:auto 18px minmax(0,1fr)}
-.ex .lsp.ph .lsfiles{grid-column:1 / -1}
-.ex .lsfrom{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
-.ex .lsplus{color:var(--ink3);font:500 12px/1 var(--m)}
-.ex .lsarr{color:var(--lsT);display:inline-flex}
-.ex .lsles{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px}
-.ex .lsles b{font:600 14px/1 var(--m)}
-.ex .lsfiles{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
-.ex .lstag{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:6px;font:500 11.5px/1 var(--f);white-space:nowrap}
-.ex .lt-ok{background:var(--ok-d);color:var(--ok)}.ex .lt-blue{background:var(--blue-d);color:var(--blue)}.ex .lt-park{background:var(--tn);color:var(--ink2)}
-.ex .lt-you{background:var(--amber-d);color:var(--amber)}.ex .lt-teal{background:var(--lsTd);color:var(--lsT)}
-.ex .lschk{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:8px;background:var(--amber-d)}
-.ex .lschk p{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:12.5px;color:var(--ink)}
-.ex .lschk svg{color:var(--amber);flex:none;margin-top:2px}
-.ex .lsu.lspc{gap:5px}
-.ex .lsround{display:flex}
-.ex .lsup{font-size:11.5px;line-height:1.35;color:var(--ink2)}
-.ex .lsup.revision{color:var(--ink)}
-.ex .lsnote{display:flex;flex-direction:column;gap:5px}
-.ex .lsnote .lab{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3)}
-.ex .lsnote textarea{box-sizing:border-box;width:100%;resize:vertical;min-height:44px;padding:8px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--g0);color:var(--ink);font:400 13.5px/1.45 var(--f)}
-.ex .lsnote textarea:focus{outline:2px solid var(--amber);outline-offset:1px}
-.ex .lsp.ph{padding:14px 12px}.ex .lsp.ph .lsd{padding:10px}.ex .lsp.ph .lsus{grid-template-columns:repeat(2,minmax(0,1fr))}
-
-/* round 1 tweaks (Ali's comments, 25 Nov): split by part or Bab, folds, minor revision; teal only as line, text and soft tint, never a solid chip */
-.ex .lsseg i.m{background:var(--lsM)}
-.ex .lsbg{margin:0;display:flex;flex-wrap:wrap;gap:3px 9px;font:500 11.5px/1.35 var(--m);color:var(--ink2)}
-.ex .lsbg b{font-weight:600;color:var(--ink)}
-.ex .lsbg .dim,.ex .lsbg .dim b{color:var(--ink3);font-weight:500}
-.ex .lsbg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--lsF)}
-.ex .lsbg i.m{background:var(--lsM)}
-.ex .lsn.sm{font-size:15px}
-.ex .lslg{display:flex;flex-direction:column;gap:4px}
-.ex .lsgl{display:inline-flex;align-items:center;gap:4px;font:600 12px/1 var(--f);color:var(--ink)}
-.ex .lsfold{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:4px;align-self:flex-start;height:22px;padding:0 7px;border-radius:6px;border:1px solid var(--line2);background:var(--g0);font:500 11.5px/1 var(--f);color:var(--ink2);cursor:pointer}
-.ex .lsfold svg{transform:rotate(-90deg)}.ex .lsfold.on svg{transform:none}
-.ex .lsfold:focus-visible,.ex .lsopen:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
-.ex .lsu.wr{border-style:dashed}
-.ex .lt-tealm{background:transparent;color:var(--lsT);box-shadow:inset 0 0 0 1px var(--lsM)}
-
-/* the card as a ladder of layers; steps line up across the cards (shared rows) */
-.ex .lst{gap:8px}
-.ex .lsp.ph .lsts{grid-template-rows:none;row-gap:10px}
-.ex .lsp.ph .lst{grid-row:auto;grid-template-rows:none}
-.ex .lsth{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;padding-bottom:10px}
-.ex .lsth .lsnm{display:flex;flex-direction:column;gap:2px;min-width:0}
-.ex .lsth .lswarn{flex:none}
-.ex .lsids{margin:0}
-.ex .lst .lslg{gap:6px}
-.ex .lsly{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;padding-bottom:12px;align-content:start}
-.ex .lsly::before{content:"";position:absolute;left:11.5px;top:22px;bottom:0;width:1px;background:var(--lsH)}
-.ex .lsly.last::before{display:none}
-.ex .lsnode{display:inline-grid;place-items:center;width:24px;height:20px;border-radius:5px;font:600 9.5px/1 var(--m);color:var(--lsT);box-shadow:inset 0 0 0 1px var(--lsT);background:var(--g0)}
-.ex .lsbody{display:flex;flex-direction:column;gap:5px;min-width:0}
-.ex .lsbody .lsrow{margin-top:1px}
-.ex .lst .lsopen{padding-top:4px;align-self:end}
-
-/* ladder by Bab */
-.ex .lstot{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
-.ex .lsmi{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}
-.ex .lsmi i{font:600 9.5px/1 var(--m);font-style:normal;color:var(--lsT);padding:3px 4px;border-radius:4px;box-shadow:inset 0 0 0 1px var(--lsH)}
-.ex .lsmi b{font:600 13px/1 var(--m);color:var(--ink)}
-.ex .lsmi em{font:500 10.5px/1 var(--m);font-style:normal;color:var(--ink3)}
-.ex .lstot .lsmi b{font-size:16px}
-.ex .lslad{display:flex;flex-direction:column}
-.ex .lslad .lsly{padding-bottom:10px}
-.ex .lslad .lsly:last-child::before{display:none}
-.ex .lsms{display:inline-flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
-.ex .lslad .lsrow{align-items:center;flex-wrap:wrap}
-.ex .lslad .lsl{font-weight:600;color:var(--ink)}
-.ex .lsly.rest .lsnode{box-shadow:none;outline:1px dashed var(--line2);outline-offset:-1px;color:var(--ink3)}
-.ex .lsly.rest .lsl{font-weight:500;color:var(--ink2)}
-.ex .lsly.wr .lsnode{box-shadow:none;outline:1px dashed var(--lsT);outline-offset:-1px}
-.ex .lsbg i.h{background:var(--lsH)}
-.ex .lst .lsopen{align-self:flex-start}
-.ex .lsmi i{margin-left:1px}
-
-/* unit blocks: even rounded squares, soft fill, quiet empty outline */
-.ex .lsdots{display:flex;flex-wrap:wrap;gap:3px;max-width:100%}
-.ex .lsdots i{flex:none;width:9px;height:9px;border-radius:2.5px;box-shadow:inset 0 0 0 1px var(--line2);background:transparent}
-.ex .lsdots i.f{background:var(--lsF);box-shadow:none;opacity:.85}
-.ex .lsdots i.h{background:var(--lsH);box-shadow:none}
-.ex .lsdots i.m{background:var(--lsM);box-shadow:inset 0 0 0 1px var(--lsH)}
-.ex .lsdots i.e{background:var(--lsE);box-shadow:none}
-
 
 :root{--page-bg:oklch(97.3% 0.004 250)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page-bg:oklch(17% 0.012 250);color-scheme:dark}}
@@ -1666,209 +1524,6 @@ body{background:var(--page-bg);margin:0}
 <div id="dc-root"></div>
 <script>window.__CCLIVE = true; window.__EX44MARKS = {"wk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><g transform=\"rotate(0 16 16)\"><path d=\"M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z\" fill=\"#a7c743\"/><circle cx=\"23.25\" cy=\"8.75\" r=\"6.75\" fill=\"#566f00\"/><rect x=\"2\" y=\"16.5\" width=\"13.5\" height=\"13.5\" rx=\"2.5\" fill=\"#566f00\"/><path d=\"M16.5 16.5H30.0A13.5 13.5 0 0 1 16.5 30.0Z\" fill=\"#7a9c00\"/></g></svg>", "aw": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><g transform=\"rotate(90 16 16)\"><path d=\"M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z\" fill=\"#ff964b\"/><circle cx=\"23.25\" cy=\"8.75\" r=\"6.75\" fill=\"#a24200\"/><rect x=\"2\" y=\"16.5\" width=\"13.5\" height=\"13.5\" rx=\"2.5\" fill=\"#a24200\"/><path d=\"M16.5 16.5H30.0A13.5 13.5 0 0 1 16.5 30.0Z\" fill=\"#e16000\"/></g></svg>", "amm": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><g transform=\"rotate(180 16 16)\"><path d=\"M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z\" fill=\"#fe8acf\"/><circle cx=\"23.25\" cy=\"8.75\" r=\"6.75\" fill=\"#9b3876\"/><rect x=\"2\" y=\"16.5\" width=\"13.5\" height=\"13.5\" rx=\"2.5\" fill=\"#9b3876\"/><path d=\"M16.5 16.5H30.0A13.5 13.5 0 0 1 16.5 30.0Z\" fill=\"#d852a6\"/></g></svg>", "sc21": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><g transform=\"rotate(270 16 16)\"><path d=\"M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z\" fill=\"#00d2ce\"/><circle cx=\"23.25\" cy=\"8.75\" r=\"6.75\" fill=\"#007876\"/><rect x=\"2\" y=\"16.5\" width=\"13.5\" height=\"13.5\" rx=\"2.5\" fill=\"#007876\"/><path d=\"M16.5 16.5H30.0A13.5 13.5 0 0 1 16.5 30.0Z\" fill=\"#00a9a5\"/></g></svg>"};</script>
 <script>
-/* Lesson status panel, top of the Command Centre's mentor view (Ali, 25 Nov 2026:
-   "on the top of everything, I want to see the current status of Maarif lessons in all layers ... holistic ... interactive").
-   window.EX44LS.html(data, phone) draws it from data.lessons (tools/lessonstatus.py, carried in cc.json); click a subject
-   to open its units and lessons, a Bab or part to see that group, and each lesson shows the source units it came from.
-   What Ali picks and writes is kept in this browser (localStorage "ex44-ls-v1"). No data is baked in. */
-(function () {
-"use strict";
-if (window.EX44LS) return;
-const KEY = "ex44-ls-v1";
-let S = { s: null, g: {}, open: {}, notes: {} };
-try { const o = JSON.parse(localStorage.getItem(KEY) || "{}"); S = Object.assign(S, o); } catch (e) {}
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
-const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const fd = (d) => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(d || ""); return m ? (+m[3]) + " " + MON[+m[2] - 1] : ""; };
-const P = { check: "M5 12.5l4.5 4.5L19 7.5", arrow: "M5 12h14M13 6l6 6-6 6", flag: "M5 21V4h11l-2 4 2 4H5", note: "M6 4h9l3 3v13H6zM9 10h6M9 14h6",
-  x: "M6 6l12 12M18 6 6 18", layers: "M12 3 3 8l9 5 9-5zM3 13l9 5 9-5", merge: "M6 4v6a6 6 0 0 0 6 6h6M15 13l3 3-3 3M6 20v-4", pen: "M4 20l4-1 11-11-3-3L5 16zM14 6l3 3", chev: "m6 9 6 6 6-6" };
-const ic = (n, s) => `<svg width="${s || 14}" height="${s || 14}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${P[n]}"></path></svg>`;
-// the layers of a file, in the order the mentor folders keep them
-// Ali's order (25 Nov): Teacher Copy, Handout, Dx (the extra deck, the one used in class), CP (core points).
-// The main deck is only a step in making Dx, so it is not shown as a layer.
-const K = [["tc", "TC", "Teacher Copy"], ["handout", "H", "Handout"], ["extra", "Dx", "Class deck"], ["flowchart", "CP", "Core points"]];
-const KP = [["tc", "TC", "Teacher Copy"], ["handout", "H", "Handout"], ["deck", "D", "Deck"]];   // Persian: its PPT is the class deck
-const pips = (m, ks) => `<span class="lspp">${(ks || K).map(([k, a, w]) => `<i class="${m && m[k] ? "on lk-" + k : ""}" title="${w}${m && m[k] ? "" : ": not made"}">${a}</i>`).join("")}</span>`;
-const STATE = { taught: ["ok", "Taught"], made: ["ok", "Made"], building: ["blue", "Being made"], planned: ["park", "Planned"] };
-const tag = (k, t, i) => `<span class="lstag lt-${k}">${i ? ic(i, 11) : ""}${esc(t)}</span>`;
-const HOW = { "as is": ["Unchanged", "check"], merged: ["Merged", "merge"], rewritten: ["Rewritten", "pen"] };
-const fold = (key, label, on) => `<button class="lsfold${on ? " on" : ""}" type="button" data-ls-fold="${esc(key)}" aria-expanded="${on}">${ic("chev", 11)}${esc(label)}</button>`;
-const isOpen = (key, def) => (S.open && key in S.open ? S.open[key] : def);
-const span = (a) => (a.length > 1 ? a[0] + " to " + a[a.length - 1] : a[0] || "");
-// one even rounded square per unit or lesson, in a tidy grid (Ali: "the blocks look weird, make them look good and professional")
-const segbar = (parts, label) => `<span class="lsdots" role="img" aria-label="${esc(label)}">${parts.map((p) => `<i class="${p.c}" title="${esc(p.t || "")}"></i>`).join("")}</span>`;
-
-function groupWord(s) { return s.id === "muq" ? "part" : s.kind === "persian" ? "book" : "Bab"; }
-function byGroup(s) {
-  // the count split by part (Z, RA, T, END) or by Bab, as short mono pairs; empty groups summed into one span
-  if (s.id === "muq") {
-    const fam = {}; s.groups.forEach((g) => { const k = g.id.replace(/\d+$/, ""); fam[k] = (fam[k] || 0) + g.tc; });
-    return Object.entries(fam).map(([k, n]) => `<span><b>${esc(k)}</b> ${n}</span>`).join("");
-  }
-  const out = [], run = []; let kind = null;
-  const flush = () => { if (run.length) out.push(`<span class="dim"><b>${esc(span(run))}</b> ${kind}</span>`); run.length = 0; };
-  s.groups.forEach((g) => {
-    if (g.tc) { flush(); out.push(`<span><b>${esc(g.id)}</b> ${g.tc}</span>`); return; }
-    const k = g.written ? "written, no Word" : g.hub === false ? "no hub plan" : g.planned ? "planned" : "not started";
-    if (k !== kind) flush(); kind = k; run.push(g.id);
-  });
-  flush();
-  return out.join("");
-}
-function tileLessons(s) {
-  const regd = s.lessons.filter((l) => l.registered), by = {};
-  regd.forEach((l) => { const g = s.id === "muq" ? (s.units.find((u) => u.unit === l.from[0]) || {}).family : "B" + l.bab; (by[g] = by[g] || []).push(l); });
-  const gi = Math.max(0, s.groups.findIndex((g) => by[g.id])), first = s.groups[gi], rest = s.groups.filter((g, i) => i !== gi);
-  if (!first) return `<p class="lsq">None yet</p>`;
-  const chips = (g) => (by[g.id] || []).map((l) => `<span class="ccmono">${esc(l.id.replace(/^B\d+ /, ""))}</span>`).join("") || `<span class="lsq">none yet</span>`;
-  const fk = s.id + ":rest", fo = isOpen(fk, false);
-  const withL = rest.filter((g) => by[g.id]);
-  return `<div class="lslg"><span class="lsgl">${ic("chev", 11)}${esc(first.id)}</span><p class="lsids">${chips(first)}</p></div>
-    ${rest.length ? fold(fk, span(rest.map((g) => g.id)), fo) + (fo ? (withL.map((g) => `<div class="lslg"><span class="lsgl">${esc(g.id)}</span><p class="lsids">${chips(g)}</p></div>`).join("") || `<p class="lsq">None yet in ${esc(span(rest.map((g) => g.id)))}</p>`) : "") : ""}`;
-}
-// Ali, 25 Nov: same cards, same information, read faster, and "make step ladders based on bab segregation":
-// the card shows its totals once, then a ladder with one step per Bab (Muqaddama: per part Z, RA, T, END; Persian:
-// per book). Each step carries that Bab's own layers (TC, H, Class Lessons). Babs with nothing yet are joined into
-// one dashed step at the end ("B10 to B18, not started").
-const mini = (a, n, of) => `<span class="lsmi"><b class="num">${n}</b>${of != null ? `<em class="num">/${of}</em>` : ""}<i>${a}</i></span>`;   // number first, then its tag (Ali)
-function ladder(steps) { return `<div class="lslad">${steps.join("")}</div>`; }
-function rung(node, label, metrics, body, cls) {
-  return `<div class="lsly${cls ? " " + cls : ""}"><span class="lsnode">${esc(node)}</span><div class="lsbody"><div class="lsrow"><span class="lsl">${label}</span><span class="lsms">${metrics || ""}</span></div>${body || ""}</div></div>`;
-}
-function babSteps(s) {
-  const regd = s.lessons.filter((l) => l.registered), byL = {};
-  regd.forEach((l) => { const g = s.id === "muq" ? (s.units.find((u) => u.unit === l.from[0]) || {}).family : "B" + l.bab; (byL[g] = byL[g] || []).push(l); });
-  let groups = s.groups.map((g) => ({ id: g.id, node: g.id, label: "Bab " + g.id.slice(1), tc: g.tc, h: g.handout, planned: g.planned, written: g.written, hub: g.hub, les: byL[g.id] || [] }));
-  if (s.id === "muq") {   // parts Z, RA, T, END
-    const fam = {};
-    groups.forEach((g) => { const k = g.id.replace(/\d+$/, ""); const f = fam[k] = fam[k] || { id: k, node: k, label: k === "Z" ? "Zamina (Z1 to Z8)" : k === "T" ? "Teaching (T1 to T6)" : k === "RA" ? "RA" : "End", tc: 0, h: 0, planned: 0, written: 0, les: [] };
-      f.tc += g.tc; f.h += g.h; f.planned += g.planned; f.les = f.les.concat(g.les); });
-    groups = Object.values(fam);
-  }
-  const out = [], run = []; let kind = null;
-  const flush = () => { if (!run.length) return; const lab = run.length > 1 ? run[0] + " to " + run[run.length - 1] : run[0];
-    out.push(rung("…", `${esc(lab.replace(/B/g, "Bab "))}`, `<span class="lsq">${kind}</span>`, "", "rest")); run.length = 0; };
-  groups.forEach((g) => {
-    if (g.tc || g.written || g.les.length) {
-      flush();
-      const chips = g.les.length ? `<p class="lsids">${g.les.map((l) => `<span class="ccmono">${esc(s.id === "muq" ? l.id : "L" + l.n)}</span>`).join("")}</p>` : "";
-      const n = Math.max(g.planned, g.tc), bar = g.tc ? segbar(Array.from({ length: n }, (_, i) => ({ c: i < g.tc ? "f" : "", t: g.id })), g.id) : "";   // one block per unit, like Persian
-      const m = g.written && !g.tc ? `<span class="lsq">${g.written} written, no Word yet</span>` : mini("TC", g.tc, g.planned > g.tc ? g.planned : null) + mini("H", g.h) + mini("L", g.les.length);
-      out.push(rung(g.node, esc(g.label), m, bar + chips, g.written && !g.tc ? "wr" : ""));
-      return;
-    }
-    const k = g.hub === false ? "no hub plan" : g.planned ? "planned" : "not started";
-    if (k !== kind) flush(); kind = k; run.push(g.id);
-  });
-  flush();
-  return out;
-}
-function tile(s, on) {
-  const c = s.counts, warn = s.notes.length ? `<span class="lswarn" title="${esc(s.notes.join("; "))}">${ic("flag", 11)}${s.notes.length} to check</span>` : "";
-  let tot = "", steps = [], sub = "";
-  if (s.kind === "persian") {
-    sub = `Final lessons, ${s.groups.length} books`;
-    tot = mini("Book 1", c.book1, c.book1_planned) + mini("Revised", c.revised + c.minor);
-    const more = s.groups.slice(2).map((g) => g.id.replace("Book ", ""));
-    s.groups.slice(0, 2).forEach((g) => {
-      const ls = s.lessons.filter((l) => l.book === +g.id.replace(/\D/g, ""));
-      const rev = ls.filter((l) => l.round).length, mn = ls.filter((l) => l.minor).length;
-      steps.push(rung(g.id.replace("Book ", "B"), esc(g.id), mini("TC", ls.filter((l) => l.made.tc).length, g.planned) + mini("H", ls.filter((l) => l.made.handout).length) + mini("D", ls.filter((l) => l.made.deck).length),
-        segbar(ls.map((l) => ({ c: l.round ? "f" : l.minor ? "m" : l.made.tc && l.made.handout && l.made.deck ? "h" : "", t: l.id + (l.round ? ", revised" + (l.revised ? " " + fd(l.revised) : "") : l.minor ? ", minor revision" : "") })), g.id)
-        + (rev + mn ? fold("fa:legend:" + g.id, "Key", isOpen("fa:legend:" + g.id, false)) + (isOpen("fa:legend:" + g.id, false) ? `<p class="lsbg"><span><i class="f"></i>${rev} revised</span><span><i class="m"></i>${mn} minor</span><span><i class="h"></i>${ls.length - rev - mn} as first made</span></p>` : "") : `<p class="lsq">${g.started ? g.started + " started: " + ls.filter((l) => Object.values(l.made).some(Boolean)).map((l) => l.id).join(", ") : "Not started"}</p>`)));
-    });
-    if (more.length) steps.push(rung("…", "Books " + (more.length > 1 ? more[0] + " to " + more[more.length - 1] : more[0]), `<span class="lsq">no Final plan yet</span>`, "", "rest"));
-  } else {
-    const made = c.units - (c.written || 0);
-    sub = s.id === "muq" ? `${s.groups.length} parts, Z then T` : `${c.babs_started} of ${s.babs_total || s.groups.length} Babs started`;
-    tot = mini("TC", c.tc) + mini("H", c.handout, made) + mini("L", c.lessons);
-    steps = babSteps(s);
-  }
-  return `<div class="lst${on ? " on" : ""}"><div class="lsth"><div class="lsnm"><b>${esc(s.name)}</b><span class="lsq">${esc(sub)}</span></div>${warn}</div>
-    <div class="lstot">${tot}</div>${s.babs_note ? `<p class="lsq">${esc(s.babs_note)}</p>` : ""}${ladder(steps)}
-    <button class="lsopen" type="button" data-ls-s="${esc(s.id)}" aria-expanded="${on}">${on ? "Open below" : "See units and lessons"}${ic("chev", 12)}</button></div>`;
-}
-
-function note(id, label) {
-  return `<label class="lsnote"><span class="lab">${ic("note", 12)}${esc(label)}</span><textarea rows="2" data-ls-note="${esc(id)}" placeholder="Write a note; it saves by itself">${esc(S.notes[id] || "")}</textarea></label>`;
-}
-
-function maarifDetail(s, phone) {
-  const gw = groupWord(s), gs = s.groups;
-  let g = S.g[s.id];
-  if (!gs.some((x) => x.id === g)) g = (gs.find((x) => x.lessons) || gs.find((x) => x.tc) || gs[0] || {}).id;
-  const chips = gs.map((x) => `<button class="lsgc${x.id === g ? " on" : ""}${x.tc || x.lessons ? "" : " empty"}" type="button" data-ls-g="${esc(x.id)}" aria-pressed="${x.id === g}">${esc(x.id)}<span class="num">${x.tc}${x.planned > x.tc ? "/" + x.planned : ""}</span>${x.lessons ? `<i class="lsdot" title="${x.lessons} class lesson"></i>` : ""}</button>`).join("");
-  const us = s.units.filter((u) => u.family === g);
-  const G = gs.find((x) => x.id === g) || { planned: 0 };
-  const ls = s.lessons.filter((l) => (s.id === "muq" ? l.from.some((f) => us.some((u) => u.unit === f)) : "B" + l.bab === g));
-  const unit = (u) => `<div class="lsu${u.lesson ? " fed" : ""}"><span class="ccmono">${esc(u.unit)}</span>${u.written ? `<span class="lsq">written, no Word yet</span>` : pips(u.made)}${u.lesson ? `<span class="lsto">${ic("arrow", 11)}${esc(u.lesson)}</span>` : ""}</div>`;
-  const missing = Math.max(0, G.planned - us.length);
-  const lane1 = us.length ? `<div class="lsus">${us.map(unit).join("")}${missing ? `<div class="lsu ghost"><span>${missing} more planned, no file yet</span></div>` : ""}</div>`
-    : `<div class="sempty">${G.planned ? G.planned + " units planned in the hub; none written yet." : "Nothing written yet."}</div>`;
-  const lrow = (l) => {
-    const h = HOW[l.how] || ["Not in the register", "flag"], stt = STATE[l.state] || (l.registered ? ["park", l.state || ""] : ["you", "Not a lesson yet"]);
-    const from = l.from.length ? l.from.map((f) => `<span class="ccmono">${esc(f)}</span>`).join(`<span class="lsplus">+</span>`) : `<span class="lsq">no source written</span>`;
-    return `<div class="lsl2"><span class="lsfrom">${from}</span><span class="lsarr">${ic("arrow", 14)}</span><span class="lsles"><b class="num">${esc(l.id)}</b>${tag(!l.registered ? "you" : l.how === "as is" ? "park" : "teal", h[0], h[1])}${tag(stt[0], stt[1])}</span>
-      <span class="lsfiles">${pips(l.made)}<span class="lsq">${l.uses ? "uses " + esc(l.uses) + "'s files" : l.registered ? "its own files" : "a file named as a lesson"}</span></span></div>`;
-  };
-  const lane2 = ls.length ? ls.map(lrow).join("") : `<div class="sempty">No class lesson made from this ${gw} yet. Every unit here is taught as written until one is merged or rewritten.</div>`;
-  const checks = s.notes.length ? `<div class="lschk">${s.notes.map((n) => `<p>${ic("flag", 12)}${esc(n)}</p>`).join("")}</div>` : "";
-  return `<div class="lsgcs" role="group" aria-label="${esc(gw)}s">${chips}</div>
-    <div class="lslane"><div class="lslh"><span class="lab">Source units, ${esc(gw)} ${esc(g)}</span><span class="ccnum sm">${us.length}</span><span class="lsleg">${K.map(([k, a, w]) => `<span><i class="on">${a}</i>${w}</span>`).join("")}</span></div>${lane1}</div>
-    <div class="lslane"><div class="lslh"><span class="lab">Class Lessons from them</span><span class="ccnum sm">${ls.length}</span></div>${lane2}</div>
-    ${checks}${note(s.id + ":" + g, "Your note on " + s.name + " " + g)}`;
-}
-
-function persianDetail(s) {
-  let g = S.g[s.id];
-  if (!s.groups.some((x) => x.id === g)) g = (s.groups[0] || {}).id;
-  const chips = s.groups.map((x) => `<button class="lsgc${x.id === g ? " on" : ""}" type="button" data-ls-g="${esc(x.id)}" aria-pressed="${x.id === g}">${esc(x.id)}<span class="num">${x.made}/${x.planned}</span>${x.revised ? `<i class="lsdot" title="${x.revised} revised"></i>` : ""}</button>`).join("");
-  const book = +String(g).replace(/\D/g, "");
-  const ls = s.lessons.filter((l) => l.book === book);
-  const cell = (l) => {
-    const any = Object.values(l.made).some(Boolean);
-    const ups = l.updates.map((u) => `<span class="lsup ${u.kind}">${u.date ? (u.kind === "revision" ? "Revised" : "Added") + " " + fd(u.date) + ": " + esc(u.what) : "Revised, on your word, 25 Nov"}</span>`).join("");
-    return `<div class="lsu lspc${l.round ? " fed" : ""}${any ? "" : " ghost"}"><span class="ccmono">${esc(l.id)}</span>${pips(l.made, KP)}
-      <span class="lsround">${l.round ? tag("teal", "Revised", "pen") : l.minor ? tag("tealm", "Minor revision", "pen") : any ? tag("park", "As first made") : tag("park", "Not made")}</span>${ups}</div>`;
-  };
-  return `<div class="lsgcs" role="group" aria-label="Books">${chips}</div>
-    <div class="lslane"><div class="lslh"><span class="lab">${esc(g)}, lesson by lesson</span><span class="ccnum sm">${ls.length}</span><span class="lsleg">${KP.map(([k, a, w]) => `<span><i class="on">${a}</i>${w}</span>`).join("")}</span></div>
-    <div class="lsus">${ls.map(cell).join("")}</div></div>
-    <p class="lsq">Revised: upgraded after it was first made, with a record of what changed. Minor revision: small changes, on your word. An added quiz or drill is not a revision.</p>
-    ${note(s.id + ":" + g, "Your note on Persian " + g)}`;
-}
-
-function html(L, phone) {
-  if (!L || !L.subjects || !L.subjects.length) return `<section class="panel lsp"><div class="phead"><h2>Where the lessons stand</h2></div><div class="sempty">The lesson count has not reached this page yet.</div></section>`;
-  const sel = L.subjects.find((s) => s.id === S.s);
-  const det = sel ? `<div class="lsd" data-ls-det="${esc(sel.id)}"><div class="lsdh"><h3>${esc(sel.name)}</h3><span class="lsq">${sel.kind === "persian" ? "Final lessons, by book" : "Source units and the class lessons made from them"}</span><span style="flex:1"></span>
-      <button class="btn ghost" type="button" data-ls-close>${ic("x", 13)}Close</button></div>${sel.kind === "persian" ? persianDetail(sel) : maarifDetail(sel, phone)}</div>` : "";
-  return `<section class="panel lsp${phone ? " ph" : ""}"><div class="lshead"><div><h2>Where the lessons stand</h2><p class="lsq">Every layer of each subject, counted from the lesson files and the lesson register. Press a subject to see its units and lessons.</p></div></div>
-    <div class="lsts">${L.subjects.map((s) => tile(s, sel && sel.id === s.id) + (phone && sel && sel.id === s.id ? det : "")).join("")}</div>${phone ? "" : det}${note("all", "Anything else about the lessons")}</section>`;
-}
-
-let redraw = null;
-function bind(root, again) {
-  redraw = again;
-  if (root.__lsb) return; root.__lsb = true;
-  root.addEventListener("click", (e) => {
-    const t = e.target.closest("[data-ls-s],[data-ls-g],[data-ls-close],[data-ls-fold]");
-    if (!t || !root.contains(t)) return;
-    e.stopPropagation();
-    if (t.hasAttribute("data-ls-close")) S.s = null;
-    else if (t.dataset.lsFold) { S.open = S.open || {}; S.open[t.dataset.lsFold] = t.getAttribute("aria-expanded") !== "true"; }
-    else if (t.dataset.lsS) S.s = S.s === t.dataset.lsS ? null : t.dataset.lsS;
-    else { const d = t.closest("[data-ls-det]"); if (d) S.g[d.dataset.lsDet] = t.dataset.lsG; }
-    save(); if (redraw) redraw();
-  }, true);
-  root.addEventListener("input", (e) => { const t = e.target.closest("[data-ls-note]"); if (!t) return; S.notes[t.dataset.lsNote] = t.value; save(); });
-}
-window.EX44LS = { html, bind, state: () => S, set: (o) => { Object.assign(S, o); save(); } };
-})();
-
-</script>
-<script>
 /* EX-44 Command Centre tab for the Home mock-up (the design round, round 7, 24 Nov 2026).
    Ali's round 7: one tag system (words and numbers), projects inside bigger projects, projects arranged freely,
    new tasks and projects made here with the details a card needs, every card editable, Done cards switch layout,
@@ -2072,7 +1727,7 @@ function renameTask(id, v) {
   const old = c.title;
   S.edits[id] = Object.assign({}, S.edits[id], { title: v }); save(); draw();
   if (!LIVEM() || c.kind !== "task") { toast(`Renamed to "${v}".`); return; }
-  const ses = c.session && !/\((?:MS|S)-\d{2,3}\)/.test(v) ? " (" + c.session + ")" : "";   // the weekly deck keeps its MS number
+  const ses = c.session && !/\((?:MS|S)-\d{2,3}\)/.test(v) && !v.includes(c.session) ? " (" + c.session + ")" : "";   // the weekly deck keeps its MS number, never twice
   const raw = (c.t && c.t.raw) || old;
   ship(`Rename the card "${shownTitle(c)}" to "${v}"`, [{ action: "task", op: "set", task: id, field: "title", value: v + ses, target: id }],
     { key: "tren:" + id, test: () => { const t = dTask(id); return t && t.title === v; }, clear: () => { if (S.edits[id]) delete S.edits[id].title; } }, id,
@@ -2585,9 +2240,7 @@ function mentorHtml(all) {
   const open = all.filter((c) => c.col !== "done" && !isMerged(c) && visible(c));
   const groups = {}; open.forEach((c) => { const g = c.project ? (parentOf(c.project) || c.project) : "Single tasks"; (groups[g] = groups[g] || []).push(c); });
   const order = tops().filter((g) => groups[g]).concat(groups["Single tasks"] ? ["Single tasks"] : []);
-  // lesson status panel: where every subject stands, on top of everything in the mentor view (lessons.js, data from cc.json)
-  const ls = window.EX44LS ? window.EX44LS.html(D.lessons, !!(host && host.clientWidth < 760)) : "";
-  return `<div style="display:flex;flex-direction:column;gap:16px">${ls}<div style="text-align:center;display:flex;flex-direction:column;gap:6px;padding-top:6px"><h2 style="margin:0;font:600 26px/1.1 var(--id);letter-spacing:-.02em">This week</h2><p style="margin:0;color:var(--ink2)">${open.length} open, grouped by project. Tap a row to open it together.</p></div>
+  return `<div style="display:flex;flex-direction:column;gap:16px"><div style="text-align:center;display:flex;flex-direction:column;gap:6px;padding-top:6px"><h2 style="margin:0;font:600 26px/1.1 var(--id);letter-spacing:-.02em">This week</h2><p style="margin:0;color:var(--ink2)">${open.length} open, grouped by project. Tap a row to open it together.</p></div>
     ${order.map((g) => `<section class="panel"><div class="phead"><span class="fold" style="cursor:default"><h2>${esc(g)}</h2></span><span class="ccnum">${groups[g].length}</span></div>${groups[g].map(row).join("")}</section>`).join("")}</div>`;
 }
 
@@ -2893,7 +2546,7 @@ function saveForm() {
     if (c && c.kind === "task" && LIVEM()) {
       const T = (field, value) => ({ action: "task", op: "set", task: f.id, field, value, target: f.id });
       // the weekly deck keeps its session number (MS-0nn) in its title: a rename keeps it unless Ali typed another
-      const ses = c.session && !/\((?:MS|S)-\d{2,3}\)/.test(o.title) ? " (" + c.session + ")" : "";
+      const ses = c.session && !/\((?:MS|S)-\d{2,3}\)/.test(o.title) && !o.title.includes(c.session) ? " (" + c.session + ")" : "";
       const rq = [T("title", o.title.trim() + ses), T("level", o.levels), T("project", project || ""), T("class", o.klass || ""), T("scope", o.scope || ""),
         { action: "task", op: "due", task: f.id, due: o.due || "none", target: f.id }].concat(c.col !== o.col ? [{ action: "task", op: "move", task: f.id, state: o.col, target: f.id }] : []);
       if (c.col !== o.col) S.pos[f.id] = { col: o.col, order: 999 };
@@ -3139,7 +2792,7 @@ if (window.__CCLIVE) {
   if (first && first !== "home") { navFirst = first; const tryGo = (n) => { if ((D.tasks || []).length || n > 40) { navFirst = ""; navGo(first); try { history.replaceState({ k: first }, "", location.pathname + location.search + "#" + first); } catch (e) {} } else setTimeout(() => tryGo(n + 1), 250); }; setTimeout(() => tryGo(0), 0); }
 }
 
-window.EX44CC = { marks: false, nav, mount(h) { if (host === h) return; host = h; wire(h); if (window.EX44LS) window.EX44LS.bind(h, draw); draw(); },
+window.EX44CC = { marks: false, nav, mount(h) { if (host === h) return; host = h; wire(h); draw(); },
   needCount: () => NEEDS.filter((n) => !isCleared(n)).length, needTickets, clearNeed: (chat, text) => clearNeed(chat, text), openNeed: (chat) => { U.nopen = chat; drawNeeds(); },
   needOldest: () => { const o = NEEDS.filter((n) => !isCleared(n)); return o.length ? o[o.length - 1].age : ""; },
   needChips: () => { const o = NEEDS.filter((n) => !isCleared(n)); const c = o.filter((n) => n.task).length, u = o.filter((n) => n.unsent).length, f = o.length - c;
