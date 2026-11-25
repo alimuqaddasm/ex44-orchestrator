@@ -781,6 +781,44 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .ccleafw{flex-wrap:wrap;max-width:100%}
 .ex .ccleafw .ccleaf{width:auto;max-width:100%;flex:0 1 auto}
 .ex .cclayer .ccleaves{min-width:0;max-width:100%}
+/* sync round, laptop: the project map grows like a flowchart. Each layer is a node; its tasks and sub-layers branch out
+   to its right, joined by lines, so every new layer adds a column. The phone keeps the stacked tree. */
+@media (min-width: 900px){
+  .ex .ccmapv .ccbranches{padding-left:28px}
+  .ex .ccmapv .cclayer{display:grid;grid-template-columns:200px minmax(0,1fr);align-items:center;column-gap:30px;padding:4px 0}
+  .ex .ccmapv .cclayer>.ccsubh{position:relative;flex-wrap:wrap;align-content:center;background:var(--g0);border:1px solid var(--line2);border-radius:12px;padding:8px 10px;min-height:44px;box-shadow:0 2px 8px -4px oklch(20% 0.02 250 / .15)}
+  .ex .ccmapv .cclayer>.ccsubh .ccsubacts{margin-left:0;width:100%;justify-content:flex-end}
+  .ex .ccmapv .cclayer>.ccsubh::after{content:"";position:absolute;right:-31px;top:50%;width:30px;border-top:2px solid var(--line2)}
+  .ex .ccmapv .cclayer.empty>.ccsubh::after,.ex .ccmapv .cclayer.folded>.ccsubh::after{display:none}
+  .ex .ccmapv .cclkids{position:relative;display:flex;flex-direction:column;gap:6px;min-width:0;padding-left:16px}
+  .ex .ccmapv .cclkids::before{content:"";position:absolute;left:0;top:10px;bottom:10px;border-left:2px solid var(--line2);border-radius:2px}
+  .ex .ccmapv .cclkids:empty::before,.ex .ccmapv .cclayer.folded .cclkids::before{display:none}
+  .ex .ccmapv .cclkids>.ccbranches{padding-left:0}
+  .ex .ccmapv .cclkids>.ccbranches::before{display:none}
+  .ex .ccmapv .cclayer::before{left:-16px;width:14px}
+  .ex .ccmapv .cclayer>.ccbranches{padding-left:0}
+  .ex .ccmapv .ccleaves{display:flex;flex-wrap:wrap;gap:6px}
+  .ex .ccmapv .ccleafw .ccleaf{border:1px solid var(--line);background:var(--g1,var(--g0))}
+}
+@media (min-width: 900px){
+  .ex .ccmapv .ccpj>.ccbranches{overflow-x:auto;padding-bottom:6px}
+  .ex .ccmapv .cclayer{grid-template-columns:190px minmax(220px,1fr)}
+  .ex .ccmapv .cclayer>.ccsubh{display:flex;flex-wrap:nowrap;gap:4px}
+  .ex .ccmapv .cclayer>.ccsubh .ccpname{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ex .ccmapv .cclayer>.ccsubh .ccsubacts{width:auto;margin-left:0;flex:0 0 auto;opacity:0;transition:opacity .15s}
+  .ex .ccmapv .cclayer>.ccsubh:hover .ccsubacts,.ex .ccmapv .cclayer>.ccsubh:focus-within .ccsubacts{opacity:1}
+  .ex .ccmapv .cclayer>.ccsubh .ccstat,.ex .ccmapv .cclayer>.ccsubh .ccundo{position:absolute;top:-12px;right:8px}
+  .ex .ccmapv .cclayer>.ccsubh .ccundo{right:auto;left:8px}
+  .ex .ccmapv .ccleafw .ccleaf{flex:0 0 auto;max-width:260px}
+}
+@media (hover: none) and (min-width: 900px){.ex .ccmapv .cclayer>.ccsubh .ccsubacts{opacity:1}}
+.toast .ccundo{font-weight:600}
+@media (min-width: 900px){
+  .ex .ccmapv .cclayer>.ccsubh{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;row-gap:0;column-gap:2px;padding:6px 8px 4px}
+  .ex .ccmapv .cclayer>.ccsubh .ccsubacts{grid-column:1/-1;justify-self:end;opacity:1;margin-top:-2px}
+  .ex .ccmapv .cclayer>.ccsubh .ccsubacts .ccicon{width:26px;height:26px}
+  .ex .ccmapv .cclayer{grid-template-columns:200px minmax(220px,1fr)}
+}
 
 
 :root{--page-bg:oklch(97.3% 0.004 250)}
@@ -1749,7 +1787,9 @@ function projectsHtml(all) {
       <span class="ccgrip sm" draggable="true" data-pdrag="${esc(p)}" title="Drag into another layer" aria-label="Drag ${esc(p)} into another layer">${ic("grip", 12)}</span>${nameBtn(p, "sub")}<span class="num">${every.length}</span>${statChip("proj:" + p)}
       <span class="ccsubacts"><button class="ccicon sm" type="button" data-pplus="${esc(p)}" aria-label="Add a task to ${esc(p)}" title="Add a task here">${ic("plus", 12)}</button><button class="ccicon sm" type="button" data-psub="${esc(p)}" aria-label="Add a sub-layer to ${esc(p)}" title="Add a sub-layer">${ic("layers", 12)}</button><button class="ccicon sm" type="button" data-pedit="${esc(p)}" aria-label="Settings of ${esc(p)}" title="Move it, or set its level">${ic("pen", 12)}</button></span></div>`;
     const empty = !own.length && !subs.length && U.ptitle !== p && U.psub !== p && !FRESH["proj:" + p];   // an empty layer is one quiet line
-    return `<div class="cclayer d${Math.min(depth, 4)}${fold ? " folded" : ""}${empty ? " empty" : ""}" data-player="${esc(p)}">${head}${fold || empty ? "" : body(p, own, subs, depth)}</div>`;
+    // laptop (Ali 25 Nov on the canvas: "older one except it can house more layers; it grows like a flowchart"): the
+    // header is a node and its parts branch out to its right, layer after layer; the phone keeps the stacked tree
+    return `<div class="cclayer d${Math.min(depth, 4)}${fold ? " folded" : ""}${empty ? " empty" : ""}" data-player="${esc(p)}">${head}<div class="cclkids">${fold ? `<span class="lab">${every.length} folded in</span>` : empty ? "" : body(p, own, subs, depth)}</div></div>`;
   };
   const body = (p, own, subs, depth) => `<div class="ccleaves" data-player="${esc(p)}">${sorted(own).map(leafHtml).join("")}${own.length || subs.length || U.ptitle === p || !FRESH["proj:" + p] ? "" : `<span class="lab">empty: drop a task here</span>`}${addLeaf(p)}${subAdd(p)}</div>`
     + (subs.length ? `<div class="ccbranches">${subs.map((sp) => layer(sp, depth + 1)).join("")}</div>` : "");
