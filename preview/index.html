@@ -865,6 +865,27 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 }
 @media (min-width: 900px){.ex .ccmapv .cclayer>.ccsubh{transition:box-shadow .15s}.ex .ccmapv .ccleafw .ccleaf{transition:box-shadow .15s,transform .15s}}
 @media (min-width: 900px){.ex .ccmapv .cclayer>.ccsubh .ccsubacts>button:not([data-pedit]){width:26px;padding:0;opacity:0;transition:opacity .15s}.ex .ccmapv .cclayer>.ccsubh:is(:hover,:focus-within) .ccsubacts>button{opacity:1}}
+.ex .ccsbline{font-size:12.5px;color:var(--amber);font-weight:500}
+.ex .ccmaph{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+/* arranging copy: delete buttons and where a drag will land */
+.ex .ccx{display:inline-grid;place-items:center;width:24px;height:24px;border:0;border-radius:7px;background:transparent;color:var(--ink3);cursor:pointer;opacity:0;transition:opacity .15s,background .15s}
+.ex .ccleafw:hover .ccx,.ex .ccleafw:focus-within .ccx{opacity:1}
+.ex .ccx:hover,.ex .ccx2:hover{background:var(--bad-d);color:var(--bad)}
+@media (hover: none){.ex .ccx{opacity:1}}
+.ex .sb-before{box-shadow:0 -3px 0 0 var(--amber)!important}
+.ex .sb-after{box-shadow:0 3px 0 0 var(--amber)!important}
+.ex .sb-in{box-shadow:0 0 0 2px var(--amber)!important;background:var(--amber-d)!important}
+.ex .ccmapv .ccleaf.typing{max-width:420px}
+@media (min-width: 900px){.ex .ccmapv .cclayer>.ccsubh .ccsubacts>button.ccx2{width:26px}}
+.ex .ccmapv .ccleafw .ccleaf.merged{opacity:.7}
+/* rename a card in place by its title; the count on a layer tag is its own small badge */
+.ex .cctbtn{all:unset;cursor:text;display:inline-flex;align-items:center;gap:8px;border-radius:7px;padding:2px 4px;margin:-2px -4px}
+.ex .cctbtn svg{opacity:0;color:var(--ink3);transition:opacity .15s}
+.ex .cctbtn:hover,.ex .cctbtn:focus-visible{background:var(--g2);box-shadow:0 0 0 2px var(--blue)}
+.ex .cctbtn:hover svg,.ex .cctbtn:focus-visible svg{opacity:1}
+@media (hover: none){.ex .cctbtn svg{opacity:1}}
+.ex .cctren{font:600 20px/1.25 var(--id);width:100%;box-sizing:border-box}
+.ex .ccmapv .cclayer>.ccsubh .num{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 7px;margin:0 6px 0 4px;border-radius:10px;background:var(--g0);border:1px solid var(--g3);font:600 11.5px/1 var(--m);color:var(--ink2)}
 
 
 :root{--page-bg:oklch(97.3% 0.004 250)}
@@ -1517,7 +1538,7 @@ let D = ((window.__LIVE && window.__LIVE.cc) || {"tasks":[],"chats":{},"classes"
 // change Ali makes is sent to EX-44 through the home's own button road (act: sent at once, then done). What stays in
 // this browser: the project layout, steps ticks, session numbers. The canvas copy keeps working with baked data.
 const LIVEM = () => !!(window.__CCLIVE && window.__ex44live);
-const KEY = window.__CCLIVE ? "ex44-cc-live-v1" : "ex44-cc-v2";
+const KEY = window.__CCLIVE ? "ex44-cc-live-v1" : window.__CCSANDBOX ? "ex44-cc-arrange-v1" : "ex44-cc-v2";
 const LEVELS = [["P", "Primary"], ["S", "Secondary"], ["M", "Maarif"], ["IC", "IC"], ["G", "General"]];
 const LNAME = Object.fromEntries(LEVELS);
 const COLS = [["planned", "Planned", "var(--ink3)"], ["doing", "Doing", "var(--blue)"], ["waiting on Ali", "Waits on you", "var(--amber)"], ["done", "Done", "var(--done)"]];
@@ -1559,7 +1580,32 @@ let S = { sessions: {}, pos: {}, added: [], comments: {}, steps: {}, ticks: {}, 
 try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && typeof v === "object") S = Object.assign(S, v); } catch (e) {}
 ["steps", "cleared", "answers", "edits", "ptree", "sessions", "followAsked", "pfold"].forEach((k) => { S[k] = S[k] || {}; }); S.pnew = S.pnew || [];
 if (window.__CCLIVE) { S.pos = {}; S.due = {}; S.edits = {}; S.comments = {}; S.added = []; S.removed = {}; S.late = {}; S.answers = {}; }   // EX-44 holds these; only a change in flight is kept here
-const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} if (window.__CCSANDBOX) sbSave(); };
+// ---------- the arranging copy (the EX-44 Home artifact; Ali 25 Nov: "arrange them rightly before they go to the main thing") ----------
+// Nothing here reaches EX-44. The whole arrangement (moves, order, renames, new layers, folds, edits) is S; it is kept in this
+// page's own store (db doc arrange/current) so it survives a reload on any device, and Claude reads it back to apply it.
+const SB = { db: null, t: 0, ready: false };
+function sbSave() {
+  if (!SB.db || !SB.ready) return;
+  clearTimeout(SB.t);
+  SB.t = setTimeout(() => { SB.db.doc("arrange/current").set({ s: JSON.stringify(S), at: new Date().toISOString() }).then(() => { SB.saved = Date.now(); soonSb(); }).catch(() => { SB.err = 1; soonSb(); }); }, 700);
+}
+const soonSb = () => { try { const el = host && host.querySelector("[data-sbline]"); if (el) el.textContent = sbLine(); } catch (e) {} };   // may run before host exists
+const sbLine = () => !window.__CCSANDBOX ? "" : !SB.db ? "Arranging copy: kept in this browser only (the page store is not open here)." : SB.err ? "Arranging copy: the last change could not be saved; try again." : "Arranging copy: saved" + (SB.saved ? " just now" : "") + ". Nothing here reaches EX-44 until you tell Claude \u201capply my arrangement\u201d.";
+if (window.__CCSANDBOX) {
+  S.ren = S.ren || {};
+  (async () => {
+    const db = window.claude && window.claude.use ? await window.claude.use("db") : null;
+    if (!db) { SB.ready = true; soonSb(); return; }
+    SB.db = db;
+    try {
+      const snap = await db.doc("arrange/current").get();
+      if (snap.exists) { const v = JSON.parse(String((snap.data() || {}).s || "{}")); if (v && typeof v === "object") { S = Object.assign(S, v); S.ren = S.ren || {}; Object.entries(S.ren).forEach(([o, n]) => renameIn(D, o, n)); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} } }
+    } catch (e) {}
+    SB.ready = true; draw();
+  })();
+  Object.entries(S.ren || {}).forEach(([o, n]) => { try { renameIn(D, o, n); } catch (e) {} });
+}
 // ---------- sending to EX-44 (live only) ----------
 // A change shows at once here (an overlay in S) and is filed as a request; the overlay goes when cc.json shows the change,
 // or 90 s after EX-44 said done; a refusal takes it back at once and says why.
@@ -1595,7 +1641,15 @@ function ship(label, reqs, pend, cid, undo) {
     (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); } mark(cid, why ? "failed" : "undone", why); toast(why ? "Not done: " + why + ". The card is back as it was." : "Taken back."); });
   return true;
 }
+function sbDo(label, fn) {   // arranging copy: do it here only, with Undo (a snapshot of the whole arrangement)
+  const snap = JSON.stringify(S);
+  fn(); S.ptree = S.ptree || {}; save(); draw();
+  UNDO.sb = { label, at: Date.now(), localOnly: () => { S = Object.assign(S, JSON.parse(snap)); Object.keys(S).forEach((k) => { if (!(k in JSON.parse(snap))) delete S[k]; }); }, undo: {} };
+  toast("Done: " + label + ".", "sb");
+}
 function runUndo(cid) {
+  const u0 = UNDO[cid];
+  if (u0 && u0.localOnly) { delete UNDO[cid]; U.toastUndo = ""; u0.localOnly(); save(); draw(); toast("Taken back."); return; }
   const u = UNDO[cid]; if (!u) { toast("Too late to undo here: change it back by hand."); return; }
   delete UNDO[cid]; U.toastUndo = ""; FRESH[cid] = Date.now();   // a card brought back stays in view, never behind "N more in Planned"
   const r = typeof u.undo.reqs === "function" ? u.undo.reqs(u.reason) : u.undo.reqs;
@@ -1617,10 +1671,13 @@ function reconcile() {
   save();
 }
 const dTask = (id) => (D.tasks || []).find((t) => t.id === id);
-let U = { nopen: null, form: null, draft: {}, level: "all", project: "", lanes: false, q: "", open: null, view: "board", tab: "overview", phoneCol: "waiting on Ali", toast: "", showMerged: false, dragP: null };
+let U = { showMergedSb: true, nopen: null, form: null, draft: {}, level: "all", project: "", lanes: false, q: "", open: null, view: "board", tab: "overview", phoneCol: "waiting on Ali", toast: "", showMerged: false, dragP: null };
 
 // ---------- projects: a tree Ali can rearrange ----------
-const parentOf = (p) => (p in S.ptree ? S.ptree[p] : (D.tree || {})[p] || "");
+const rawParentOf = (p) => (p in S.ptree ? S.ptree[p] : (D.tree || {})[p] || "");
+// arranging copy: a deleted layer's children go up to the nearest layer still there (S.pdel)
+const parentOf = (p) => { let x = rawParentOf(p), n = 0; while (x && S.pdel && S.pdel[x] && n++ < 12) x = rawParentOf(x); return x; };
+const liveProj = (p) => { let x = p, n = 0; while (x && S.pdel && S.pdel[x] && n++ < 12) x = rawParentOf(x); return x || ""; };
 const reEsc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const shortIn = (p, par) => p.replace(new RegExp("\\s*" + reEsc(par) + "$"), "").replace(new RegExp("^" + reEsc(par.split(" ")[0]) + "\\s+"), "") || p;
 const ancestors = (p) => { const out = []; let x = parentOf(p); while (x && !out.includes(x) && out.length < 12) { out.push(x); x = parentOf(x); } return out; };
@@ -1629,7 +1686,7 @@ const pathOf = (p) => { const up = ancestors(p).reverse(); if (!up.length) retur
 function allProjects() {
   const set = new Set(D.projects.concat(Object.keys(D.tree || {})).concat(Object.values(D.tree || {})).concat(S.pnew.map((x) => x.name)).concat(Object.values(S.ptree).filter(Boolean)));
   cards().forEach((c) => c.project && set.add(c.project));
-  return [...set].filter((p) => !PHIDE[p]);
+  return [...set].filter((p) => !PHIDE[p] && !(S.pdel && S.pdel[p]));
 }
 // ---------- projects: changes in flight (sync round) ----------
 // PREN: renames on their way (old -> new), laid over every new feed until EX-44 shows them; PHIDE: layers taken back
@@ -1653,13 +1710,28 @@ function renameProject(o, n) {
   if (!n || n === o) { draw(); return; }
   if (allProjects().includes(n)) { toast(`There is already a project called "${n}".`); draw(); return; }
   const tree = effTree();
-  PREN[o] = n; renameIn(D, o, n); renameLocal(o, n); save(); draw();
+  PREN[o] = n; renameIn(D, o, n); renameLocal(o, n);
+  if (window.__CCSANDBOX) { S.ren = S.ren || {}; Object.keys(S.ren).forEach((k) => { if (S.ren[k] === o) S.ren[k] = n; }); S.ren[o] = n; Object.keys(S.ren).forEach((k) => { if (S.ren[k] === k) delete S.ren[k]; }); }
+  save(); draw();
   if (!LIVEM()) { toast("Renamed."); return; }
   ship(`Rename "${o}" to "${n}"`, [{ action: "task", op: "rename", project: o, value: n, tree, target: "new" }],
     { key: "ren:" + o, test: () => { const f = feedNames(); return !f.has(o); }, clear: () => { delete PREN[o]; } }, "proj:" + n,
     { reqs: () => [{ action: "task", op: "rename", project: n, value: o, tree: effTree(), target: "new" }],
       local: () => { delete PREN[o]; PREN[n] = o; renameIn(D, n, o); renameLocal(n, o); },
       pend: () => ({ key: "ren:" + n, test: () => !feedNames().has(n), clear: () => { delete PREN[n]; } }) });
+}
+function renameTask(id, v) {
+  v = (v || "").trim(); U.trename = null; U.trenameText = null;
+  const c = cards().find((x) => x.id === id); if (!c || !v || v === shownTitle(c)) { draw(); return; }
+  const old = c.title;
+  S.edits[id] = Object.assign({}, S.edits[id], { title: v }); save(); draw();
+  if (!LIVEM() || c.kind !== "task") { toast(`Renamed to "${v}".`); return; }
+  const ses = c.session && !/\((?:MS|S)-\d{2,3}\)/.test(v) ? " (" + c.session + ")" : "";   // the weekly deck keeps its MS number
+  const raw = (c.t && c.t.raw) || old;
+  ship(`Rename the card "${shownTitle(c)}" to "${v}"`, [{ action: "task", op: "set", task: id, field: "title", value: v + ses, target: id }],
+    { key: "tren:" + id, test: () => { const t = dTask(id); return t && t.title === v; }, clear: () => { if (S.edits[id]) delete S.edits[id].title; } }, id,
+    { reqs: [{ action: "task", op: "set", task: id, field: "title", value: raw, target: id }], local: () => { S.edits[id] = Object.assign({}, S.edits[id], { title: shownTitle(c) }); },
+      pend: () => ({ key: "tren:" + id, test: () => { const t = dTask(id); return t && t.title === shownTitle(c); }, clear: () => { if (S.edits[id]) delete S.edits[id].title; } }) });
 }
 function nestProject(name, parent) {
   if (name === parent || ancestors(parent).includes(name)) { toast("A layer cannot go inside itself or its own sub-layer."); return; }
@@ -1675,12 +1747,47 @@ function makeSub(parent, name) {
   name = (name || "").trim(); U.psub = null;
   if (!name) { draw(); return; }
   if (allProjects().includes(name)) { toast(`There is already a project called "${name}".`); draw(); return; }
+  if (window.__CCSANDBOX) { if (S.pdel) delete S.pdel[name]; if (S.ren) delete S.ren[name]; S.pnew = S.pnew.filter((x) => x.name !== name); }
   S.pnew.push({ name, levels: plevels(parent) }); S.ptree[name] = parent; delete PHIDE[name]; FRESH["proj:" + name] = Date.now(); save(); draw();
   if (!LIVEM()) { toast(`Sub-layer "${name}" made.`); return; }
   ship(`New sub-layer "${name}" in "${parent}"`, [{ action: "task", op: "project", project: name, value: parent, level: plevels(parent), target: "new" }],
     { key: "proj:" + name, test: () => (D.tree || {})[name] === parent, clear: () => { S.pnew = S.pnew.filter((x) => x.name !== name); delete S.ptree[name]; } }, "proj:" + parent,
     { reqs: [{ action: "task", op: "unproject", project: name, target: "new" }], local: () => { PHIDE[name] = 1; S.pnew = S.pnew.filter((x) => x.name !== name); delete S.ptree[name]; },
       pend: () => ({ key: "unproj:" + name, test: () => !feedNames().has(name), clear: () => { delete PHIDE[name]; } }) });
+}
+// arranging copy: where a drag would land. On a task: before (top half) or after it. On a layer tag or a project card:
+// top third before it, bottom third after it, the middle inside it. On a layer's empty space: inside.
+function sbZone(e) {
+  const el = e.target.closest && (e.target.closest("[data-leaf]") || e.target.closest(".ccsubh[data-player]") || e.target.closest(".ccroot[data-player]") || e.target.closest("[data-player]"));
+  if (!el) return null;
+  const r = el.getBoundingClientRect(), f = (e.clientY - r.top) / (r.height || 1);
+  if (el.dataset.leaf) return { el, kind: "leaf", id: el.dataset.leaf, where: f < 0.5 ? "before" : "after" };
+  const p = el.dataset.player;
+  if (el.classList.contains("ccsubh") || el.classList.contains("ccroot")) return { el, kind: "proj", p, where: p === "" ? "in" : f < 0.3 ? "before" : f > 0.7 ? "after" : "in" };
+  return { el, kind: "proj", p, where: "in" };
+}
+function sbDrop(leaf, proj, z) {
+  const place = (list, item, ref, where) => { const l = list.filter((x) => x !== item); const i = ref == null ? -1 : l.indexOf(ref); l.splice(i < 0 ? l.length : where === "before" ? i : i + 1, 0, item); return l; };
+  if (leaf) {
+    const c = cards().find((x) => x.id === leaf); if (!c) return;
+    let tp, ref = null, where = "after";
+    if (z.kind === "leaf") { if (z.id === leaf) return; const tc = cards().find((x) => x.id === z.id); tp = tc ? tc.project || "" : ""; ref = z.id; where = z.where; }
+    else if (z.where === "in") tp = z.p; else { tp = parentOf(z.p); }   // before or after a layer: into its parent, at the end of its tasks
+    sbDo(`Move "${shownTitle(c)}" to ${tp || "Single tasks"}`, () => {
+      S.proj[leaf] = tp; S.torder = S.torder || {};
+      const cur = cards().filter((x) => (x.project || "") === tp && x.id !== leaf).map((x) => x.id);
+      const base = (S.torder[tp] || []).filter((x) => cur.includes(x)).concat(cur.filter((x) => !(S.torder[tp] || []).includes(x)));
+      S.torder[tp] = place(base, leaf, ref, where);
+    });
+    return;
+  }
+  if (proj != null && z.kind === "proj") {
+    if (z.p === proj || ancestors(z.p).includes(proj)) { toast("A layer cannot go inside itself or its own sub-layer."); return; }
+    if (z.where === "in") { sbDo(`Put "${proj}" inside "${z.p || "the top"}"`, () => { S.ptree[proj] = z.p; S.lorder = S.lorder || {}; S.lorder[z.p] = place(kids(z.p), proj, null, "after"); }); return; }
+    const par = parentOf(z.p);
+    sbDo(`Move "${proj}" ${z.where} "${z.p}"`, () => { S.ptree[proj] = par;
+      if (!par) S.porder = place(tops(), proj, z.p, z.where); else { S.lorder = S.lorder || {}; S.lorder[par] = place(kids(par).filter((x) => x !== proj).concat([]), proj, z.p, z.where); } });
+  }
 }
 function moveToProject(id, p, beforeId) {
   const c = cards().find((x) => x.id === id); if (!c || c.kind !== "task") { toast("Only task cards move between projects."); return; }
@@ -1695,18 +1802,20 @@ function moveToProject(id, p, beforeId) {
       pend: () => ({ key: "pof:" + id, test: () => { const t = dTask(id); return t && (t.project || "") === old; }, clear: () => { delete S.proj[id]; } }) });
 }
 const tops = () => { const all = allProjects().filter((p) => !parentOf(p)); const ord = (S.porder || D.porder || []).filter((p) => all.includes(p)); return ord.concat(all.filter((p) => !ord.includes(p)).sort()); };
-const kids = (p) => allProjects().filter((x) => parentOf(x) === p).sort();
+const byOrder = (list, ord) => { const o = ord || []; return list.slice().sort((a, b) => { const i = o.indexOf(a), j = o.indexOf(b); return (i < 0 ? 1e6 : i) - (j < 0 ? 1e6 : j) || String(a).localeCompare(String(b)); }); };
+const kids = (p) => byOrder(allProjects().filter((x) => parentOf(x) === p), (S.lorder || {})[p] || (D.lorder || {})[p]);
 const plevels = (p) => ((D.plevel || {})[p] || (S.pnew.find((x) => x.name === p) || {}).levels || []);
 const inProject = (c, p) => !!c.project && (c.project === p || ancestors(c.project).includes(p));
 
 // ---------- cards ----------
 function cards() {
   const out = [];
-  D.classes.forEach((c, i) => out.push({ kind: "class", id: c.id, title: `${c.code} Class Kit`, levels: [c.level || "G"], project: D.kitproject || "Class Kit", klass: c.code, session: S.sessions[c.id] || c.session || "S-00x", col: c.col, order: i - 50, c }));
+  D.classes.forEach((c, i) => out.push({ kind: "class", id: c.id, title: `${c.code} Class Kit`, levels: [c.level || "G"], project: c.project || D.kitproject || "Class Kit", klass: c.code, session: S.sessions[c.id] || c.session || "S-00x", col: c.col, order: i - 50, c }));
   D.tasks.forEach((t) => out.push({ kind: "task", id: t.id, title: t.title, levels: t.levels.length ? t.levels : ["G"], project: t.project, klass: t.klass, session: t.session, day: t.day, col: t.col, order: t.order, t }));
   S.added.forEach((a) => out.push({ kind: "own", id: a.id, title: a.title, levels: a.levels && a.levels.length ? a.levels : [a.level || "G"], project: a.project || "", klass: a.klass || "", col: a.col, order: 999, a }));
   out.forEach((c) => { const p = S.pos[c.id]; if (p) { c.col = p.col; c.order = p.order; } if (S.proj[c.id] !== undefined) c.project = S.proj[c.id];
     const e = S.edits[c.id]; if (e) { if (e.title) c.title = e.title; if (e.levels && e.levels.length) c.levels = e.levels; if (e.project !== undefined) c.project = e.project; if (e.klass !== undefined) c.klass = e.klass; } });
+  if (S.pdel) out.forEach((c) => { if (c.project && S.pdel[c.project]) c.project = liveProj(c.project); });
   return out.filter((c) => !S.removed[c.id]);
 }
 const shownTitle = (c) => { const m = /^(P|S|M)\s+(.+)$/.exec(c.title); return m && c.levels.includes(m[1]) ? m[2] : c.title; };
@@ -1716,7 +1825,7 @@ const dueOf = (c) => (S.due[c.id] !== undefined ? S.due[c.id] : (S.edits[c.id] |
 const scopeOf = (c) => ((S.edits[c.id] || {}).scope !== undefined ? S.edits[c.id].scope : c.a ? c.a.scope || "" : c.t ? c.t.next || "" : "");
 const isMerged = (c) => !!(c.t && c.t.merged);
 function visible(c) {
-  if (isMerged(c) && !U.showMerged) return false;
+  if (isMerged(c) && !U.showMerged && !(window.__CCSANDBOX && U.view === "projects")) return false;
   if (U.level === "C" && c.kind !== "class") return false;
   if (U.level !== "all" && U.level !== "C" && !c.levels.includes(U.level)) return false;
   if (U.project && !inProject(c, U.project)) return false;
@@ -1807,7 +1916,7 @@ const KDOT = { "waiting on Ali": "you", doing: "chat", planned: "park", done: "d
 function leafHtml(c) {
   const k = c.col === "doing" && nowLine(c) && nowLine(c).k === "you" ? "you" : KDOT[c.col];
   const label = c.kind === "class" ? `${c.c.code}, ${c.c.dname} ${c.c.date}` : shownTitle(c);
-  return `<div class="ccleafw" data-leaf="${esc(c.id)}" draggable="${c.kind === "task" ? "true" : "false"}"><button type="button" class="ccleaf l-${k}${isMerged(c) ? " merged" : ""}" data-open="${esc(c.id)}" title="${esc(CNAME[c.col] + (nowLine(c) && c.col !== "done" ? ": " + nowLine(c).text : ""))}"><span class="dot" style="background:${DOT[k] || "var(--ink3)"};width:7px;height:7px"></span><span class="cclt">${esc(short(label, 44))}</span></button>${statChip(c.id)}</div>`;
+  return `<div class="ccleafw" data-leaf="${esc(c.id)}" draggable="${c.kind === "task" || window.__CCSANDBOX ? "true" : "false"}"><button type="button" class="ccleaf l-${k}${isMerged(c) ? " merged" : ""}" data-open="${esc(c.id)}" title="${esc(CNAME[c.col] + (nowLine(c) && c.col !== "done" ? ": " + nowLine(c).text : ""))}"><span class="dot" style="background:${DOT[k] || "var(--ink3)"};width:7px;height:7px"></span><span class="cclt">${esc(short(label, 44))}</span></button>${statChip(c.id)}${window.__CCSANDBOX && c.kind !== "class" ? `<button type="button" class="ccx cccp" data-copy-card="${esc(c.id)}" aria-label="Copy ${esc(label)}" title="Make a copy here, then drag it where it should also be">${ic("copy", 12)}</button>` : ""}${window.__CCSANDBOX ? `<button type="button" class="ccx" data-del-card="${esc(c.id)}" aria-label="Delete ${esc(label)} from this arrangement" title="Delete (Undo brings it back)">${ic("x", 12)}</button>` : ""}</div>`;
 }
 function addLeaf(p) {
   if (U.ptitle === p) return `<label class="ccleaf typing"><span class="dot" style="background:var(--ink3);width:7px;height:7px"></span><input data-ptitle="${esc(p)}" placeholder="Title of the new task" aria-label="New task in ${esc(p)}" value="${esc(U.ptext || "")}"><span class="cckbd">Enter: add details</span></label>`;
@@ -1850,7 +1959,10 @@ function projectsHtml(all) {
   // stays until EX-44 has it, and has Undo.
   const rank = { "waiting on Ali": 0, doing: 1, planned: 2, done: 3 };
   const shown = all.filter(visible);
-  const sorted = (cs) => cs.slice().sort((a, b) => rank[a.col] - rank[b.col] || a.order - b.order);
+  const sorted0 = (cs) => cs.slice().sort((a, b) => rank[a.col] - rank[b.col] || a.order - b.order);
+  // arranging copy: a layer's tasks stand in the order Ali gave them (S.torder), the rest after, as before
+  const sortedIn = (p, cs) => { const o = (S.torder || {})[p] || (D.torder || {})[p]; if (!o || !o.length) return sorted0(cs); const base = sorted0(cs); return base.slice().sort((a, b) => { const i = o.indexOf(a.id), j = o.indexOf(b.id); return (i < 0 ? 1e6 + base.indexOf(a) : i) - (j < 0 ? 1e6 + base.indexOf(b) : j); }); };
+  const sorted = sorted0;
   const nameBtn = (p, cls) => U.prename === p
     ? `<input class="ccren" data-prename-in="${esc(p)}" value="${esc(U.prenameText != null ? U.prenameText : p)}" aria-label="New name for ${esc(p)}">`
     : `<button type="button" class="ccpname ${cls}" data-prename="${esc(p)}" title="Click to rename">${esc(cls === "ccpjt" ? p : shortIn(p, parentOf(p) || ""))}</button>`;
@@ -1861,13 +1973,13 @@ function projectsHtml(all) {
     const fold = !!S.pfold[p];
     const head = `<div class="ccsubh" data-player="${esc(p)}"><button type="button" class="ccicon sm ccfold" data-pfold="${esc(p)}" aria-expanded="${!fold}" aria-label="${fold ? "Unfold" : "Fold"} ${esc(p)}" title="${fold ? "Unfold" : "Fold"}">${ic("chev", 12)}</button>
       <span class="ccgrip sm" draggable="true" data-pdrag="${esc(p)}" title="Drag into another layer" aria-label="Drag ${esc(p)} into another layer">${ic("grip", 12)}</span>${nameBtn(p, "sub")}<span class="num">${every.length}</span>${statChip("proj:" + p)}
-      <span class="ccsubacts"><button class="ccicon sm" type="button" data-pplus="${esc(p)}" aria-label="Add a task to ${esc(p)}" title="Add a task here">${ic("plus", 12)}</button><button class="ccicon sm" type="button" data-psub="${esc(p)}" aria-label="Add a sub-layer to ${esc(p)}" title="Add a sub-layer">${ic("layers", 12)}</button><button class="ccicon sm" type="button" data-pedit="${esc(p)}" aria-label="Settings of ${esc(p)}" title="Move it, or set its level">${ic("pen", 12)}</button></span></div>`;
+      <span class="ccsubacts"><button class="ccicon sm" type="button" data-pplus="${esc(p)}" aria-label="Add a task to ${esc(p)}" title="Add a task here">${ic("plus", 12)}</button><button class="ccicon sm" type="button" data-psub="${esc(p)}" aria-label="Add a sub-layer to ${esc(p)}" title="Add a sub-layer">${ic("layers", 12)}</button><button class="ccicon sm" type="button" data-pedit="${esc(p)}" aria-label="Settings of ${esc(p)}" title="Move it, or set its level">${ic("pen", 12)}</button>${window.__CCSANDBOX ? `<button class="ccicon sm ccx2" type="button" data-del-proj="${esc(p)}" aria-label="Delete ${esc(p)}" title="Delete this layer (its parts move up; Undo brings it back)">${ic("trash", 12)}</button>` : ""}</span></div>`;
     const empty = !own.length && !subs.length && U.ptitle !== p && U.psub !== p && !FRESH["proj:" + p];   // an empty layer is one quiet line
     // laptop (Ali 25 Nov on the canvas: "older one except it can house more layers; it grows like a flowchart"): the
     // header is a node and its parts branch out to its right, layer after layer; the phone keeps the stacked tree
     return `<div class="cclayer d${Math.min(depth, 4)}${fold ? " folded" : ""}${empty ? " empty" : ""}" data-player="${esc(p)}">${head}<div class="cclkids">${fold ? `<span class="lab">${every.length} folded in</span>` : empty ? "" : body(p, own, subs, depth)}</div></div>`;
   };
-  const body = (p, own, subs, depth) => `<div class="ccleaves" data-player="${esc(p)}">${sorted(own).map(leafHtml).join("")}${own.length || subs.length || U.ptitle === p || !FRESH["proj:" + p] ? "" : `<span class="lab">empty: drop a task here</span>`}${addLeaf(p)}${subAdd(p)}</div>`
+  const body = (p, own, subs, depth) => `<div class="ccleaves" data-player="${esc(p)}">${sortedIn(p, own).map(leafHtml).join("")}${own.length || subs.length || U.ptitle === p || !FRESH["proj:" + p] ? "" : `<span class="lab">empty: drop a task here</span>`}${addLeaf(p)}${subAdd(p)}</div>`
     + (subs.length ? `<div class="ccbranches">${subs.map((sp) => layer(sp, depth + 1)).join("")}</div>` : "");
   const box = (p) => {
     const own = shown.filter((c) => c.project === p), subs = kids(p), every = shown.filter((c) => inProject(c, p));
@@ -1876,7 +1988,7 @@ function projectsHtml(all) {
     const you = every.filter((c) => c.col !== "done" && (c.col === "waiting on Ali" || (nowLine(c) && nowLine(c).k === "you"))).length;
     const lv = [...new Set(plevels(p).concat(every.flatMap((c) => c.levels)))].filter((l) => l !== "G");
     return `<section class="ccpj${fold ? " folded" : ""}" data-pbox="${esc(p)}"><div class="ccroot" data-player="${esc(p)}">
-      <div class="ccrow" style="flex-wrap:nowrap"><span class="ccgrip" draggable="true" data-pgrip="${esc(p)}" title="Drag to arrange, or onto a layer to put it inside" aria-label="Drag ${esc(p)}">${ic("grip", 14)}</span>${nameBtn(p, "ccpjt")}<span style="flex:1"></span>${statChip("proj:" + p)}<button class="ccicon" type="button" data-pfold="${esc(p)}" aria-expanded="${!fold}" aria-label="${fold ? "Unfold" : "Fold"} ${esc(p)}" title="${fold ? "Unfold" : "Fold"}">${ic("chev", 13)}</button><button class="ccicon" type="button" data-pedit="${esc(p)}" aria-label="Project settings" title="Move it inside another project, or set its level">${ic("pen", 13)}</button></div>
+      <div class="ccrow" style="flex-wrap:nowrap"><span class="ccgrip" draggable="true" data-pgrip="${esc(p)}" title="Drag to arrange, or onto a layer to put it inside" aria-label="Drag ${esc(p)}">${ic("grip", 14)}</span>${nameBtn(p, "ccpjt")}<span style="flex:1"></span>${statChip("proj:" + p)}<button class="ccicon" type="button" data-pfold="${esc(p)}" aria-expanded="${!fold}" aria-label="${fold ? "Unfold" : "Fold"} ${esc(p)}" title="${fold ? "Unfold" : "Fold"}">${ic("chev", 13)}</button><button class="ccicon" type="button" data-pedit="${esc(p)}" aria-label="Project settings" title="Move it inside another project, or set its level">${ic("pen", 13)}</button>${window.__CCSANDBOX ? `<button class="ccicon ccx2" type="button" data-del-proj="${esc(p)}" aria-label="Delete ${esc(p)}" title="Delete this project (its parts become single tasks or top projects; Undo brings it back)">${ic("trash", 13)}</button>` : ""}</div>
       <div class="ccrow">${lv.map(lvl).join("")}${st("done", "done", "check", `${done}/${every.length}`)}${you ? st("you", "wait on you", "", you) : ""}</div>
       <div class="ccbar"><i style="width:${every.length ? Math.round(done * 100 / every.length) : 0}%"></i></div>
       <div class="ccrow ccrootacts"><button class="btn ghost sm" type="button" data-pplus="${esc(p)}">${ic("plus", 12)}Task</button><button class="btn ghost sm" type="button" data-psub="${esc(p)}">${ic("layers", 12)}Sub-layer</button></div>
@@ -1885,9 +1997,9 @@ function projectsHtml(all) {
       <div class="ccbranches">${fold ? `<span class="lab">${every.length} tasks folded in. Unfold to see them.</span>` : body(p, own, subs, 0).replace(/^<div class="ccleaves"/, '<div class="ccleaves top"')}</div></section>`;
   };
   const singles = shown.filter((c) => !c.project);
-  return `<section class="panel ccmapv"><div class="ccmaph"><b>Projects</b><span class="lab">Click a name to rename it. Drag a task onto a layer, or before another task. Drag a layer by its grip into another. Each layer folds by its arrow.</span></div>
+  return `<section class="panel ccmapv"><div class="ccmaph"><b>Projects</b><span class="lab">Click a name to rename it. Drag a task onto a layer, or before another task. Drag a layer by its grip into another. Each layer folds by its arrow.</span>${window.__CCSANDBOX ? `<span class="ccsbline" data-sbline>${esc(sbLine())}</span><button type="button" class="btn ghost sm" data-act="sbreset">Start again from EX-44's list</button>` : ""}</div>
     ${tops().map(box).join("")}
-    ${singles.length || U.ptitle === "" ? `<section class="ccpj" data-pbox=""><div class="ccroot" data-player=""><div class="ccrow"><span class="ccgrip" style="visibility:hidden">${ic("grip", 14)}</span><span class="ccpjt">Single tasks</span></div><div class="ccrow">${gr("parts", "", singles.length)}</div><div class="ccrow ccrootacts"><button class="btn ghost sm" type="button" data-pplus="">${ic("plus", 12)}Task</button></div></div><div class="ccbranches"><div class="ccleaves top" data-player="">${sorted(singles).map(leafHtml).join("")}${addLeaf("")}</div></div></section>` : ""}</section>`;
+    ${singles.length || U.ptitle === "" ? `<section class="ccpj" data-pbox=""><div class="ccroot" data-player=""><div class="ccrow"><span class="ccgrip" style="visibility:hidden">${ic("grip", 14)}</span><span class="ccpjt">Single tasks</span></div><div class="ccrow">${gr("parts", "", singles.length)}</div><div class="ccrow ccrootacts"><button class="btn ghost sm" type="button" data-pplus="">${ic("plus", 12)}Task</button></div><button class="ccrplus" type="button" data-pplus="" aria-label="Add a single task" title="Add a single task">${ic("plus", 13)}</button></div><div class="ccbranches"><div class="ccleaves top" data-player="">${sortedIn("", singles).map(leafHtml).join("")}${addLeaf("")}</div></div></section>` : ""}</section>`;
 }
 
 // ---------- the week: a progress slider over the days (round 8 option A, Ali's pick 24 Nov) ----------
@@ -1962,7 +2074,8 @@ function formHtml(f) {
   const field = (label, body, hint, cls) => `<div class="ccfield${cls ? " " + cls : ""}"><div class="ccflabel"><b>${label}</b>${hint ? `<span>${hint}</span>` : ""}</div><div class="ccfbody">${body}</div></div>`;
   if (f.mode === "project") {
     const ex = !f.isNew, cur = parentOf(f.name || "");
-    const opts = [["", "On its own"]].concat(tops().filter((p) => p !== f.name).map((p) => [p, p]));
+    const deep = []; const walk = (p, d) => { if (d > 12 || p === f.name) return; deep.push(p); kids(p).forEach((k) => walk(k, d + 1)); }; tops().forEach((p) => walk(p, 0));
+    const opts = [["", "On its own"]].concat(deep.map((p) => [p, pathOf(p)]));
     const tree = opts.map(([v, n]) => `<label class="ccpick${cur === v ? " on" : ""}"><input type="radio" name="parent" data-fr="parent" value="${esc(v)}"${cur === v ? " checked" : ""}><span class="ccradio"></span>${v ? ic("layers", 13) : ""}<span>${esc(n)}</span>${kids(v).length && v ? `<span class="lab" style="margin-left:auto">holds ${kids(v).length}</span>` : ""}</label>`).join("");
     return `<div class="scrim" data-act="fclose"></div><div class="modal ccform ccform2 sm" role="dialog" aria-label="Project">${head("layers", ex ? "Project" : "New project")}
       ${ex ? `<div class="cctitle ro">${esc(f.name)}</div>` : `<input class="cctitle" data-f="name" value="${esc(f.name || "")}" placeholder="Name of the project" aria-label="Name">`}
@@ -1972,7 +2085,9 @@ function formHtml(f) {
   }
   const c = f.id ? cards().find((x) => x.id === f.id) : null;
   const v = { title: c ? c.title : f.title || "", levels: c ? c.levels : (f.level && f.level !== "all" && f.level !== "C" ? [f.level] : []), project: c ? c.project : f.project || "", klass: c ? c.klass || "" : "", due: c ? dueOf(c) : "", scope: c ? scopeOf(c) : "", col: c ? c.col : f.col || "planned" };
-  const projOpts = `<option value="">No project (a single task)</option>` + tops().map((p) => `<option value="${esc(p)}"${v.project === p ? " selected" : ""}>${esc(p)}</option>` + kids(p).map((k) => `<option value="${esc(k)}"${v.project === k ? " selected" : ""}>${esc(pathOf(k))}</option>`).join("")).join("") + `<option value="__new">New project…</option>`;
+  // every layer at every depth (a card in a deep layer kept its place only if its layer was listed)
+  const allDeep = () => { const out = []; const walk = (p, d) => { if (d > 12) return; out.push(p); kids(p).forEach((k) => walk(k, d + 1)); }; tops().forEach((p) => walk(p, 0)); return out; };
+  const projOpts = `<option value="">No project (a single task)</option>` + allDeep().map((p) => `<option value="${esc(p)}"${v.project === p ? " selected" : ""}>${esc(pathOf(p))}</option>`).join("") + `<option value="__new">New project…</option>`;
   const pp = v.project ? pathOf(v.project).split(" › ") : ["No project", ""];
   const day = (n) => { const d = new Date(Date.parse(D.today + "T00:00:00Z") + n * 864e5); return [d.toISOString().slice(0, 10), n === 0 ? "Today" : n === 1 ? "Tomorrow" : DNAME[d.getUTCDay()] + " " + d.getUTCDate()]; };
   const quick = [0, 1, 3, 6].map(day);
@@ -2046,7 +2161,8 @@ function drawerHtml(c, marks) {
     .concat(dueOf(c) && c.col !== "done" ? [dueOf(c) === D.today ? st("you", "Due today", "cal") : gr("Due " + fd(dueOf(c)), "cal")] : []).concat(isMerged(c) ? [gr(t.merged, "merge")] : []).concat(nd && !isCleared(nd) && c.col !== "done" ? [st("you", "Needs you", "bolt")] : []);
   const ci = COLS.findIndex((x) => x[0] === c.col);
   const head = `<div class="ccrow ccdcrumb">${c.project ? projq(c.project) : `<span class="ccproj">${ic("star", 11)}Single task</span>`}<span style="flex:1"></span><button class="ccicon" type="button" data-act="close" aria-label="Close (Esc)" title="Close (Esc)">${ic("x", 16)}</button></div>
-    <h2 class="id ccdt">${esc(c.kind === "class" ? c.c.code + " Class Kit" : shownTitle(c))}</h2>
+    ${c.kind !== "class" && U.trename === c.id ? `<input class="ccdt ccren cctren" data-trename-in="${esc(c.id)}" value="${esc(U.trenameText != null ? U.trenameText : shownTitle(c))}" aria-label="New title">`
+      : c.kind !== "class" ? `<h2 class="id ccdt"><button type="button" class="cctbtn" data-trename="${esc(c.id)}" title="Click to rename">${esc(shownTitle(c))}${ic("pen", 14)}</button></h2>` : `<h2 class="id ccdt">${esc(c.c.code + " Class Kit")}</h2>`}
     ${tags.length ? `<div class="ccrow">${tags.join("")}${tm(4)}${tm(5)}</div>` : ""}
     ${sliderHtml(c, ci)}
     <div class="seg2 ccdtabs" role="tablist">${[["overview", "Overview"], ["comments", "Comments", coms.length], ["details", "Details"]].map((x) => `<button class="tab${U.tab === x[0] ? " on" : ""}" role="tab" type="button" data-tab="${x[0]}">${esc(x[1])}${x[2] ? `<span class="ccnum sm">${x[2]}</span>` : ""}</button>`).join("")}${marks ? `<span style="align-self:center;margin-left:6px">${tm(8)} ${mk(2)}</span>` : ""}</div>`;
@@ -2135,7 +2251,7 @@ let host = null;
 // on the home): unchanged parts stay as they are, cards keep their element (key = card id) and glide to their new place
 // (FLIP, 220 ms), new cards fade in, and what Ali has typed in a field that the page does not hold itself is kept.
 const REDUCED = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } };
-const BOUND = "[data-q],[data-comment],[data-nreply],[data-ptitle],[data-prename-in],[data-psub-in]";   // fields the page keeps in U itself
+const BOUND = "[data-q],[data-comment],[data-nreply],[data-ptitle],[data-prename-in],[data-psub-in],[data-trename-in]";   // fields the page keeps in U itself
 function typedKeep(from, to) {
   if (!from._typed) return true;
   const tg = from.tagName;
@@ -2407,6 +2523,7 @@ function saveForm() {
   const f = U.form, o = readForm();
   if (f.mode === "project") {
     const name = f.isNew ? (o.name || "").trim() : f.name;
+    if (window.__CCSANDBOX && name) { if (S.pdel) delete S.pdel[name]; if (S.ren) delete S.ren[name]; S.pnew = S.pnew.filter((x, i, a) => a.findIndex((y) => y.name === x.name) === i); }
     if (!name) { toast("Give the project a name."); return; }
     const p = S.pnew.find((x) => x.name === name);
     if (p) p.levels = o.levels; else if (f.isNew || o.levels.length) S.pnew.push({ name, levels: o.levels });
@@ -2492,8 +2609,16 @@ function wire(h) {
     const pc = t.closest("[data-pcol]"); if (pc) { U.phoneCol = pc.dataset.pcol; draw(); return; }
     const gg = t.closest("[data-go]"); if (gg) { goHome(gg.dataset.go); return; }
     const chb = t.closest("[data-chat]"); if (chb) { goHome("chats", chb.dataset.chat); return; }
+    const cpc = t.closest("[data-copy-card]"); if (cpc) { const id0 = cpc.dataset.copyCard, c0 = cards().find((x) => x.id === id0); if (!c0) return;
+      sbDo(`Copy "${shownTitle(c0)}"`, () => { const nid = "own-" + Date.now().toString(36); const tt = c0.t || c0.a || {};
+        S.added.push({ id: nid, title: c0.title, col: c0.col, levels: c0.levels, project: c0.project || "", klass: c0.klass || "", due: dueOf(c0), scope: scopeOf(c0), at: nowStamp(), copyOf: id0 });
+        const p0 = c0.project || ""; S.torder = S.torder || {}; const cur = cards().filter((x) => (x.project || "") === p0).map((x) => x.id); const base = (S.torder[p0] || []).filter((x) => cur.includes(x)).concat(cur.filter((x) => !(S.torder[p0] || []).includes(x))).filter((x) => x !== nid);
+        base.splice(base.indexOf(id0) + 1, 0, nid); S.torder[p0] = base; FRESH[nid] = Date.now(); }); return; }
+    const dc = t.closest("[data-del-card]"); if (dc) { const id0 = dc.dataset.delCard, c0 = cards().find((x) => x.id === id0); sbDo(`Delete "${c0 ? shownTitle(c0) : id0}"`, () => { S.removed[id0] = 1; }); return; }
+    const dp = t.closest("[data-del-proj]"); if (dp) { const p0 = dp.dataset.delProj; sbDo(`Delete "${p0}" (its parts moved up)`, () => { S.pdel = S.pdel || {}; S.pdel[p0] = 1; }); return; }
     const pm = t.closest("[data-pmenu]"); if (pm) { U.pmenu = U.pmenu === pm.dataset.pmenu ? null : pm.dataset.pmenu; draw(); return; }
     if (U.pmenu && !t.closest(".ccpmenu")) { U.pmenu = null; }
+    const trn = t.closest("[data-trename]"); if (trn) { U.trename = trn.dataset.trename; U.trenameText = null; draw(); const i = host.querySelector("[data-trename-in]"); if (i) { i.focus(); i.select(); } return; }
     const prn = t.closest("[data-prename]"); if (prn) { U.prename = prn.dataset.prename; U.prenameText = U.prename; draw(); const i = host.querySelector("[data-prename-in]"); if (i) { i.focus(); i.select(); } return; }
     const pf = t.closest("[data-pfold]"); if (pf) { const p0 = pf.dataset.pfold; if (S.pfold[p0]) delete S.pfold[p0]; else S.pfold[p0] = 1; save(); draw(); return; }
     const psb = t.closest("[data-psub]"); if (psb) { U.psub = psb.dataset.psub; if (S.pfold[U.psub]) delete S.pfold[U.psub]; draw(); const i = host.querySelector("[data-psub-in]"); if (i) i.focus(); return; }
@@ -2520,6 +2645,7 @@ function wire(h) {
       if (k === "hide") { if (confirm(LIVEM() ? "Take this card off the board? EX-44 keeps it in the task list, under shelved." : "Take this card off the board here? The task list keeps it.")) { const id = U.open, c0 = cards().find((x) => x.id === id); S.removed[id] = 1; U.open = null; save(); draw();
         if (c0 && c0.kind === "task") ship(`Take "${shownTitle(c0)}" off the board`, [{ action: "task", op: "shelve", task: id, target: id }], { key: "hide:" + id, test: () => !dTask(id), clear: () => { delete S.removed[id]; } }, id,
           { reqs: [{ action: "task", op: "unshelve", task: id, target: id }], local: () => { delete S.removed[id]; }, pend: () => ({ key: "unhide:" + id, test: () => !!dTask(id), clear: () => {} }) }); } return; }
+      if (k === "sbreset") { if (confirm("Throw away this arrangement and start again from EX-44's list as it was copied here?")) { const keep = { pfold: S.pfold }; S = Object.assign({ sessions: {}, pos: {}, added: [], comments: {}, steps: {}, ticks: {}, due: {}, proj: {}, removed: {}, late: {}, cleared: {}, answers: {}, edits: {}, ptree: {}, porder: null, pnew: [], followAsked: {}, ren: {} }, keep); save(); location.reload(); } return; }
       if (k === "allplanned") { U.allPlanned = !U.allPlanned; draw(); return; }
       if (k === "more") { U.more = !U.more; draw(); return; }
       if (k === "lanes") { U.lanes = !U.lanes; U.more = false; draw(); return; }
@@ -2555,6 +2681,7 @@ function wire(h) {
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey) && e.target.matches("[data-comment]")) { e.preventDefault(); host.querySelector('[data-act="post"]').click(); }
     if (e.key === "Enter" && e.target.matches("[data-session]")) { e.preventDefault(); host.querySelector('[data-act="session"]').click(); }
     if (e.key === "Enter" && e.target.matches("[data-late]")) { e.preventDefault(); host.querySelector('[data-act="late"]').click(); }
+    if (e.target.matches && e.target.matches("[data-trename-in]")) { if (e.key === "Enter") { e.preventDefault(); renameTask(e.target.dataset.trenameIn, e.target.value); return; } if (e.key === "Escape") { e.stopPropagation(); U.trename = null; draw(); return; } }
     if (e.target.matches && e.target.matches("[data-prename-in]")) { if (e.key === "Enter") { e.preventDefault(); renameProject(e.target.dataset.prenameIn, e.target.value); return; } if (e.key === "Escape") { e.stopPropagation(); U.prename = null; draw(); return; } }
     if (e.target.matches && e.target.matches("[data-psub-in]")) { if (e.key === "Enter") { e.preventDefault(); makeSub(e.target.dataset.psubIn, e.target.value); return; } if (e.key === "Escape") { e.stopPropagation(); U.psub = null; draw(); return; } }
     if (e.key === "Enter" && e.target.matches("[data-ptitle]")) { e.preventDefault(); const v2 = e.target.value.trim(); if (!v2) return; U.form = { mode: "task", title: v2, project: e.target.dataset.ptitle, col: "planned" }; U.ptitle = null; U.ptext = ""; draw(); const sc = host.querySelector('.ccform [data-f="scope"]'); if (sc) sc.focus(); return; }
@@ -2563,8 +2690,9 @@ function wire(h) {
     if (e.key === "Enter" && e.target.matches("[data-newstep]")) { e.preventDefault(); host.querySelector('[data-act="step"]').click(); }
   });
   const typed = (e) => { const t = e.target; if (t.matches && t.matches("input,textarea,select") && !t.matches(BOUND)) t._typed = true; };
+  h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-trename-in]") && U.trename === e.target.dataset.trenameIn) renameTask(e.target.dataset.trenameIn, e.target.value); }, true);
   h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-prename-in]") && U.prename === e.target.dataset.prenameIn) renameProject(e.target.dataset.prenameIn, e.target.value); }, true);
-  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); } });
+  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-trename-in]")) { U.trenameText = e.target.value; return; } if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); } });
   h.addEventListener("change", (e) => {
     const t = e.target; typed(e);
     if (t.closest && t.closest(".ccform")) {
@@ -2609,6 +2737,7 @@ function wire(h) {
     if (!c) return; dragId = c.dataset.card; c.classList.add("dragging"); e.dataTransfer.effectAllowed = "move"; try { e.dataTransfer.setData("text/plain", dragId); } catch (x) {} });
   h.addEventListener("dragend", () => { dragId = null; U.dragP = null; U.dragLeaf = null; U.dragSub = false; host.querySelectorAll(".dragging,.over").forEach((x) => x.classList.remove("dragging", "over")); host.querySelectorAll(".ccmark").forEach((x) => x.remove()); });
   h.addEventListener("dragover", (e) => {
+    if (window.__CCSANDBOX && (U.dragLeaf || U.dragP)) { const z = sbZone(e); host.querySelectorAll(".sb-before,.sb-after,.sb-in").forEach((x) => x.classList.remove("sb-before", "sb-after", "sb-in")); if (z) { e.preventDefault(); z.el.classList.add("sb-" + z.where); } return; }
     if (U.dragLeaf || (U.dragP && U.dragSub)) { const tg = e.target.closest && (e.target.closest("[data-leaf]") || e.target.closest("[data-player]")); if (!tg) return; e.preventDefault();
       host.querySelectorAll(".over").forEach((x) => x !== tg && x.classList.remove("over")); tg.classList.add("over"); return; }
     if (U.dragP && e.target.closest && e.target.closest(".ccsubh,.cclayer")) { const tg = e.target.closest("[data-player]"); if (tg) { e.preventDefault(); host.querySelectorAll(".over").forEach((x) => x !== tg && x.classList.remove("over")); tg.classList.add("over"); } return; }
@@ -2619,6 +2748,7 @@ function wire(h) {
     let m = z.querySelector(".ccmark"); if (!m) { m = document.createElement("div"); m.className = "ccmark"; }
     if (before) before.parentNode.insertBefore(m, before); else z.appendChild(m); });
   h.addEventListener("drop", (e) => {
+    if (window.__CCSANDBOX && (U.dragLeaf || U.dragP)) { const z = sbZone(e); host.querySelectorAll(".sb-before,.sb-after,.sb-in").forEach((x) => x.classList.remove("sb-before", "sb-after", "sb-in")); const leaf = U.dragLeaf, proj = U.dragP; U.dragLeaf = null; U.dragP = null; U.dragSub = false; if (z) { e.preventDefault(); sbDrop(leaf, proj, z); } return; }
     if (U.dragLeaf) { e.preventDefault(); const id0 = U.dragLeaf; U.dragLeaf = null; const lt = e.target.closest && e.target.closest("[data-leaf]");
       if (lt && lt.dataset.leaf !== id0) { const tc = cards().find((x) => x.id === lt.dataset.leaf); moveToProject(id0, tc ? tc.project || "" : "", lt.dataset.leaf); return; }
       const pl = e.target.closest && e.target.closest("[data-player]"); if (pl) moveToProject(id0, pl.dataset.player, null); return; }
