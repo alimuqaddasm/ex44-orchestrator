@@ -887,6 +887,232 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .cctren{font:600 20px/1.25 var(--id);width:100%;box-sizing:border-box}
 .ex .ccmapv .cclayer>.ccsubh .num{display:inline-grid;place-items:center;min-width:22px;height:20px;padding:0 7px;margin:0 6px 0 4px;border-radius:10px;background:var(--g0);border:1px solid var(--g3);font:600 11.5px/1 var(--m);color:var(--ink2)}
 
+/* 27 Nov 2026, Ali's notes after days on the preview: priority, who a card waits on, a visible edit control
+   on every card, the quick edit, linking any chat, and a project map that fits the screen with no hidden buttons holding width */
+.ex .cccard{position:relative}
+.ex .ccacts{position:absolute;top:7px;right:7px;display:flex;gap:3px;z-index:2}
+.ex .ccacts .ccicon{width:26px;height:26px;border-radius:7px;background:var(--g1);border:1px solid var(--line);color:var(--ink2);display:grid;place-items:center;cursor:pointer;padding:0}
+.ex .ccacts .ccicon:hover,.ex .ccacts .ccicon:focus-visible{border-color:var(--line2);color:var(--ink);outline:none;box-shadow:0 0 0 2px var(--blue)}
+.ex .ccacts .ccflag{color:var(--ink3)}
+.ex .ccacts .ccflag.on{background:var(--tag-red-bg);border-color:color-mix(in oklch,var(--tag-red-fg) 35%,transparent);color:var(--tag-red-fg)}
+.ex .cccard>.ccacts+*{padding-right:58px}
+.ex .cccard.cls>.ccacts+*{padding-right:0}
+.ex .cccard.cls .cccbody{padding-right:52px}
+.ex .cccard.hi::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--tag-red-fg)}
+.ex .pill.ccpri.hi{background:var(--tag-red-bg)!important;color:var(--tag-red-fg)!important;box-shadow:inset 0 0 0 1px color-mix(in oklch,var(--tag-red-fg) 28%,transparent)}
+.ex .pill.ccpri.lo{background:var(--tag-gray-bg)!important;color:var(--tag-gray-fg)!important}
+.ex .ccwait{border:0;font:inherit;cursor:default}
+.ex button.ccwait{cursor:pointer;font:500 12px/1 var(--f)}
+.ex .pill.ccwait.w-you{background:var(--tag-amber-bg)!important;color:var(--tag-amber-fg)!important}
+.ex .pill.ccwait.w-mentor{background:var(--tag-violet-bg)!important;color:var(--tag-violet-fg)!important}
+.ex .pill.ccwait.w-la57{background:var(--tag-teal-bg)!important;color:var(--tag-teal-fg)!important}
+.ex .pill.ccwait.w-chat{background:var(--tag-blue-bg)!important;color:var(--tag-blue-fg)!important}
+.ex .pill.ccwait.unset{background:transparent!important;box-shadow:inset 0 0 0 1px var(--line2);color:var(--ink2)!important}
+.ex button.ccwait:hover,.ex button.ccwait:focus-visible{outline:none;box-shadow:0 0 0 2px var(--blue)}
+/* the quick edit */
+.ex .ccqscrim{position:fixed;inset:0;z-index:60;background:transparent}
+.ex .ccqmenu{position:fixed;z-index:61;width:min(340px,calc(100vw - 24px));box-sizing:border-box;padding:12px 12px 8px;border:1px solid var(--line2);border-radius:12px;background:var(--g0);box-shadow:0 18px 44px -16px oklch(20% 0.02 250 / .5);display:flex;flex-direction:column;gap:8px;max-height:calc(100vh - 24px);overflow:auto}
+.ex .ccqmenu .cceyebrow{margin:4px 0 0}
+.ex .ccqh{display:flex;align-items:center;gap:8px;justify-content:space-between}
+.ex .ccqh b{font:600 14.5px/1.25 var(--id)}
+.ex .ccqhint{text-transform:none;letter-spacing:0;color:var(--ink3);font-weight:400}
+.ex .ccsegs{display:flex;flex-wrap:wrap;gap:4px}
+.ex .ccseg{height:30px;padding:0 11px;border-radius:8px;border:1px solid var(--line);background:var(--g1);color:var(--ink);font:500 13px/1 var(--f);cursor:pointer}
+.ex .ccseg:hover,.ex .ccseg:focus-visible{border-color:var(--line2);outline:none;box-shadow:0 0 0 2px var(--blue)}
+.ex .ccseg.on{background:var(--ink);border-color:var(--ink);color:var(--g0)}
+.ex .ccseg.hi.on{background:var(--tag-red-fg);border-color:var(--tag-red-fg);color:var(--g0)}
+.ex .ccqlist{display:flex;flex-direction:column;margin-top:4px;border-top:1px solid var(--line);padding-top:4px}
+.ex .ccqlist button{display:flex;gap:10px;align-items:flex-start;width:100%;padding:8px;border:0;border-radius:8px;background:transparent;color:var(--ink);font:500 13.5px/1.3 var(--f);text-align:left;cursor:pointer}
+.ex .ccqlist button svg{margin-top:2px;flex:none;color:var(--ink2)}
+.ex .ccqlist button:hover,.ex .ccqlist button:focus-visible{background:var(--g2);outline:none}
+.ex .ccqlist em{display:block;font-style:normal;color:var(--ink3);font-size:12px;margin-top:2px}
+@media (max-width:520px){.ex .ccqmenu{left:8px!important;right:8px;top:auto!important;bottom:8px;width:auto;max-height:80vh!important}}
+/* the opened card: Edit beside Close, the two marks under the slider, the pen on the title always shown */
+.ex .ccedit{height:30px}
+.ex .ccquick{display:flex;flex-wrap:wrap;gap:10px 22px;padding:4px 0 2px}
+.ex .ccqf{display:flex;flex-direction:column;gap:6px}
+.ex .ccqf .lab{display:inline-flex;align-items:center;gap:5px}
+.ex .cctbtn svg{opacity:.55}
+/* link a chat */
+.ex .cclinkb .cclrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:30px}
+.ex .cclrn{font-weight:600;font-size:13.5px}
+.ex .cclinkb a.cclink{display:inline-flex;align-items:center;gap:4px;color:var(--blue);font-weight:500;text-decoration:none}
+.ex .cclinkp{display:flex;flex-direction:column;gap:10px;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--g1)}
+.ex .cclists{max-height:320px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+.ex .cclgrp{display:flex;flex-direction:column;gap:1px}
+.ex .cclgrp .cceyebrow{display:flex;align-items:center;gap:6px;margin:0 0 2px}
+.ex .cclpick{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 8px;border:0;border-radius:7px;background:transparent;color:var(--ink);text-align:left;cursor:pointer;font:500 13.5px/1.25 var(--f)}
+.ex .cclpick:hover,.ex .cclpick:focus-visible{background:var(--g2);outline:none}
+.ex .cclpn{font-weight:600;overflow-wrap:anywhere}
+.ex .cclpaste{display:flex;flex-direction:column;gap:6px;border-top:1px solid var(--line);padding-top:10px}
+/* the project map: one small "more" button over the tag's corner, nothing hidden holding width, tighter boxes */
+.ex .ccmapv .ccsubh{position:relative}
+.ex .ccmapv .ccsubh[draggable="true"]{cursor:grab}
+.ex .cclmore{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;padding:0;border:1px solid var(--line2);background:var(--g0);color:var(--ink2);cursor:pointer;margin-left:auto}
+.ex .ccmapv .ccpmenu.cclmenu{display:flex;position:absolute;left:0;right:auto;top:calc(100% + 4px);z-index:6}
+@media (min-width: 900px){
+  .ex .ccmapv .ccpj{grid-template-columns:228px minmax(0,1fr);padding:12px 16px}
+  .ex .ccmapv .ccroot{padding:10px 12px;gap:6px}
+  .ex .ccmapv .ccroot .ccpname.ccpjt{font-size:15px}
+  .ex .ccmapv .ccpj>.ccbranches{padding-left:26px}
+  .ex .ccmapv .cclayer{column-gap:22px}
+  .ex .ccmapv .cclayer>.ccsubh{height:34px;padding:0 6px 0 2px}
+  .ex .ccmapv .cclayer>.ccsubh .ccpname{font-size:14px}
+  .ex .ccmapv .cclmore{position:absolute;top:-10px;right:-10px;margin:0;width:22px;height:22px;opacity:0;transition:opacity .15s;z-index:3;box-shadow:0 2px 6px -2px oklch(20% 0.02 250 / .3)}
+  .ex .ccmapv .ccsubh:is(:hover,:focus-within) .cclmore,.ex .ccmapv .cclmore[aria-expanded="true"]{opacity:1}
+  .ex .ccmapv .ccleafw .ccleaf{max-width:230px;height:32px;padding:0 10px;font-size:13px;border-radius:9px}
+  .ex .ccmapv .ccpj.tight .ccleafw .ccleaf{max-width:168px}
+  .ex .ccmapv .ccpj.tight .cclayer{column-gap:16px}
+  .ex .ccmapv .ccpj.tighter .ccleafw .ccleaf{max-width:118px;padding:0 8px}
+  .ex .ccmapv .ccpj.tighter .cclayer>.ccsubh .ccpname{font-size:13px;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+@media (min-width: 900px) and (hover: none){.ex .ccmapv .cclmore{opacity:1}}
+@media (prefers-reduced-motion: reduce){.ex .ccmapv .cclmore{transition:none}}
+.ex .ccfxbtn{display:none;cursor:pointer;font:inherit}
+@media (max-width:760px){.ex .cctools .ccfx{display:none}.ex .cctools.fopen .ccfx{display:inline-flex}.ex .ccfxbtn{display:inline-flex}}
+
+/* Lesson status panel (25 Nov 2026), top of the mentor view. Home tokens only, plus one teal for "revised / made from" */
+.ex-light .lsp{--lsM:oklch(52% 0.09 190 / .28);--lsT:oklch(52% 0.09 190);--lsTd:oklch(60% 0.09 190 / .13);--lsF:oklch(52% 0.09 190);--lsH:oklch(52% 0.09 190 / .45);--lsE:var(--g3)}
+.ex-dark .lsp{--lsM:oklch(74% 0.09 190 / .3);--lsT:oklch(80% 0.09 190);--lsTd:oklch(80% 0.09 190 / .14);--lsF:oklch(74% 0.09 190);--lsH:oklch(74% 0.09 190 / .4);--lsE:var(--g3)}
+.ex .lsp{display:flex;flex-direction:column;gap:14px;padding:18px;overflow:visible}
+.ex .lshead h2{margin:0;font:600 20px/1.15 var(--id);letter-spacing:-.015em}
+.ex .lsq{margin:0;color:var(--ink3);font-size:12.5px;line-height:1.4}
+.ex .lshead .lsq{margin-top:4px;font-size:13px;color:var(--ink2)}
+.ex .lsts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.ex .lsp.ph .lsts{grid-template-columns:minmax(0,1fr)}
+.ex .lst{box-sizing:border-box;display:flex;flex-direction:column;gap:6px;padding:12px 12px 10px;border-radius:10px;background:var(--g1);border:1px solid var(--line);min-width:0;transition:border-color .12s,background .12s}
+.ex .lst:hover{border-color:var(--line2);background:var(--g2)}
+.ex .lst:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.ex .lst.on{border-color:var(--lsT);box-shadow:inset 0 0 0 1px var(--lsT);background:var(--g0)}
+.ex .lsth{display:flex;align-items:center;gap:6px;justify-content:space-between;margin-bottom:2px}
+.ex .lsth b{font:600 15px/1.2 var(--id);letter-spacing:-.01em;color:var(--ink)}
+.ex .lswarn{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 6px;border-radius:6px;background:var(--amber-d);color:var(--amber);font:500 11px/1 var(--f);white-space:nowrap}
+.ex .lsrow{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:4px}
+.ex .lsl{font-size:12.5px;color:var(--ink2);line-height:1.3}
+.ex .lsn{font:600 20px/1 var(--m);color:var(--ink);white-space:nowrap}
+.ex .lsn em{font:500 11.5px/1 var(--m);font-style:normal;color:var(--ink3);margin-left:4px}
+.ex .lsseg{display:flex;gap:2px;height:8px;width:100%}
+.ex .lsseg i{display:block;min-width:3px;border-radius:2px;background:var(--lsE)}
+.ex .lsseg i.f{background:var(--lsF)}
+.ex .lsseg i.h{background:var(--lsH)}
+.ex .lsseg i.r{background:var(--amber)}
+.ex .lsseg i.e{background:var(--lsH)}
+.ex .lsids{display:flex;flex-wrap:wrap;gap:4px;min-height:20px}
+.ex .lsopen{all:unset;box-sizing:border-box;cursor:pointer;align-self:flex-start;display:inline-flex;align-items:center;gap:4px;margin-top:auto;padding-top:6px;font:500 12px/1 var(--f);color:var(--ink3)}
+.ex .lst.on .lsopen{color:var(--lsT)}
+.ex .lst:not(.on) .lsopen svg{transform:rotate(-90deg)}
+/* the opened subject */
+.ex .lsd{display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:10px;background:var(--g1);border:1px solid var(--line)}
+.ex .lsdh{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ex .lsdh h3{margin:0;font:600 17px/1.2 var(--id)}
+.ex .lsgcs{display:flex;flex-wrap:wrap;gap:6px}
+.ex .lsgc{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 9px;border-radius:7px;background:var(--g0);border:1px solid var(--line2);font:500 12.5px/1 var(--f);color:var(--ink);cursor:pointer}
+.ex .lsgc .num{font:500 11px/1 var(--m);color:var(--ink3)}
+.ex .lsgc.empty{color:var(--ink3);border-style:dashed}
+.ex .lsgc.on{background:var(--lsTd);border-color:var(--lsT);color:var(--ink)}
+.ex .lsgc:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.ex .lsdot{width:6px;height:6px;border-radius:50%;background:var(--lsT)}
+.ex .lslane{display:flex;flex-direction:column;gap:8px}
+.ex .lslh{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ex .lslh .ccnum{margin-left:0}
+.ex .lsleg{margin-left:auto;display:inline-flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--ink3)}
+.ex .lsleg span{display:inline-flex;align-items:center;gap:4px}
+.ex .lsus{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:6px}
+.ex .lsu{display:flex;flex-direction:column;gap:6px;padding:8px;border-radius:8px;background:var(--g0);border:1px solid var(--line);min-width:0}
+.ex .lsu.fed{border-color:var(--lsT);box-shadow:inset 3px 0 0 var(--lsT)}
+.ex .lsu.ghost{border-style:dashed;background:transparent;color:var(--ink3);font-size:12px;justify-content:center}
+.ex .lsu .ccmono{align-self:flex-start}
+.ex .lspp{display:inline-flex;gap:3px}
+.ex .lspp i,.ex .lsleg i{display:inline-grid;place-items:center;min-width:18px;height:16px;padding:0 3px;border-radius:4px;font:600 9.5px/1 var(--m);font-style:normal;color:var(--ink3);box-shadow:inset 0 0 0 1px var(--line2);box-sizing:border-box}
+.ex .lspp i.on,.ex .lsleg i.on{background:var(--lsTd);color:var(--lsT);box-shadow:inset 0 0 0 1px var(--lsT)}
+.ex .lsleg i.lk-rev{background:var(--lsT);box-shadow:none;min-width:10px;width:10px;height:10px;border-radius:3px}
+.ex .lsto{display:inline-flex;align-items:center;gap:3px;font:600 11.5px/1 var(--m);color:var(--lsT)}
+.ex .lsl2{display:grid;grid-template-columns:minmax(150px,auto) 20px minmax(0,1fr) auto;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;background:var(--g0);border:1px solid var(--line)}
+.ex .lsp.ph .lsl2{grid-template-columns:auto 18px minmax(0,1fr)}
+.ex .lsp.ph .lsfiles{grid-column:1 / -1}
+.ex .lsfrom{display:inline-flex;flex-wrap:wrap;align-items:center;gap:4px}
+.ex .lsplus{color:var(--ink3);font:500 12px/1 var(--m)}
+.ex .lsarr{color:var(--lsT);display:inline-flex}
+.ex .lsles{display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px}
+.ex .lsles b{font:600 14px/1 var(--m)}
+.ex .lsfiles{display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ex .lstag{display:inline-flex;align-items:center;gap:4px;height:20px;padding:0 7px;border-radius:6px;font:500 11.5px/1 var(--f);white-space:nowrap}
+.ex .lt-ok{background:var(--ok-d);color:var(--ok)}.ex .lt-blue{background:var(--blue-d);color:var(--blue)}.ex .lt-park{background:var(--tn);color:var(--ink2)}
+.ex .lt-you{background:var(--amber-d);color:var(--amber)}.ex .lt-teal{background:var(--lsTd);color:var(--lsT)}
+.ex .lschk{display:flex;flex-direction:column;gap:4px;padding:8px 10px;border-radius:8px;background:var(--amber-d)}
+.ex .lschk p{margin:0;display:flex;gap:6px;align-items:flex-start;font-size:12.5px;color:var(--ink)}
+.ex .lschk svg{color:var(--amber);flex:none;margin-top:2px}
+.ex .lsu.lspc{gap:5px}
+.ex .lsround{display:flex}
+.ex .lsup{font-size:11.5px;line-height:1.35;color:var(--ink2)}
+.ex .lsup.revision{color:var(--ink)}
+.ex .lsnote{display:flex;flex-direction:column;gap:5px}
+.ex .lsnote .lab{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink3)}
+.ex .lsnote textarea{box-sizing:border-box;width:100%;resize:vertical;min-height:44px;padding:8px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--g0);color:var(--ink);font:400 13.5px/1.45 var(--f)}
+.ex .lsnote textarea:focus{outline:2px solid var(--amber);outline-offset:1px}
+.ex .lsp.ph{padding:14px 12px}.ex .lsp.ph .lsd{padding:10px}.ex .lsp.ph .lsus{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+/* round 1 tweaks (Ali's comments, 25 Nov): split by part or Bab, folds, minor revision; teal only as line, text and soft tint, never a solid chip */
+.ex .lsseg i.m{background:var(--lsM)}
+.ex .lsbg{margin:0;display:flex;flex-wrap:wrap;gap:3px 9px;font:500 11.5px/1.35 var(--m);color:var(--ink2)}
+.ex .lsbg b{font-weight:600;color:var(--ink)}
+.ex .lsbg .dim,.ex .lsbg .dim b{color:var(--ink3);font-weight:500}
+.ex .lsbg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px;background:var(--lsF)}
+.ex .lsbg i.m{background:var(--lsM)}
+.ex .lsn.sm{font-size:15px}
+.ex .lslg{display:flex;flex-direction:column;gap:4px}
+.ex .lsgl{display:inline-flex;align-items:center;gap:4px;font:600 12px/1 var(--f);color:var(--ink)}
+.ex .lsfold{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:4px;align-self:flex-start;height:22px;padding:0 7px;border-radius:6px;border:1px solid var(--line2);background:var(--g0);font:500 11.5px/1 var(--f);color:var(--ink2);cursor:pointer}
+.ex .lsfold svg{transform:rotate(-90deg)}.ex .lsfold.on svg{transform:none}
+.ex .lsfold:focus-visible,.ex .lsopen:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.ex .lsu.wr{border-style:dashed}
+.ex .lt-tealm{background:transparent;color:var(--lsT);box-shadow:inset 0 0 0 1px var(--lsM)}
+
+/* the card as a ladder of layers; steps line up across the cards (shared rows) */
+.ex .lst{gap:8px}
+.ex .lsp.ph .lsts{grid-template-rows:none;row-gap:10px}
+.ex .lsp.ph .lst{grid-row:auto;grid-template-rows:none}
+.ex .lsth{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;padding-bottom:10px}
+.ex .lsth .lsnm{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ex .lsth .lswarn{flex:none}
+.ex .lsids{margin:0}
+.ex .lst .lslg{gap:6px}
+.ex .lsly{position:relative;display:grid;grid-template-columns:24px minmax(0,1fr);gap:8px;padding-bottom:12px;align-content:start}
+.ex .lsly::before{content:"";position:absolute;left:11.5px;top:22px;bottom:0;width:1px;background:var(--lsH)}
+.ex .lsly.last::before{display:none}
+.ex .lsnode{display:inline-grid;place-items:center;width:24px;height:20px;border-radius:5px;font:600 9.5px/1 var(--m);color:var(--lsT);box-shadow:inset 0 0 0 1px var(--lsT);background:var(--g0)}
+.ex .lsbody{display:flex;flex-direction:column;gap:5px;min-width:0}
+.ex .lsbody .lsrow{margin-top:1px}
+.ex .lst .lsopen{padding-top:4px;align-self:end}
+
+/* ladder by Bab */
+.ex .lstot{display:flex;flex-wrap:wrap;gap:6px;padding-bottom:4px;border-bottom:1px solid var(--line)}
+.ex .lsmi{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}
+.ex .lsmi i{font:600 9.5px/1 var(--m);font-style:normal;color:var(--lsT);padding:3px 4px;border-radius:4px;box-shadow:inset 0 0 0 1px var(--lsH)}
+.ex .lsmi b{font:600 13px/1 var(--m);color:var(--ink)}
+.ex .lsmi em{font:500 10.5px/1 var(--m);font-style:normal;color:var(--ink3)}
+.ex .lstot .lsmi b{font-size:16px}
+.ex .lslad{display:flex;flex-direction:column}
+.ex .lslad .lsly{padding-bottom:10px}
+.ex .lslad .lsly:last-child::before{display:none}
+.ex .lsms{display:inline-flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.ex .lslad .lsrow{align-items:center;flex-wrap:wrap}
+.ex .lslad .lsl{font-weight:600;color:var(--ink)}
+.ex .lsly.rest .lsnode{box-shadow:none;outline:1px dashed var(--line2);outline-offset:-1px;color:var(--ink3)}
+.ex .lsly.rest .lsl{font-weight:500;color:var(--ink2)}
+.ex .lsly.wr .lsnode{box-shadow:none;outline:1px dashed var(--lsT);outline-offset:-1px}
+.ex .lsbg i.h{background:var(--lsH)}
+.ex .lst .lsopen{align-self:flex-start}
+.ex .lsmi i{margin-left:1px}
+
+/* unit blocks: even rounded squares, soft fill, quiet empty outline */
+.ex .lsdots{display:flex;flex-wrap:wrap;gap:3px;max-width:100%}
+.ex .lsdots i{flex:none;width:9px;height:9px;border-radius:2.5px;box-shadow:inset 0 0 0 1px var(--line2);background:transparent}
+.ex .lsdots i.f{background:var(--lsF);box-shadow:none;opacity:.85}
+.ex .lsdots i.h{background:var(--lsH);box-shadow:none}
+.ex .lsdots i.m{background:var(--lsM);box-shadow:inset 0 0 0 1px var(--lsH)}
+.ex .lsdots i.e{background:var(--lsE);box-shadow:none}
+
 
 :root{--page-bg:oklch(97.3% 0.004 250)}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--page-bg:oklch(17% 0.012 250);color-scheme:dark}}
@@ -1524,6 +1750,209 @@ body{background:var(--page-bg);margin:0}
 <div id="dc-root"></div>
 <script>window.__CCLIVE = true; window.__EX44MARKS = {"wk": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><g transform=\"rotate(0 16 16)\"><path d=\"M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z\" fill=\"#a7c743\"/><circle cx=\"23.25\" cy=\"8.75\" r=\"6.75\" fill=\"#566f00\"/><rect x=\"2\" y=\"16.5\" width=\"13.5\" height=\"13.5\" rx=\"2.5\" fill=\"#566f00\"/><path d=\"M16.5 16.5H30.0A13.5 13.5 0 0 1 16.5 30.0Z\" fill=\"#7a9c00\"/></g></svg>", "aw": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><g transform=\"rotate(90 16 16)\"><path d=\"M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z\" fill=\"#ff964b\"/><circle cx=\"23.25\" cy=\"8.75\" r=\"6.75\" fill=\"#a24200\"/><rect x=\"2\" y=\"16.5\" width=\"13.5\" height=\"13.5\" rx=\"2.5\" fill=\"#a24200\"/><path d=\"M16.5 16.5H30.0A13.5 13.5 0 0 1 16.5 30.0Z\" fill=\"#e16000\"/></g></svg>", "amm": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><g transform=\"rotate(180 16 16)\"><path d=\"M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z\" fill=\"#fe8acf\"/><circle cx=\"23.25\" cy=\"8.75\" r=\"6.75\" fill=\"#9b3876\"/><rect x=\"2\" y=\"16.5\" width=\"13.5\" height=\"13.5\" rx=\"2.5\" fill=\"#9b3876\"/><path d=\"M16.5 16.5H30.0A13.5 13.5 0 0 1 16.5 30.0Z\" fill=\"#d852a6\"/></g></svg>", "sc21": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 32 32\"><g transform=\"rotate(270 16 16)\"><path d=\"M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z\" fill=\"#00d2ce\"/><circle cx=\"23.25\" cy=\"8.75\" r=\"6.75\" fill=\"#007876\"/><rect x=\"2\" y=\"16.5\" width=\"13.5\" height=\"13.5\" rx=\"2.5\" fill=\"#007876\"/><path d=\"M16.5 16.5H30.0A13.5 13.5 0 0 1 16.5 30.0Z\" fill=\"#00a9a5\"/></g></svg>"};</script>
 <script>
+/* Lesson status panel, top of the Command Centre's mentor view (Ali, 25 Nov 2026:
+   "on the top of everything, I want to see the current status of Maarif lessons in all layers ... holistic ... interactive").
+   window.EX44LS.html(data, phone) draws it from data.lessons (tools/lessonstatus.py, carried in cc.json); click a subject
+   to open its units and lessons, a Bab or part to see that group, and each lesson shows the source units it came from.
+   What Ali picks and writes is kept in this browser (localStorage "ex44-ls-v1"). No data is baked in. */
+(function () {
+"use strict";
+if (window.EX44LS) return;
+const KEY = "ex44-ls-v1";
+let S = { s: null, g: {}, open: {}, notes: {} };
+try { const o = JSON.parse(localStorage.getItem(KEY) || "{}"); S = Object.assign(S, o); } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const fd = (d) => { const m = /^(\d{4})-(\d\d)-(\d\d)$/.exec(d || ""); return m ? (+m[3]) + " " + MON[+m[2] - 1] : ""; };
+const P = { check: "M5 12.5l4.5 4.5L19 7.5", arrow: "M5 12h14M13 6l6 6-6 6", flag: "M5 21V4h11l-2 4 2 4H5", note: "M6 4h9l3 3v13H6zM9 10h6M9 14h6",
+  x: "M6 6l12 12M18 6 6 18", layers: "M12 3 3 8l9 5 9-5zM3 13l9 5 9-5", merge: "M6 4v6a6 6 0 0 0 6 6h6M15 13l3 3-3 3M6 20v-4", pen: "M4 20l4-1 11-11-3-3L5 16zM14 6l3 3", chev: "m6 9 6 6 6-6" };
+const ic = (n, s) => `<svg width="${s || 14}" height="${s || 14}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${P[n]}"></path></svg>`;
+// the layers of a file, in the order the mentor folders keep them
+// Ali's order (25 Nov): Teacher Copy, Handout, Dx (the extra deck, the one used in class), CP (core points).
+// The main deck is only a step in making Dx, so it is not shown as a layer.
+const K = [["tc", "TC", "Teacher Copy"], ["handout", "H", "Handout"], ["extra", "Dx", "Class deck"], ["flowchart", "CP", "Core points"]];
+const KP = [["tc", "TC", "Teacher Copy"], ["handout", "H", "Handout"], ["deck", "D", "Deck"]];   // Persian: its PPT is the class deck
+const pips = (m, ks) => `<span class="lspp">${(ks || K).map(([k, a, w]) => `<i class="${m && m[k] ? "on lk-" + k : ""}" title="${w}${m && m[k] ? "" : ": not made"}">${a}</i>`).join("")}</span>`;
+const STATE = { taught: ["ok", "Taught"], made: ["ok", "Made"], building: ["blue", "Being made"], planned: ["park", "Planned"] };
+const tag = (k, t, i) => `<span class="lstag lt-${k}">${i ? ic(i, 11) : ""}${esc(t)}</span>`;
+const HOW = { "as is": ["Unchanged", "check"], merged: ["Merged", "merge"], rewritten: ["Rewritten", "pen"] };
+const fold = (key, label, on) => `<button class="lsfold${on ? " on" : ""}" type="button" data-ls-fold="${esc(key)}" aria-expanded="${on}">${ic("chev", 11)}${esc(label)}</button>`;
+const isOpen = (key, def) => (S.open && key in S.open ? S.open[key] : def);
+const span = (a) => (a.length > 1 ? a[0] + " to " + a[a.length - 1] : a[0] || "");
+// one even rounded square per unit or lesson, in a tidy grid (Ali: "the blocks look weird, make them look good and professional")
+const segbar = (parts, label) => `<span class="lsdots" role="img" aria-label="${esc(label)}">${parts.map((p) => `<i class="${p.c}" title="${esc(p.t || "")}"></i>`).join("")}</span>`;
+
+function groupWord(s) { return s.id === "muq" ? "part" : s.kind === "persian" ? "book" : "Bab"; }
+function byGroup(s) {
+  // the count split by part (Z, RA, T, END) or by Bab, as short mono pairs; empty groups summed into one span
+  if (s.id === "muq") {
+    const fam = {}; s.groups.forEach((g) => { const k = g.id.replace(/\d+$/, ""); fam[k] = (fam[k] || 0) + g.tc; });
+    return Object.entries(fam).map(([k, n]) => `<span><b>${esc(k)}</b> ${n}</span>`).join("");
+  }
+  const out = [], run = []; let kind = null;
+  const flush = () => { if (run.length) out.push(`<span class="dim"><b>${esc(span(run))}</b> ${kind}</span>`); run.length = 0; };
+  s.groups.forEach((g) => {
+    if (g.tc) { flush(); out.push(`<span><b>${esc(g.id)}</b> ${g.tc}</span>`); return; }
+    const k = g.written ? "written, no Word" : g.hub === false ? "no hub plan" : g.planned ? "planned" : "not started";
+    if (k !== kind) flush(); kind = k; run.push(g.id);
+  });
+  flush();
+  return out.join("");
+}
+function tileLessons(s) {
+  const regd = s.lessons.filter((l) => l.registered), by = {};
+  regd.forEach((l) => { const g = s.id === "muq" ? (s.units.find((u) => u.unit === l.from[0]) || {}).family : "B" + l.bab; (by[g] = by[g] || []).push(l); });
+  const gi = Math.max(0, s.groups.findIndex((g) => by[g.id])), first = s.groups[gi], rest = s.groups.filter((g, i) => i !== gi);
+  if (!first) return `<p class="lsq">None yet</p>`;
+  const chips = (g) => (by[g.id] || []).map((l) => `<span class="ccmono">${esc(l.id.replace(/^B\d+ /, ""))}</span>`).join("") || `<span class="lsq">none yet</span>`;
+  const fk = s.id + ":rest", fo = isOpen(fk, false);
+  const withL = rest.filter((g) => by[g.id]);
+  return `<div class="lslg"><span class="lsgl">${ic("chev", 11)}${esc(first.id)}</span><p class="lsids">${chips(first)}</p></div>
+    ${rest.length ? fold(fk, span(rest.map((g) => g.id)), fo) + (fo ? (withL.map((g) => `<div class="lslg"><span class="lsgl">${esc(g.id)}</span><p class="lsids">${chips(g)}</p></div>`).join("") || `<p class="lsq">None yet in ${esc(span(rest.map((g) => g.id)))}</p>`) : "") : ""}`;
+}
+// Ali, 25 Nov: same cards, same information, read faster, and "make step ladders based on bab segregation":
+// the card shows its totals once, then a ladder with one step per Bab (Muqaddama: per part Z, RA, T, END; Persian:
+// per book). Each step carries that Bab's own layers (TC, H, Class Lessons). Babs with nothing yet are joined into
+// one dashed step at the end ("B10 to B18, not started").
+const mini = (a, n, of) => `<span class="lsmi"><b class="num">${n}</b>${of != null ? `<em class="num">/${of}</em>` : ""}<i>${a}</i></span>`;   // number first, then its tag (Ali)
+function ladder(steps) { return `<div class="lslad">${steps.join("")}</div>`; }
+function rung(node, label, metrics, body, cls) {
+  return `<div class="lsly${cls ? " " + cls : ""}"><span class="lsnode">${esc(node)}</span><div class="lsbody"><div class="lsrow"><span class="lsl">${label}</span><span class="lsms">${metrics || ""}</span></div>${body || ""}</div></div>`;
+}
+function babSteps(s) {
+  const regd = s.lessons.filter((l) => l.registered), byL = {};
+  regd.forEach((l) => { const g = s.id === "muq" ? (s.units.find((u) => u.unit === l.from[0]) || {}).family : "B" + l.bab; (byL[g] = byL[g] || []).push(l); });
+  let groups = s.groups.map((g) => ({ id: g.id, node: g.id, label: "Bab " + g.id.slice(1), tc: g.tc, h: g.handout, planned: g.planned, written: g.written, hub: g.hub, les: byL[g.id] || [] }));
+  if (s.id === "muq") {   // parts Z, RA, T, END
+    const fam = {};
+    groups.forEach((g) => { const k = g.id.replace(/\d+$/, ""); const f = fam[k] = fam[k] || { id: k, node: k, label: k === "Z" ? "Zamina (Z1 to Z8)" : k === "T" ? "Teaching (T1 to T6)" : k === "RA" ? "RA" : "End", tc: 0, h: 0, planned: 0, written: 0, les: [] };
+      f.tc += g.tc; f.h += g.h; f.planned += g.planned; f.les = f.les.concat(g.les); });
+    groups = Object.values(fam);
+  }
+  const out = [], run = []; let kind = null;
+  const flush = () => { if (!run.length) return; const lab = run.length > 1 ? run[0] + " to " + run[run.length - 1] : run[0];
+    out.push(rung("…", `${esc(lab.replace(/B/g, "Bab "))}`, `<span class="lsq">${kind}</span>`, "", "rest")); run.length = 0; };
+  groups.forEach((g) => {
+    if (g.tc || g.written || g.les.length) {
+      flush();
+      const chips = g.les.length ? `<p class="lsids">${g.les.map((l) => `<span class="ccmono">${esc(s.id === "muq" ? l.id : "L" + l.n)}</span>`).join("")}</p>` : "";
+      const n = Math.max(g.planned, g.tc), bar = g.tc ? segbar(Array.from({ length: n }, (_, i) => ({ c: i < g.tc ? "f" : "", t: g.id })), g.id) : "";   // one block per unit, like Persian
+      const m = g.written && !g.tc ? `<span class="lsq">${g.written} written, no Word yet</span>` : mini("TC", g.tc, g.planned > g.tc ? g.planned : null) + mini("H", g.h) + mini("L", g.les.length);
+      out.push(rung(g.node, esc(g.label), m, bar + chips, g.written && !g.tc ? "wr" : ""));
+      return;
+    }
+    const k = g.hub === false ? "no hub plan" : g.planned ? "planned" : "not started";
+    if (k !== kind) flush(); kind = k; run.push(g.id);
+  });
+  flush();
+  return out;
+}
+function tile(s, on) {
+  const c = s.counts, warn = s.notes.length ? `<span class="lswarn" title="${esc(s.notes.join("; "))}">${ic("flag", 11)}${s.notes.length} to check</span>` : "";
+  let tot = "", steps = [], sub = "";
+  if (s.kind === "persian") {
+    sub = `Final lessons, ${s.groups.length} books`;
+    tot = mini("Book 1", c.book1, c.book1_planned) + mini("Revised", c.revised + c.minor);
+    const more = s.groups.slice(2).map((g) => g.id.replace("Book ", ""));
+    s.groups.slice(0, 2).forEach((g) => {
+      const ls = s.lessons.filter((l) => l.book === +g.id.replace(/\D/g, ""));
+      const rev = ls.filter((l) => l.round).length, mn = ls.filter((l) => l.minor).length;
+      steps.push(rung(g.id.replace("Book ", "B"), esc(g.id), mini("TC", ls.filter((l) => l.made.tc).length, g.planned) + mini("H", ls.filter((l) => l.made.handout).length) + mini("D", ls.filter((l) => l.made.deck).length),
+        segbar(ls.map((l) => ({ c: l.round ? "f" : l.minor ? "m" : l.made.tc && l.made.handout && l.made.deck ? "h" : "", t: l.id + (l.round ? ", revised" + (l.revised ? " " + fd(l.revised) : "") : l.minor ? ", minor revision" : "") })), g.id)
+        + (rev + mn ? fold("fa:legend:" + g.id, "Key", isOpen("fa:legend:" + g.id, false)) + (isOpen("fa:legend:" + g.id, false) ? `<p class="lsbg"><span><i class="f"></i>${rev} revised</span><span><i class="m"></i>${mn} minor</span><span><i class="h"></i>${ls.length - rev - mn} as first made</span></p>` : "") : `<p class="lsq">${g.started ? g.started + " started: " + ls.filter((l) => Object.values(l.made).some(Boolean)).map((l) => l.id).join(", ") : "Not started"}</p>`)));
+    });
+    if (more.length) steps.push(rung("…", "Books " + (more.length > 1 ? more[0] + " to " + more[more.length - 1] : more[0]), `<span class="lsq">no Final plan yet</span>`, "", "rest"));
+  } else {
+    const made = c.units - (c.written || 0);
+    sub = s.id === "muq" ? `${s.groups.length} parts, Z then T` : `${c.babs_started} of ${s.babs_total || s.groups.length} Babs started`;
+    tot = mini("TC", c.tc) + mini("H", c.handout, made) + mini("L", c.lessons);
+    steps = babSteps(s);
+  }
+  return `<div class="lst${on ? " on" : ""}"><div class="lsth"><div class="lsnm"><b>${esc(s.name)}</b><span class="lsq">${esc(sub)}</span></div>${warn}</div>
+    <div class="lstot">${tot}</div>${s.babs_note ? `<p class="lsq">${esc(s.babs_note)}</p>` : ""}${ladder(steps)}
+    <button class="lsopen" type="button" data-ls-s="${esc(s.id)}" aria-expanded="${on}">${on ? "Open below" : "See units and lessons"}${ic("chev", 12)}</button></div>`;
+}
+
+function note(id, label) {
+  return `<label class="lsnote"><span class="lab">${ic("note", 12)}${esc(label)}</span><textarea rows="2" data-ls-note="${esc(id)}" placeholder="Write a note; it saves by itself">${esc(S.notes[id] || "")}</textarea></label>`;
+}
+
+function maarifDetail(s, phone) {
+  const gw = groupWord(s), gs = s.groups;
+  let g = S.g[s.id];
+  if (!gs.some((x) => x.id === g)) g = (gs.find((x) => x.lessons) || gs.find((x) => x.tc) || gs[0] || {}).id;
+  const chips = gs.map((x) => `<button class="lsgc${x.id === g ? " on" : ""}${x.tc || x.lessons ? "" : " empty"}" type="button" data-ls-g="${esc(x.id)}" aria-pressed="${x.id === g}">${esc(x.id)}<span class="num">${x.tc}${x.planned > x.tc ? "/" + x.planned : ""}</span>${x.lessons ? `<i class="lsdot" title="${x.lessons} class lesson"></i>` : ""}</button>`).join("");
+  const us = s.units.filter((u) => u.family === g);
+  const G = gs.find((x) => x.id === g) || { planned: 0 };
+  const ls = s.lessons.filter((l) => (s.id === "muq" ? l.from.some((f) => us.some((u) => u.unit === f)) : "B" + l.bab === g));
+  const unit = (u) => `<div class="lsu${u.lesson ? " fed" : ""}"><span class="ccmono">${esc(u.unit)}</span>${u.written ? `<span class="lsq">written, no Word yet</span>` : pips(u.made)}${u.lesson ? `<span class="lsto">${ic("arrow", 11)}${esc(u.lesson)}</span>` : ""}</div>`;
+  const missing = Math.max(0, G.planned - us.length);
+  const lane1 = us.length ? `<div class="lsus">${us.map(unit).join("")}${missing ? `<div class="lsu ghost"><span>${missing} more planned, no file yet</span></div>` : ""}</div>`
+    : `<div class="sempty">${G.planned ? G.planned + " units planned in the hub; none written yet." : "Nothing written yet."}</div>`;
+  const lrow = (l) => {
+    const h = HOW[l.how] || ["Not in the register", "flag"], stt = STATE[l.state] || (l.registered ? ["park", l.state || ""] : ["you", "Not a lesson yet"]);
+    const from = l.from.length ? l.from.map((f) => `<span class="ccmono">${esc(f)}</span>`).join(`<span class="lsplus">+</span>`) : `<span class="lsq">no source written</span>`;
+    return `<div class="lsl2"><span class="lsfrom">${from}</span><span class="lsarr">${ic("arrow", 14)}</span><span class="lsles"><b class="num">${esc(l.id)}</b>${tag(!l.registered ? "you" : l.how === "as is" ? "park" : "teal", h[0], h[1])}${tag(stt[0], stt[1])}</span>
+      <span class="lsfiles">${pips(l.made)}<span class="lsq">${l.uses ? "uses " + esc(l.uses) + "'s files" : l.registered ? "its own files" : "a file named as a lesson"}</span></span></div>`;
+  };
+  const lane2 = ls.length ? ls.map(lrow).join("") : `<div class="sempty">No class lesson made from this ${gw} yet. Every unit here is taught as written until one is merged or rewritten.</div>`;
+  const checks = s.notes.length ? `<div class="lschk">${s.notes.map((n) => `<p>${ic("flag", 12)}${esc(n)}</p>`).join("")}</div>` : "";
+  return `<div class="lsgcs" role="group" aria-label="${esc(gw)}s">${chips}</div>
+    <div class="lslane"><div class="lslh"><span class="lab">Source units, ${esc(gw)} ${esc(g)}</span><span class="ccnum sm">${us.length}</span><span class="lsleg">${K.map(([k, a, w]) => `<span><i class="on">${a}</i>${w}</span>`).join("")}</span></div>${lane1}</div>
+    <div class="lslane"><div class="lslh"><span class="lab">Class Lessons from them</span><span class="ccnum sm">${ls.length}</span></div>${lane2}</div>
+    ${checks}${note(s.id + ":" + g, "Your note on " + s.name + " " + g)}`;
+}
+
+function persianDetail(s) {
+  let g = S.g[s.id];
+  if (!s.groups.some((x) => x.id === g)) g = (s.groups[0] || {}).id;
+  const chips = s.groups.map((x) => `<button class="lsgc${x.id === g ? " on" : ""}" type="button" data-ls-g="${esc(x.id)}" aria-pressed="${x.id === g}">${esc(x.id)}<span class="num">${x.made}/${x.planned}</span>${x.revised ? `<i class="lsdot" title="${x.revised} revised"></i>` : ""}</button>`).join("");
+  const book = +String(g).replace(/\D/g, "");
+  const ls = s.lessons.filter((l) => l.book === book);
+  const cell = (l) => {
+    const any = Object.values(l.made).some(Boolean);
+    const ups = l.updates.map((u) => `<span class="lsup ${u.kind}">${u.date ? (u.kind === "revision" ? "Revised" : "Added") + " " + fd(u.date) + ": " + esc(u.what) : "Revised, on your word, 25 Nov"}</span>`).join("");
+    return `<div class="lsu lspc${l.round ? " fed" : ""}${any ? "" : " ghost"}"><span class="ccmono">${esc(l.id)}</span>${pips(l.made, KP)}
+      <span class="lsround">${l.round ? tag("teal", "Revised", "pen") : l.minor ? tag("tealm", "Minor revision", "pen") : any ? tag("park", "As first made") : tag("park", "Not made")}</span>${ups}</div>`;
+  };
+  return `<div class="lsgcs" role="group" aria-label="Books">${chips}</div>
+    <div class="lslane"><div class="lslh"><span class="lab">${esc(g)}, lesson by lesson</span><span class="ccnum sm">${ls.length}</span><span class="lsleg">${KP.map(([k, a, w]) => `<span><i class="on">${a}</i>${w}</span>`).join("")}</span></div>
+    <div class="lsus">${ls.map(cell).join("")}</div></div>
+    <p class="lsq">Revised: upgraded after it was first made, with a record of what changed. Minor revision: small changes, on your word. An added quiz or drill is not a revision.</p>
+    ${note(s.id + ":" + g, "Your note on Persian " + g)}`;
+}
+
+function html(L, phone) {
+  if (!L || !L.subjects || !L.subjects.length) return `<section class="panel lsp"><div class="phead"><h2>Where the lessons stand</h2></div><div class="sempty">The lesson count has not reached this page yet.</div></section>`;
+  const sel = L.subjects.find((s) => s.id === S.s);
+  const det = sel ? `<div class="lsd" data-ls-det="${esc(sel.id)}"><div class="lsdh"><h3>${esc(sel.name)}</h3><span class="lsq">${sel.kind === "persian" ? "Final lessons, by book" : "Source units and the class lessons made from them"}</span><span style="flex:1"></span>
+      <button class="btn ghost" type="button" data-ls-close>${ic("x", 13)}Close</button></div>${sel.kind === "persian" ? persianDetail(sel) : maarifDetail(sel, phone)}</div>` : "";
+  return `<section class="panel lsp${phone ? " ph" : ""}"><div class="lshead"><div><h2>Where the lessons stand</h2><p class="lsq">Every layer of each subject, counted from the lesson files and the lesson register. Press a subject to see its units and lessons.</p></div></div>
+    <div class="lsts">${L.subjects.map((s) => tile(s, sel && sel.id === s.id) + (phone && sel && sel.id === s.id ? det : "")).join("")}</div>${phone ? "" : det}${note("all", "Anything else about the lessons")}</section>`;
+}
+
+let redraw = null;
+function bind(root, again) {
+  redraw = again;
+  if (root.__lsb) return; root.__lsb = true;
+  root.addEventListener("click", (e) => {
+    const t = e.target.closest("[data-ls-s],[data-ls-g],[data-ls-close],[data-ls-fold]");
+    if (!t || !root.contains(t)) return;
+    e.stopPropagation();
+    if (t.hasAttribute("data-ls-close")) S.s = null;
+    else if (t.dataset.lsFold) { S.open = S.open || {}; S.open[t.dataset.lsFold] = t.getAttribute("aria-expanded") !== "true"; }
+    else if (t.dataset.lsS) S.s = S.s === t.dataset.lsS ? null : t.dataset.lsS;
+    else { const d = t.closest("[data-ls-det]"); if (d) S.g[d.dataset.lsDet] = t.dataset.lsG; }
+    save(); if (redraw) redraw();
+  }, true);
+  root.addEventListener("input", (e) => { const t = e.target.closest("[data-ls-note]"); if (!t) return; S.notes[t.dataset.lsNote] = t.value; save(); });
+}
+window.EX44LS = { html, bind, state: () => S, set: (o) => { Object.assign(S, o); save(); } };
+})();
+
+</script>
+<script>
 /* EX-44 Command Centre tab for the Home mock-up (the design round, round 7, 24 Nov 2026).
    Ali's round 7: one tag system (words and numbers), projects inside bigger projects, projects arranged freely,
    new tasks and projects made here with the details a card needs, every card editable, Done cards switch layout,
@@ -1533,7 +1962,7 @@ body{background:var(--page-bg);margin:0}
 (function () {
 "use strict";
 if (window.EX44CC) return;
-let D = ((window.__LIVE && window.__LIVE.cc) || {"tasks":[],"chats":{},"classes":[],"asks":{},"projects":[],"tree":{},"porder":[],"plevel":{},"needs":[],"today":"2026-11-25"});
+let D = ((window.__LIVE && window.__LIVE.cc) || {"tasks":[],"chats":{},"classes":[],"asks":{},"projects":[],"tree":{},"porder":[],"plevel":{},"needs":[],"today":"2026-11-27"});
 // The wiring pass (M3, M4): on the preview home (window.__CCLIVE) the data comes from EX-44's cc.json through live.js, and every
 // change Ali makes is sent to EX-44 through the home's own button road (act: sent at once, then done). What stays in
 // this browser: the project layout, steps ticks, session numbers. The canvas copy keeps working with baked data.
@@ -1555,7 +1984,9 @@ const IC = {
   tree: "M6 4v16M6 8h6M6 14h6M6 20h6M14 6h6v4h-6zM14 12h6v4h-6zM14 18h6v4h-6z", home: "M4 11 12 4l8 7v9H4zM10 20v-5h4v5", map: "M4 6l5-2 6 2 5-2v14l-5 2-6-2-5 2zM9 4v14M15 6v14",
   star: "M12 4l2.4 5 5.6.6-4.2 3.8 1.2 5.6L12 16.3 7 19l1.2-5.6L4 9.6 9.6 9z", pen: "M4 20l4-1 11-11-3-3L5 16zM14 6l3 3",
   flag: "M5 21V4h11l-2 4 2 4H5", grip: "M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01", more: "M5 12h.01M12 12h.01M19 12h.01",
-  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2", filter: "M4 5h16l-6 7v6l-4 2v-8z", chev: "m6 9 6 6 6-6"
+  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2", filter: "M4 5h16l-6 7v6l-4 2v-8z", chev: "m6 9 6 6 6-6",
+  link: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1", monitor: "M3 5h18v11H3zM8 20h8M12 16v4",
+  cloud: "M7 18h10a4 4 0 0 0 .6-8A6 6 0 0 0 6.2 9.2 4.5 4.5 0 0 0 7 18z", sort: "M7 4v16M4 7l3-3 3 3M17 20V4M14 17l3 3 3-3", ext: "M14 4h6v6M20 4l-9 9M18 14v6H4V6h6"
 };
 const ic = (n, s) => `<svg width="${s || 14}" height="${s || 14}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${IC[n]}"></path></svg>`;
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1672,7 +2103,7 @@ function reconcile() {
   save();
 }
 const dTask = (id) => (D.tasks || []).find((t) => t.id === id);
-let U = { showMergedSb: true, nopen: null, form: null, draft: {}, level: "all", project: "", lanes: false, q: "", open: null, view: "board", tab: "overview", phoneCol: "waiting on Ali", toast: "", showMerged: false, dragP: null };
+let U = { pri: "all", wait: "all", sort: "board", qmenu: null, linkOpen: null, linkQ: "", showMergedSb: true, nopen: null, form: null, draft: {}, level: "all", project: "", lanes: false, q: "", open: null, view: "board", tab: "overview", phoneCol: "waiting on Ali", toast: "", showMerged: false, dragP: null };
 
 // ---------- projects: a tree Ali can rearrange ----------
 const rawParentOf = (p) => (p in S.ptree ? S.ptree[p] : (D.tree || {})[p] || "");
@@ -1825,15 +2256,107 @@ const chatOf = (c) => { const n = leadOf(c); return n ? D.chats[n] || null : nul
 const dueOf = (c) => (S.due[c.id] !== undefined ? S.due[c.id] : (S.edits[c.id] || {}).due !== undefined ? S.edits[c.id].due : c.t ? c.t.due : c.a ? c.a.due || "" : "");
 const scopeOf = (c) => ((S.edits[c.id] || {}).scope !== undefined ? S.edits[c.id].scope : c.a ? c.a.scope || "" : c.t ? c.t.next || "" : "");
 const isMerged = (c) => !!(c.t && c.t.merged);
+// ---------- Ali's notes of 27 Nov: priority, who a card waits on, linking any chat ----------
+// Priority: high, normal (no mark), low; apart from the due date and the column. Waits on: you (Ali), the mentor, la57,
+// a chat; shown as a tag on cards in "Waits on you" (no tag = you). Both set in one tap, both filter, priority sorts.
+const PRI = [["high", "High"], ["", "Normal"], ["low", "Low"]];
+const WAITS = [["", "You", "you", "users"], ["mentor", "Mentor", "mentor", "users"], ["la57", "la57", "la57", "monitor"], ["chat", "A chat", "chat", "chat"]];
+const WNAME = { "": "you", ali: "you", mentor: "the mentor", la57: "la57", chat: "a chat" };
+const taskId = (c) => (c ? (c.kind === "task" || c.kind === "own" ? c.id : c.kind === "class" ? c.c.task || "" : "") : "");
+const fieldOf = (c, k) => { const e = S.edits[c.id] || {}; if (e[k] !== undefined) return e[k]; const src = c.t || c.a || (c.c && c.c.task ? dTask(c.c.task) : null); return (src && src[k]) || ""; };
+const priOf = (c) => { const v = fieldOf(c, "priority"); return v === "normal" ? "" : v; };
+const waitOf = (c) => { const v = fieldOf(c, "wait"); return v === "ali" ? "" : v; };
+const PRANK = { high: 0, "": 1, low: 2 };
+const priTag = (c) => { const p = priOf(c); return p === "high" ? `<span class="pill tgx ccpri hi">${ic("flag", 12)}High</span>` : p === "low" ? `<span class="pill tgx ccpri lo">Low</span>` : ""; };
+function waitTag(c, btn) {
+  const w = waitOf(c), m = WAITS.find((x) => x[0] === w) || WAITS[0];
+  const inner = `${ic(m[3], 12)}${w ? "Waits on " + esc(WNAME[w]) : "On you"}`;
+  if (!btn) return w ? `<span class="pill tgx ccwait w-${m[2]}">${inner}</span>` : "";
+  const nx = WAITS[(WAITS.indexOf(m) + 1) % WAITS.length];
+  return `<button type="button" class="pill tgx ccwait w-${m[2]}${w ? "" : " unset"}" data-waitcycle="${esc(c.id)}" title="Who it waits on. Tap to change to ${esc(WNAME[nx[0]])}" aria-label="Waits on ${esc(WNAME[w])}. Tap to change to ${esc(WNAME[nx[0]])}">${inner}</button>`;
+}
+// one field of a task, set from a tap: shown at once, sent to EX-44, with Undo
+function setField(id, k, v) {
+  const c = cards().find((x) => x.id === id); if (!c) return;
+  const tid = taskId(c), old = k === "priority" ? priOf(c) : waitOf(c);
+  if (old === v) return;
+  S.edits[id] = Object.assign({}, S.edits[id], { [k]: v }); FRESH[id] = Date.now(); save(); draw();
+  const word = k === "priority" ? (v === "high" ? "High priority" : v === "low" ? "Low priority" : "Normal priority") : "Waits on " + WNAME[v];
+  if (!LIVEM() || !tid || c.kind === "own") { toast(`${word}: "${shownTitle(c)}".`); return; }
+  const same = (want) => () => { const t = dTask(tid); return t && (t[k] || "") === want; };
+  ship(`${word}: "${shownTitle(c)}"`, [{ action: "task", op: "set", task: tid, field: k, value: v || "none", target: tid }],
+    { key: k + ":" + id, test: same(v), clear: () => { if (S.edits[id]) delete S.edits[id][k]; } }, id,
+    { reqs: [{ action: "task", op: "set", task: tid, field: k, value: old || "none", target: tid }], local: () => { S.edits[id] = Object.assign({}, S.edits[id], { [k]: old }); },
+      pend: () => ({ key: k + ":" + id, test: same(old), clear: () => { if (S.edits[id]) delete S.edits[id][k]; } }) });
+}
+// ---------- link any chat (Ali's fifth note, 27 Nov) ----------
+const SEEN = () => (D.seen || []);
+const KWORD = { launched: "Started by the launcher", loose: "Open on EX-44, not started by the launcher", remote: "On another machine (Remote Control)", cloud: "Cloud session", link: "Pasted link" };
+const sidOf = (s) => { const m = /claude\.ai\/code\/([A-Za-z0-9_-]{6,80})/.exec(s || "") || /^\s*(session_[A-Za-z0-9_-]{6,80})\s*$/.exec(s || ""); return m ? m[1] : ""; };
+const remotesOf = (c) => (S.edits[c.id] && S.edits[c.id].remotes) || (c.t && c.t.remotes) || [];
+function linkPicker(c, mode) {
+  const on = new Set(((c && c.t && c.t.chats) || []).concat(c ? remotesOf(c).map((r) => "r:" + r.name) : []));
+  const q = (U.linkQ || "").toLowerCase();
+  const rows = SEEN().filter((r) => !on.has(r.key || "r:" + r.name) && (!q || r.name.toLowerCase().includes(q)));
+  const groups = [["launched", "Started by the launcher"], ["loose", "Open on EX-44, not started by the launcher"], ["remote", "Remote Control on other machines"], ["cloud", "Cloud sessions"]];
+  const row = (r) => `<button type="button" class="cclpick" data-linkpick="${esc(JSON.stringify([r.kind, r.key || "", r.name, r.seen || ""]))}">${ic(r.kind === "cloud" ? "cloud" : r.kind === "remote" ? "monitor" : "chat", 13)}<span class="cclpn">${esc(r.name)}</span><span class="lab">${esc([r.account, r.state, r.seenw ? "seen " + r.seenw : ""].filter(Boolean).join(" · "))}</span></button>`;
+  const lists = groups.map(([k, w]) => { const g = rows.filter((r) => r.kind === k); return g.length ? `<div class="cclgrp"><p class="cceyebrow">${esc(w)}<span class="ccnum sm">${g.length}</span></p>${g.slice(0, q ? 40 : 12).map(row).join("")}${g.length > (q ? 40 : 12) ? `<span class="lab">${g.length - (q ? 40 : 12)} more: type to narrow</span>` : ""}</div>` : ""; }).join("");
+  return `<div class="cclinkp" data-linkmode="${esc(mode)}"><label class="srch">${ic("search")}<input type="search" data-linkq placeholder="Find a chat by name" aria-label="Find a chat" value="${esc(U.linkQ || "")}"></label>
+    <div class="cclists">${lists || `<div class="sempty">No chat by that name. Paste its link below.</div>`}</div>
+    <div class="cclpaste"><span class="lab">A chat on the Mac or anywhere else: paste its claude.ai link</span><div style="display:flex;gap:6px;flex-wrap:wrap"><label class="srch" style="flex:2 1 220px;min-width:0">${ic("link")}<input type="url" data-linkurl placeholder="https://claude.ai/code/session_..." aria-label="claude.ai link of the chat"></label><label class="srch" style="flex:1 1 140px;min-width:0"><input type="text" data-linkname placeholder="Its name, e.g. MAC Reorg chat" aria-label="Name for that chat"></label><button class="btn" type="button" data-act="linkpaste">${ic("plus")}Link it</button></div>
+    <p class="lab" style="margin:0">Only the session id is kept; the link is made again on the page. Chats on another machine show here only when a chat on EX-44 has listed them (last list: ${esc(lastList())}).</p></div></div>`;
+}
+const lastList = () => { const r = SEEN().filter((x) => x.kind === "remote" || x.kind === "cloud").map((x) => x.seenw || "").filter(Boolean); return r.length ? r[0] : "never"; };
+function linkChat(c, kind, key, name, seen, sid) {
+  const tid = taskId(c); if (!c) return;
+  U.linkOpen = null; U.linkQ = "";
+  if (kind === "launched" || (kind === "loose" && key)) {
+    if (!LIVEM() || !tid) { toast(`Linked ${name} here (this copy only).`); draw(); return; }
+    ship(`Link ${key} to "${shownTitle(c)}"`, [{ action: "task", op: "link", task: tid, chat: key, target: tid }],
+      { key: "link:" + c.id + ":" + key, test: () => { const t = dTask(tid); return !!(t && t.chats.includes(key)); }, clear: () => {} }, c.id,
+      { reqs: [{ action: "task", op: "unlink", task: tid, chat: key, target: tid }] });
+    draw(); return;
+  }
+  const r = { name, kind: kind === "loose" ? "loose" : kind, sid: sid || "", seen: seen || "", at: new Date().toISOString().slice(0, 19) + "Z" };
+  const before = remotesOf(c).slice();
+  S.edits[c.id] = Object.assign({}, S.edits[c.id], { remotes: before.filter((x) => x.name !== name).concat([r]) }); save(); draw();
+  if (!LIVEM() || !tid) { toast(`Linked ${name} here (this copy only).`); return; }
+  ship(`Link ${name} to "${shownTitle(c)}"`, [{ action: "task", op: "remote", task: tid, name, sid: r.sid, kind: r.kind, seen: r.seen, target: tid }],
+    { key: "rem:" + c.id + ":" + name, test: () => { const t = dTask(tid); return !!(t && (t.remotes || []).some((x) => x.name === name)); }, clear: () => { if (S.edits[c.id]) delete S.edits[c.id].remotes; } }, c.id,
+    { reqs: [{ action: "task", op: "unremote", task: tid, name, target: tid }], local: () => { S.edits[c.id] = Object.assign({}, S.edits[c.id], { remotes: before }); } });
+}
+function unlinkRemote(c, name) {
+  const tid = taskId(c), before = remotesOf(c).slice(), r0 = before.find((x) => x.name === name);
+  S.edits[c.id] = Object.assign({}, S.edits[c.id], { remotes: before.filter((x) => x.name !== name) }); save(); draw();
+  if (!LIVEM() || !tid || !r0) return;
+  ship(`Unlink ${name} from "${shownTitle(c)}"`, [{ action: "task", op: "unremote", task: tid, name, target: tid }],
+    { key: "unrem:" + c.id + ":" + name, test: () => { const t = dTask(tid); return !!(t && !(t.remotes || []).some((x) => x.name === name)); }, clear: () => { if (S.edits[c.id]) delete S.edits[c.id].remotes; } }, c.id,
+    { reqs: [{ action: "task", op: "remote", task: tid, name, sid: r0.sid || "", kind: r0.kind || "remote", seen: r0.seen || "", target: tid }], local: () => { S.edits[c.id] = Object.assign({}, S.edits[c.id], { remotes: before }); } });
+}
+function chatsBlock(c) {
+  const tid = taskId(c); if (!tid && c.kind !== "own") return "";
+  const t = c.t || (c.c && c.c.task ? dTask(c.c.task) : null), names = (t && t.chats) || [];
+  const seenOf = (n) => SEEN().find((r) => r.name === n || r.key === n);
+  const ex = names.map((n) => { const k2 = D.chats[n] || { k: "park", w: "linked", since: "" }; return `<div class="cclrow"><span class="dot" style="background:${DOT[k2.k]};width:8px;height:8px"></span><button type="button" class="cclink" data-chat="${esc(n)}">${esc(n)}</button><span class="lab">${esc(k2.w)}${k2.now_at || k2.since ? ", " + esc(k2.now_at || k2.since) : ""}</span></div>`; }).join("");
+  const rm = remotesOf(c).map((r) => { const s = seenOf(r.name), seen = (s && s.seenw) || (r.seen ? r.seen.replace("T", " ").slice(0, 16) + " UTC" : "");
+    return `<div class="cclrow">${ic(r.kind === "cloud" ? "cloud" : r.kind === "link" || r.kind === "remote" ? "monitor" : "chat", 13)}<b class="cclrn">${esc(r.name)}</b><span class="lab">${esc(KWORD[r.kind] || "Linked")}${seen ? " · last seen " + esc(seen) : ""}</span>${r.sid ? `<a class="cclink" href="https://claude.ai/code/${esc(r.sid)}" target="_blank" rel="noopener">${ic("ext", 12)}Open</a>` : ""}<button type="button" class="ccicon sm" data-unremote="${esc(r.name)}" aria-label="Unlink ${esc(r.name)}" title="Unlink">${ic("x", 12)}</button></div>`; }).join("");
+  return `<section class="dsec cclinkb" id="cclink-${esc(c.id)}"><div class="ccrow" style="justify-content:space-between"><span class="lab">${ic("chat", 12)}Chats on this card</span><button class="btn${U.linkOpen === c.id ? " on" : ""}" type="button" data-act="linkopen" aria-expanded="${U.linkOpen === c.id}">${ic("link")}Link a chat</button></div>
+    ${ex || rm ? ex + rm : `<div class="sempty">No chat linked yet. Link one that is already running, wherever it is.</div>`}
+    ${U.linkOpen === c.id ? linkPicker(c, "card") : ""}</section>`;
+}
 function visible(c) {
   if (isMerged(c) && !U.showMerged && !(window.__CCSANDBOX && U.view === "projects")) return false;
   if (U.level === "C" && c.kind !== "class") return false;
   if (U.level !== "all" && U.level !== "C" && !c.levels.includes(U.level)) return false;
   if (U.project && !inProject(c, U.project)) return false;
+  if (U.pri != null && U.pri !== "all" && priOf(c) !== U.pri) return false;   // 27 Nov notes: filters
+  if (U.wait != null && U.wait !== "all" && (c.col !== "waiting on Ali" || waitOf(c) !== U.wait)) return false;
   if (U.q) { const hay = (c.title + " " + c.project + " " + (c.t ? c.t.chats.join(" ") + " " + c.t.next : "")).toLowerCase(); if (!hay.includes(U.q.toLowerCase())) return false; }
   return true;
 }
-const colCards = (col, all) => all.filter((c) => c.col === col).sort((a, b) => (a.order - b.order) || a.title.localeCompare(b.title));
+// 27 Nov notes: Sort by priority (high first) or by due date (soonest first); the board order breaks ties
+const dueKey = (c) => dueOf(c) || "9999";
+const colCards = (col, all) => all.filter((c) => c.col === col).sort((a, b) => (U.sort === "priority" ? PRANK[priOf(a)] - PRANK[priOf(b)] : 0) || (U.sort === "due" ? dueKey(a).localeCompare(dueKey(b)) : 0) || (a.order - b.order) || a.title.localeCompare(b.title));
 const allComments = (c) => (S.comments[c.id] || []).map((m) => ({ text: m.text, at: m.at, from: "this page" })).reverse()
   .concat((c.t ? c.t.comments : c.c ? c.c.comments : []).slice().reverse())
   .concat(c.t && c.t.carried ? c.t.carried.map((m) => Object.assign({}, m, { from: `the merged card "${m.was}"` })) : []);
@@ -1849,6 +2372,14 @@ let NEEDS = D.needs || [];
 const isCleared = (n) => S.cleared[n.chat] && S.cleared[n.chat] >= (n.asked_at || "");
 const needOf = (c) => (c.t ? NEEDS.find((n) => n.task === c.id) : null);
 
+// Ali's notes of 27 Nov: every card carries a visible edit control and a priority flag,
+// laid over its top right corner (no reserved column). The pen opens the quick edit: title, due, priority, waits on,
+// comments, chats. The flag is one tap: High on or off.
+function cardActs(c) {
+  const tid = taskId(c), hi = priOf(c) === "high";
+  const flag = tid || c.kind === "own" ? `<button type="button" class="ccicon sm ccflag${hi ? " on" : ""}" data-pri="${esc(c.id)}" aria-pressed="${hi}" aria-label="${hi ? "High priority: tap for normal" : "Mark high priority"}" title="${hi ? "High priority. Tap to make it normal" : "Tap to mark high priority"}">${ic("flag", 13)}</button>` : "";
+  return `<div class="ccacts">${flag}<button type="button" class="ccicon sm ccpen" data-qmenu="${esc(c.id)}" aria-haspopup="dialog" aria-expanded="${U.qmenu === c.id}" aria-label="Edit ${esc(shownTitle(c))}" title="Edit: title, due, priority, notes">${ic("pen", 13)}</button></div>`;
+}
 function cardHtml(c, mark) {
   const m = (n) => (mark ? tm(n) : "");
   const filtered = (U.project && c.project === U.project) || U.lanes;
@@ -1860,16 +2391,16 @@ function cardHtml(c, mark) {
     if (k && k.unplaced.length) kit += st("bad", "not placed", "x", k.unplaced.length);
     if (k && k.files.length) kit += k.sent ? st("done", "sent", "check") : st("you", "not sent");
     const dp = (c.c.date || "").split(" ");
-    return `<div class="cccard cls" draggable="true" tabindex="0" role="button" data-card="${esc(c.id)}" aria-label="${esc(c.title)}">
+    return `<div class="cccard cls${priOf(c) === "high" ? " hi" : ""}" draggable="true" tabindex="0" role="button" data-card="${esc(c.id)}" aria-label="${esc(c.title)}">${cardActs(c)}
       <div class="ccdate"><span>${esc((c.c.dname || "").toUpperCase())}</span><b class="num">${esc(dp[0] || "")}</b><span>${esc((dp[1] || "").toUpperCase())}</span></div>
       <div class="cccbody"><span class="cct">${esc(c.c.code)} Class Kit</span>${m(4)}
       <div class="ccmeta">${c.levels[0] !== "G" ? lvl(c.levels[0]) : ""}${mono(c.session)}</div>
-      <div class="ccrow">${statChip(c.id)}${autoChip(c)}${st(cdk, c.c.cd.charAt(0).toUpperCase() + c.c.cd.slice(1), "clock")}${kit}${m(5)}</div></div></div>`;
+      <div class="ccrow">${statChip(c.id)}${autoChip(c)}${priTag(c)}${c.col === "waiting on Ali" && c.c.task ? waitTag(c, true) : ""}${st(cdk, c.c.cd.charAt(0).toUpperCase() + c.c.cd.slice(1), "clock")}${kit}${m(5)}</div></div></div>`;
   }
   const n = allComments(c).length;
   if (c.col === "done") {   // Done layout: what was achieved first
     const a = achieved(c);
-    return `<div class="cccard done${isMerged(c) ? " merged" : ""}" draggable="true" tabindex="0" role="button" data-card="${esc(c.id)}" aria-label="${esc(c.title)}">
+    return `<div class="cccard done${isMerged(c) ? " merged" : ""}" draggable="true" tabindex="0" role="button" data-card="${esc(c.id)}" aria-label="${esc(c.title)}">${cardActs(c)}
       <div class="ccdt2">${ic(isMerged(c) ? "merge" : "check", 15)}<span class="cct">${esc(shownTitle(c))}</span></div>
       <p class="ccach2">${esc(isMerged(c) ? c.t.merged : a.length ? short(a[0], 140) : "Done")}</p>${STAT[c.id] || autoChip(c) ? `<div class="ccrow">${statChip(c.id)}${autoChip(c)}</div>` : ""}
       ${meta(c.klass ? mono(c.klass) + (c.session ? mono(c.session) : "") : "")}</div>`;
@@ -1877,12 +2408,12 @@ function cardHtml(c, mark) {
   const due = dueOf(c), nl = nowLine(c), nd = needOf(c);
   const status = nl ? `<div class="ccnow"><span class="dot" style="background:${DOT[nl.k]};width:7px;height:7px"></span><b class="${nl.k === "you" ? "amb" : ""}">${esc(nl.w)}${nl.tm ? `, ${esc(nl.tm)}` : ""}.</b> ${esc(short(nl.text || "", 160))}</div>`
     : `<div class="ccnow"><span class="dot" style="background:var(--ink3);width:7px;height:7px"></span><b>Your task.</b> ${ownSteps(c).length ? `${ownSteps(c).filter((x) => x.d).length} of ${ownSteps(c).length} steps done` : esc(short(scopeOf(c) || "No scope written yet.", 90))}</div>`;
-  let foot = statChip(c.id) + autoChip(c);
+  let foot = statChip(c.id) + autoChip(c) + priTag(c) + (c.col === "waiting on Ali" ? waitTag(c, true) : "");
   if (nd) foot += isCleared(nd) ? st("done", "You answered", "check") : `<button type="button" class="pill tgx ccstatbtn" data-need="${esc(nd.chat)}" style="background:var(--amber-d);color:var(--amber)">${ic("bolt", 12)}Needs you</button>`;
   if (due) foot += due === D.today ? st("you", "Due today", "cal") : gr("Due " + fd(due), "cal");
   if (c.kind === "own") foot += st("you", "Your card", "plus");
   const right = (c.t && c.t.chats.length ? `<span class="cccount" title="${c.t.chats.length} chat">${ic("chat", 13)}${c.t.chats.length}</span>` : "") + (n ? `<span class="cccount" title="${n} comments">${ic("note", 13)}${n}</span>` : "");
-  return `<div class="cccard" draggable="true" tabindex="0" role="button" data-card="${esc(c.id)}" aria-label="${esc(c.title)}">
+  return `<div class="cccard${priOf(c) === "high" ? " hi" : ""}" draggable="true" tabindex="0" role="button" data-card="${esc(c.id)}" aria-label="${esc(c.title)}">${cardActs(c)}
     ${meta(c.klass ? mono(c.klass) + (c.session ? mono(c.session) : "") : "")}<span class="cct">${esc(shownTitle(c))}</span>${m(4)}
     ${status}${foot || right ? `<div class="ccfoot"><div class="ccrow">${foot}${foot ? m(5) : ""}</div><div class="ccrow ccright">${right}${right ? m(6) : ""}</div></div>` : ""}</div>`;
 }
@@ -1891,9 +2422,9 @@ function colInner(k, cs, marks) {
   const first = null;
   const html = (list) => list.map((c) => cardHtml(c, marks && c.id === first)).join("");
   if (!cs.length) return `<div class="ccempty">Nothing here with this filter.</div>`;
-  const cut = k === "planned" && !U.allPlanned && !U.q && !U.project && U.level === "all" && cs.length > 9 ? 8 : 0;
+  const cut = k === "planned" && !U.allPlanned && !U.q && !U.project && U.level === "all" && U.pri === "all" && cs.length > 9 ? 8 : 0;
   // a card due within the week never hides behind "more" (the weekly deck card went missing there)
-  const keep = (c) => fresh(c) || (dueOf(c) && dayDiff(dueOf(c)) != null && dayDiff(dueOf(c)) <= 7);
+  const keep = (c) => fresh(c) || priOf(c) === "high" || (dueOf(c) && dayDiff(dueOf(c)) != null && dayDiff(dueOf(c)) <= 7);
   if (!U.lanes && cut) return html(cs.slice(0, cut).concat(cs.slice(cut).filter(keep))) + `<button type="button" class="ccmoreplanned" data-act="allplanned">${cs.slice(cut).filter((c) => !keep(c)).length} more in Planned ${ic("chev", 13)}</button>`;
   if (!U.lanes) return html(cs) + (k === "planned" && U.allPlanned && cs.length > 9 ? `<button type="button" class="ccmoreplanned" data-act="allplanned">Show fewer</button>` : "");
   const groups = {}; cs.forEach((c) => { const g = c.project ? pathOf(c.project) : "Single tasks"; (groups[g] = groups[g] || []).push(c); });
@@ -1917,7 +2448,7 @@ const KDOT = { "waiting on Ali": "you", doing: "chat", planned: "park", done: "d
 function leafHtml(c) {
   const k = c.col === "doing" && nowLine(c) && nowLine(c).k === "you" ? "you" : KDOT[c.col];
   const label = c.kind === "class" ? `${c.c.code}, ${c.c.dname} ${c.c.date}` : shownTitle(c);
-  return `<div class="ccleafw" data-leaf="${esc(c.id)}" draggable="${c.kind === "task" || window.__CCSANDBOX ? "true" : "false"}"><button type="button" class="ccleaf l-${k}${isMerged(c) ? " merged" : ""}" data-open="${esc(c.id)}" title="${esc(CNAME[c.col] + (nowLine(c) && c.col !== "done" ? ": " + nowLine(c).text : ""))}"><span class="dot" style="background:${DOT[k] || "var(--ink3)"};width:7px;height:7px"></span><span class="cclt">${esc(short(label, 44))}</span></button>${statChip(c.id)}${window.__CCSANDBOX && c.kind !== "class" ? `<button type="button" class="ccx cccp" data-copy-card="${esc(c.id)}" aria-label="Copy ${esc(label)}" title="Make a copy here, then drag it where it should also be">${ic("copy", 12)}</button>` : ""}${window.__CCSANDBOX ? `<button type="button" class="ccx" data-del-card="${esc(c.id)}" aria-label="Delete ${esc(label)} from this arrangement" title="Delete (Undo brings it back)">${ic("x", 12)}</button>` : ""}</div>`;
+  return `<div class="ccleafw" data-leaf="${esc(c.id)}" draggable="${c.kind === "task" || window.__CCSANDBOX ? "true" : "false"}"><button type="button" class="ccleaf l-${k}${isMerged(c) ? " merged" : ""}" data-open="${esc(c.id)}" title="${esc(label + " · " + CNAME[c.col] + (nowLine(c) && c.col !== "done" ? ": " + nowLine(c).text : ""))}"><span class="dot" style="background:${DOT[k] || "var(--ink3)"};width:7px;height:7px"></span><span class="cclt">${esc(short(label, 44))}</span></button>${statChip(c.id)}${window.__CCSANDBOX && c.kind !== "class" ? `<button type="button" class="ccx cccp" data-copy-card="${esc(c.id)}" aria-label="Copy ${esc(label)}" title="Make a copy here, then drag it where it should also be">${ic("copy", 12)}</button>` : ""}${window.__CCSANDBOX ? `<button type="button" class="ccx" data-del-card="${esc(c.id)}" aria-label="Delete ${esc(label)} from this arrangement" title="Delete (Undo brings it back)">${ic("x", 12)}</button>` : ""}</div>`;
 }
 function addLeaf(p) {
   if (U.ptitle === p) return `<label class="ccleaf typing"><span class="dot" style="background:var(--ink3);width:7px;height:7px"></span><input data-ptitle="${esc(p)}" placeholder="Title of the new task" aria-label="New task in ${esc(p)}" value="${esc(U.ptext || "")}"><span class="cckbd">Enter: add details</span></label>`;
@@ -1952,7 +2483,18 @@ function wireLines(root) {
     box.prepend(svg);
   });
 }
-let wlT = 0; window.addEventListener("resize", () => { cancelAnimationFrame(wlT); wlT = requestAnimationFrame(() => { if (U.view === "projects" && host) wireLines(host); }); });
+// Ali's notes of 27 Nov: a project whose map is wider than the
+// screen first gets tighter (shorter task tags, less gap), then tighter still; each tag keeps its full name on hover
+function fitMap(root) {
+  if (!root || root.clientWidth < 900) return;
+  root.querySelectorAll(".ccmapv .ccpj").forEach((pj) => {
+    const br = pj.querySelector(":scope > .ccbranches"); if (!br) return;
+    pj.classList.remove("tight", "tighter");
+    if (br.scrollWidth > br.clientWidth + 1) pj.classList.add("tight");
+    if (br.scrollWidth > br.clientWidth + 1) pj.classList.add("tighter");
+  });
+}
+let wlT = 0; window.addEventListener("resize", () => { cancelAnimationFrame(wlT); wlT = requestAnimationFrame(() => { if (U.view === "projects" && host) { fitMap(host); wireLines(host); } }); });
 function projectsHtml(all) {
   // sync round (Ali 25 Nov: move tasks around, rename in place, deeper layers, as fluid as the board). A tree of any depth:
   // each layer folds by its own button, its name renames in place, a plus adds a task or a sub-layer right there; drag a
@@ -1972,9 +2514,11 @@ function projectsHtml(all) {
     const own = shown.filter((c) => c.project === p), subs = kids(p), every = shown.filter((c) => inProject(c, p));
     if (!every.length && (U.q || U.level !== "all") && !subs.length) return "";
     const fold = !!S.pfold[p];
-    const head = `<div class="ccsubh" data-player="${esc(p)}"><button type="button" class="ccicon sm ccfold" data-pfold="${esc(p)}" aria-expanded="${!fold}" aria-label="${fold ? "Unfold" : "Fold"} ${esc(p)}" title="${fold ? "Unfold" : "Fold"}">${ic("chev", 12)}</button>
-      <span class="ccgrip sm" draggable="true" data-pdrag="${esc(p)}" title="Drag into another layer" aria-label="Drag ${esc(p)} into another layer">${ic("grip", 12)}</span>${nameBtn(p, "sub")}<span class="num">${every.length}</span>${statChip("proj:" + p)}
-      <span class="ccsubacts"><button class="ccicon sm" type="button" data-pplus="${esc(p)}" aria-label="Add a task to ${esc(p)}" title="Add a task here">${ic("plus", 12)}</button><button class="ccicon sm" type="button" data-psub="${esc(p)}" aria-label="Add a sub-layer to ${esc(p)}" title="Add a sub-layer">${ic("layers", 12)}</button><button class="ccicon sm" type="button" data-pedit="${esc(p)}" aria-label="Settings of ${esc(p)}" title="Move it, or set its level">${ic("pen", 12)}</button>${window.__CCSANDBOX ? `<button class="ccicon sm ccx2" type="button" data-del-proj="${esc(p)}" aria-label="Delete ${esc(p)}" title="Delete this layer (its parts move up; Undo brings it back)">${ic("trash", 12)}</button>` : ""}</span></div>`;
+    // Ali's notes of 27 Nov: no hidden buttons holding width. The whole tag drags; one small "more"
+    // button, laid over the tag's corner, opens the layer's menu (add a task, add a sub-layer, settings).
+    const head = `<div class="ccsubh" data-player="${esc(p)}"${U.prename === p ? "" : ` draggable="true" data-pdrag="${esc(p)}" title="Drag into another layer"`}><button type="button" class="ccicon sm ccfold" data-pfold="${esc(p)}" aria-expanded="${!fold}" aria-label="${fold ? "Unfold" : "Fold"} ${esc(p)}" title="${fold ? "Unfold" : "Fold"}">${ic("chev", 12)}</button>${nameBtn(p, "sub")}<span class="num">${every.length}</span>${statChip("proj:" + p)}
+      <button class="ccicon sm cclmore" type="button" data-pmenu="${esc(p)}" aria-expanded="${U.pmenu === p}" aria-haspopup="menu" aria-label="Add to ${esc(p)}, or its settings" title="Add a task or a sub-layer, or settings">${ic("more", 14)}</button>
+      ${U.pmenu === p ? `<div class="ccpmenu cclmenu" role="menu"><button type="button" role="menuitem" data-pplus="${esc(p)}">${ic("plus", 13)}A task here</button><button type="button" role="menuitem" data-psub="${esc(p)}">${ic("layers", 13)}A sub-layer</button><button type="button" role="menuitem" data-pedit="${esc(p)}">${ic("pen", 13)}Move it, or set its level</button>${window.__CCSANDBOX ? `<button type="button" role="menuitem" data-del-proj="${esc(p)}">${ic("trash", 13)}Delete this layer</button>` : ""}</div>` : ""}</div>`;
     const empty = !own.length && !subs.length && U.ptitle !== p && U.psub !== p && !FRESH["proj:" + p];   // an empty layer is one quiet line
     // laptop (Ali 25 Nov on the canvas: "older one except it can house more layers; it grows like a flowchart"): the
     // header is a node and its parts branch out to its right, layer after layer; the phone keeps the stacked tree
@@ -2053,15 +2597,20 @@ function toolbarHtml(all, marks) {
   const projs = tops().map((p) => opt(p, 0) + kids(p).map((k) => opt(k, 1)).join("")).join("");
   const views = [["board", "Board", "layers"], ["projects", "Projects", "tree"], ["mentor", "Mentor view", "users"]];
   const lname = (segs.find((s) => s[0] === U.level) || segs[0])[1];
-  return `<div class="cctools"><div class="seg2" role="group" aria-label="View">${views.map((v) => `<button class="tab${U.view === v[0] ? " on" : ""}" type="button" data-view="${v[0]}">${ic(v[2], 13)}${v[1]}</button>`).join("")}</div>${marks ? mk(9) : ""}
+  return `<div class="cctools${U.fopen ? " fopen" : ""}"><div class="seg2" role="group" aria-label="View">${views.map((v) => `<button class="tab${U.view === v[0] ? " on" : ""}" type="button" data-view="${v[0]}">${ic(v[2], 13)}${v[1]}</button>`).join("")}</div>${marks ? mk(9) : ""}
     ${U.view === "board" ? `<button class="ccgroup${U.lanes ? " on" : ""}" type="button" data-act="lanes" aria-pressed="${U.lanes}">${ic("layers", 13)}Group by project${U.lanes ? ic("check", 12) : ""}</button>` : ""}
     <span style="flex:1"></span>
     <label class="ccfilter${U.level !== "all" ? " on" : ""}">${ic("filter", 13)}Level<b>${esc(lname)}</b>${ic("chev", 12)}<select data-levelsel aria-label="Level">${segs.map((s) => `<option value="${s[0]}"${U.level === s[0] ? " selected" : ""}>${esc(s[1])} (${s[2]})</option>`).join("")}</select></label>
     <label class="ccfilter${U.project ? " on" : ""}">${ic("layers", 13)}Project<b>${esc(U.project ? pathOf(U.project).split(" › ").pop() : "All")}</b>${ic("chev", 12)}<select data-project aria-label="Project"><option value="">All projects</option>${projs}</select></label>
+    <label class="ccfilter ccfx${U.pri !== "all" ? " on" : ""}">${ic("flag", 13)}Priority<b>${esc(U.pri === "all" ? "All" : (PRI.find((x) => x[0] === U.pri) || PRI[1])[1])}</b>${ic("chev", 12)}<select data-prisel aria-label="Priority"><option value="all">All (${live.length})</option>${PRI.map(([k, n]) => `<option value="${k}"${U.pri === k ? " selected" : ""}>${n} (${live.filter((c) => priOf(c) === k).length})</option>`).join("")}</select></label>
+    <label class="ccfilter ccfx${U.wait !== "all" ? " on" : ""}">${ic("users", 13)}Waits on<b>${esc(U.wait === "all" ? "All" : (WAITS.find((x) => x[0] === U.wait) || WAITS[0])[1])}</b>${ic("chev", 12)}<select data-waitsel aria-label="Waits on"><option value="all">All</option>${WAITS.map(([k, n]) => `<option value="${k}"${U.wait === k ? " selected" : ""}>${n} (${live.filter((c) => c.col === "waiting on Ali" && waitOf(c) === k).length})</option>`).join("")}</select></label>
+    <button type="button" class="ccfilter ccfxbtn${U.fopen ? " on" : ""}" data-act="fopen" aria-expanded="${!!U.fopen}">${ic("filter", 13)}Priority, waits on, sort${(U.pri !== "all") + (U.wait !== "all") + (U.sort !== "board") ? `<b>${(U.pri !== "all") + (U.wait !== "all") + (U.sort !== "board")} on</b>` : ""}${ic("chev", 12)}</button>
+    <label class="ccfilter ccfx${U.sort !== "board" ? " on" : ""}">${ic("sort", 13)}Sort<b>${esc({ board: "Board order", priority: "Priority", due: "Due date" }[U.sort])}</b>${ic("chev", 12)}<select data-sortsel aria-label="Sort cards"><option value="board"${U.sort === "board" ? " selected" : ""}>Board order</option><option value="priority"${U.sort === "priority" ? " selected" : ""}>Priority, high first</option><option value="due"${U.sort === "due" ? " selected" : ""}>Due date, soonest first</option></select></label>
     <label class="srch ccsearch">${ic("search")}<input type="search" data-q placeholder="Search cards" aria-label="Search cards" value="${esc(U.q)}"></label>${marks ? tm(10) : ""}
     <div class="ccmore"><button class="btn ghost" type="button" data-act="more" aria-expanded="${!!U.more}" aria-label="More" title="More" style="width:32px;padding:0;justify-content:center">${ic("more", 16)}</button>
     ${U.more ? `<div class="ccmenu" role="menu">
       <button type="button" role="menuitemcheckbox" aria-checked="${U.showMerged}" data-act="merged">${ic("merge")}Show merged cards<span class="ccnum sm">${all.filter(isMerged).length}</span>${U.showMerged ? ic("check", 13) : ""}</button>
+      <button type="button" role="menuitem" data-act="fromchat">${ic("link")}New card from a chat</button>
       <button type="button" role="menuitem" data-act="reset">${ic("undo")}Put cards back where the task list has them</button></div>` : ""}</div></div>`;
 }
 
@@ -2085,7 +2634,7 @@ function formHtml(f) {
       <footer class="ccmf"><span style="flex:1"></span><button class="btn ghost" type="button" data-act="fclose">Cancel</button><button class="btn you" type="button" data-act="psave">${ic("check")}${ex ? "Save" : "Make the project"}</button></footer></div>`;
   }
   const c = f.id ? cards().find((x) => x.id === f.id) : null;
-  const v = { title: c ? c.title : f.title || "", levels: c ? c.levels : (f.level && f.level !== "all" && f.level !== "C" ? [f.level] : []), project: c ? c.project : f.project || "", klass: c ? c.klass || "" : "", due: c ? dueOf(c) : "", scope: c ? scopeOf(c) : "", col: c ? c.col : f.col || "planned" };
+  const v = { priority: c ? priOf(c) : f.priority || "", wait: c ? waitOf(c) : "", session: c ? c.session || "" : "", title: c ? c.title : f.title || "", levels: c ? c.levels : (f.level && f.level !== "all" && f.level !== "C" ? [f.level] : []), project: c ? c.project : f.project || "", klass: c ? c.klass || "" : "", due: c ? dueOf(c) : "", scope: c ? scopeOf(c) : "", col: c ? c.col : f.col || "planned" };
   // every layer at every depth (a card in a deep layer kept its place only if its layer was listed)
   const allDeep = () => { const out = []; const walk = (p, d) => { if (d > 12) return; out.push(p); kids(p).forEach((k) => walk(k, d + 1)); }; tops().forEach((p) => walk(p, 0)); return out; };
   const projOpts = `<option value="">No project (a single task)</option>` + allDeep().map((p) => `<option value="${esc(p)}"${v.project === p ? " selected" : ""}>${esc(pathOf(p))}</option>`).join("") + `<option value="__new">New project…</option>`;
@@ -2100,7 +2649,11 @@ function formHtml(f) {
     <input class="cctitle" data-f="title" value="${esc(v.title)}" placeholder="Short name, for example: Quran translation PDF review" aria-label="Title">
     <label class="ccwhere">${ic("layers", 14)}<span class="ccwp">${esc(pp[0])}</span>${pp[1] ? `<em>›</em><b class="ccwk">${esc(pp[1])}</b>` : `<b class="ccwk"></b>`}<span style="flex:1"></span><span class="lab">change</span>${ic("chev", 13)}<select data-f="project" aria-label="Project">${projOpts}</select></label>
     <input class="ccnewproj" data-f="newproj" placeholder="Name of the new project" aria-label="New project name" hidden>
-    <div class="ccfgrid">${field("Level", lvTogs(v.levels))}${field("Class", klassTogs, "only if it is for one class")}${field("Due", dueTogs)}${field("Where it starts", `<div class="cctrack4">${track}</div>`)}</div>
+    <div class="ccfgrid">${field("Level", lvTogs(v.levels))}${field("Class", klassTogs, "only if it is for one class")}${field("Due", dueTogs)}${field("Where it starts", `<div class="cctrack4">${track}</div>`)}
+      ${field("Priority", PRI.map(([k, n]) => tog("radio", "data-fr", k, v.priority === k, (k === "high" ? ic("flag", 12) : "") + esc(n)).replace('name="fr"', 'name="priority"').replace(`data-fr="${esc(k)}"`, 'data-fr="priority"')).join(""), "apart from the due date and the column")}
+      ${field("Waits on", WAITS.map(([k, n]) => tog("radio", "data-fr", k, v.wait === k, esc(n)).replace('name="fr"', 'name="wait"').replace(`data-fr="${esc(k)}"`, 'data-fr="wait"')).join(""), "shows on the card in Waits on you")}
+      ${c && (c.session || /weekly deck|^MS-\d/i.test(c.title)) ? field("Session number", `<label class="srch"><input type="text" data-f="session" value="${esc(v.session)}" placeholder="MS-007" aria-label="Session number"></label>`, "the weekly deck's MS number") : ""}
+      ${c ? "" : field("From a chat", `<label class="srch"><select data-f="fromchat" aria-label="Chat to link"><option value="">None</option>${SEEN().map((r) => `<option value="${esc(JSON.stringify([r.kind, r.key || "", r.name, r.seen || ""]))}"${U.form && U.form.fromchat && U.form.fromchat[2] === r.name ? " selected" : ""}>${esc(r.name)} (${esc({ launched: "launched", loose: "open on EX-44", remote: "other machine", cloud: "cloud" }[r.kind] || r.kind)})</option>`).join("")}</select></label><label class="srch">${ic("link")}<input type="url" data-f="fromurl" placeholder="or paste its claude.ai link" aria-label="claude.ai link of the chat"></label>`, "the new card is linked to that chat")}</div>
     ${field("Scope", `<textarea data-f="scope" rows="3" placeholder="What it is, and what done looks like. For example: read the PDF, list the issues, write a one-page analysis for the mentor">${esc(v.scope)}</textarea>`, "what it is, and what done looks like", "wide")}
     ${c ? "" : field("First steps", `<div class="ccsteplist">${stepRows}</div><label class="ccaddstep">${ic("plus", 12)}<input data-addstep placeholder="Add a step, then Enter" aria-label="Add a step"></label>`, "a checklist on the card; tick them as you go", "wide")}
     <footer class="ccmf"><span class="lab"><span class="cckbd">Esc</span> closes · <span class="cckbd">Ctrl Enter</span> ${c ? "saves" : "puts it on the board"}</span><span style="flex:1"></span>${c && c.kind === "own" ? `<button class="btn risk" type="button" data-act="remove">${ic("trash")}Remove</button>` : ""}<button class="btn ghost" type="button" data-act="fclose">Cancel</button><button class="btn you" type="button" data-act="fsave">${ic("check")}${c ? "Save" : "Put it on the board"}</button></footer></div>`;
@@ -2161,11 +2714,15 @@ function drawerHtml(c, marks) {
     .concat(c.kind === "class" ? [mono(c.c.dname + " " + c.c.date, "cal"), st(c.c.days <= 1 ? "you" : "park", c.c.cd)] : [])
     .concat(dueOf(c) && c.col !== "done" ? [dueOf(c) === D.today ? st("you", "Due today", "cal") : gr("Due " + fd(dueOf(c)), "cal")] : []).concat(isMerged(c) ? [gr(t.merged, "merge")] : []).concat(nd && !isCleared(nd) && c.col !== "done" ? [st("you", "Needs you", "bolt")] : []);
   const ci = COLS.findIndex((x) => x[0] === c.col);
-  const head = `<div class="ccrow ccdcrumb">${c.project ? projq(c.project) : `<span class="ccproj">${ic("star", 11)}Single task</span>`}<span style="flex:1"></span><button class="ccicon" type="button" data-act="close" aria-label="Close (Esc)" title="Close (Esc)">${ic("x", 16)}</button></div>
+  const canSet = !!taskId(c) || c.kind === "own";
+  // 27 Nov notes: a visible Edit beside Close, and the two one-tap marks (priority, who it waits on) under the slider
+  const seg = (attr, list, cur) => `<div class="ccsegs" role="group">${list.map(([k, n]) => `<button type="button" class="ccseg${cur === k ? " on" : ""}${attr === "data-dpri" && k === "high" ? " hi" : ""}" ${attr}="${esc(k)}" aria-pressed="${cur === k}">${esc(n)}</button>`).join("")}</div>`;
+  const quick = canSet ? `<div class="ccquick"><div class="ccqf"><span class="lab">${ic("flag", 12)}Priority</span>${seg("data-dpri", PRI, priOf(c))}</div><div class="ccqf"><span class="lab">${ic("users", 12)}Waits on${c.col === "waiting on Ali" ? "" : " (when in Waits on you)"}</span>${seg("data-dwait", WAITS.map((x) => [x[0], x[1]]), waitOf(c))}</div></div>` : "";
+  const head = `<div class="ccrow ccdcrumb">${c.project ? projq(c.project) : `<span class="ccproj">${ic("star", 11)}Single task</span>`}<span style="flex:1"></span><button class="btn ghost sm ccedit" type="button" data-act="${c.kind === "class" ? "editclass" : "edit"}" title="Edit title, due, priority, scope">${ic("pen", 13)}Edit</button><button class="ccicon" type="button" data-act="close" aria-label="Close (Esc)" title="Close (Esc)">${ic("x", 16)}</button></div>
     ${c.kind !== "class" && U.trename === c.id ? `<input class="ccdt ccren cctren" data-trename-in="${esc(c.id)}" value="${esc(U.trenameText != null ? U.trenameText : shownTitle(c))}" aria-label="New title">`
       : c.kind !== "class" ? `<h2 class="id ccdt"><button type="button" class="cctbtn" data-trename="${esc(c.id)}" title="Click to rename">${esc(shownTitle(c))}${ic("pen", 14)}</button></h2>` : `<h2 class="id ccdt">${esc(c.c.code + " Class Kit")}</h2>`}
-    ${tags.length ? `<div class="ccrow">${tags.join("")}${tm(4)}${tm(5)}</div>` : ""}
-    ${sliderHtml(c, ci)}
+    ${tags.length || priOf(c) || waitOf(c) ? `<div class="ccrow">${priTag(c)}${c.col === "waiting on Ali" ? waitTag(c, false) : ""}${tags.join("")}${tm(4)}${tm(5)}</div>` : ""}
+    ${sliderHtml(c, ci)}${quick}
     <div class="seg2 ccdtabs" role="tablist">${[["overview", "Overview"], ["comments", "Comments", coms.length], ["details", "Details"]].map((x) => `<button class="tab${U.tab === x[0] ? " on" : ""}" role="tab" type="button" data-tab="${x[0]}">${esc(x[1])}${x[2] ? `<span class="ccnum sm">${x[2]}</span>` : ""}</button>`).join("")}${marks ? `<span style="align-self:center;margin-left:6px">${tm(8)} ${mk(2)}</span>` : ""}</div>`;
   let body = "";
   if (U.tab === "comments") {
@@ -2177,7 +2734,6 @@ function drawerHtml(c, marks) {
     if (c.kind !== "class" && scopeOf(c)) body += `<section class="dsec"><span class="lab">Scope</span><p style="margin:0;font-size:14px">${esc(scopeOf(c))}</p></section>`;
     if (t && t.facts.length) body += `<section class="dsec"><span class="lab">Facts</span><dl class="dfacts">${t.facts.map((f) => `<dt>${esc(f[0])}</dt><dd>${esc(f[1])}</dd>`).join("")}</dl></section>`;
     if (t && t.chats.length) body += `<section class="dsec"><span class="lab">Its chats</span><div class="ccrow">${t.chats.map((nm2) => { const k2 = D.chats[nm2] || { k: "park", w: "linked", since: "now" }; return `<button type="button" class="btn" data-chat="${esc(nm2)}"><span class="dot" style="background:${DOT[k2.k]};width:8px;height:8px"></span>${esc(nm2)}</button><span class="lab">${esc(k2.w)} since ${esc(k2.since)}</span>`; }).join("")}${tm(6)}</div></section>`;
-    if (c.kind === "task" && LIVEM()) body += linkBlock(c);
     if (t && t.brief.length) body += `<details class="ccbrief"${U.briefOpen === c.id ? " open" : ""}><summary class="lab">The full brief its chat was given</summary><div class="cccm soft"><p>${esc(t.brief[0].text)}</p><span class="lab num">${esc(t.brief[0].at)}</span></div></details>`;
     body += `<section class="dsec"><span class="lab">Same card elsewhere on EX-44 ${mk(6)}</span><div class="ccrow">${go("Needs you", "home", "home")}${go("Chats", "chat", "chats")}${go("Jobs (in Chats)", "layers", "chats")}${go("Map", "map", "map")}</div></section>`;
   } else if (c.kind === "class") {
@@ -2202,6 +2758,7 @@ function drawerHtml(c, marks) {
     }
     if (c.c.task && chatOf(c)) { body += nowBlock(c); body += summaryBlock(c, null);
     }
+    if (c.c.task) body += chatsBlock(c);
   } else {
     const done = c.col === "done";
     if (done || isMerged(c)) body += `<section class="dsec"><span class="lab">What was achieved</span>${(achieved(c).length ? achieved(c) : ["Marked done."]).map((a) => `<div class="ccach">${ic("check", 14)}<span>${esc(a)}</span></div>`).join("")}
@@ -2224,11 +2781,44 @@ function drawerHtml(c, marks) {
         <div style="display:flex;gap:6px"><label class="srch" style="flex:1">${ic("plus")}<input type="text" data-newstep placeholder="Add a step" aria-label="Add a step"></label><button class="btn" type="button" data-act="step">Add step</button></div>
         ${startGroup("Start a chat for this")}</section>`;
     }
+    if (!isMerged(c)) body += chatsBlock(c);
     if (coms.length) body += `<section class="dsec"><span class="lab">Latest comment</span><div class="cccm"><p>${esc(short(coms[0].text, 280))}</p><span class="lab num">You${coms[0].at ? ", " + esc(coms[0].at) : ""} · <button type="button" class="cclink" data-tab="comments">all ${coms.length} comments</button></span></div></section>`;
   }
   const sx = STAT[c.id], sline = sx ? `<div class="ccstatline">${statChip(c.id)}<span class="lab">${esc(sx.st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 5 seconds." : sx.st === "done" ? "EX-44 has it." : sx.st === "failed" ? "Not done: " + sx.why : "Taken back.")}</span></div>` : "";
   return `<div class="scrim" data-act="close"></div><aside class="drawer ccdrw" aria-label="Card opened"><header class="dhd">${head}${sline}</header>
     <div class="dbd" id="ccdbd-${esc(c.id)}-${esc(U.tab)}">${body}<p class="lab" style="margin:0">${LIVEM() ? "Every change here goes to EX-44 and shows in What you pressed. Steps, session numbers and the order of top projects stay in this browser." : "Buttons with a dotted edge ask a chat or la57 to act, so they work on the real EX-44 home. Everything else works here and is kept in this browser."}</p></div></aside>`;
+}
+
+// ---------- the quick edit (27 Nov notes): the pen on any card ----------
+// Priority and Waits on are one tap each; due date one tap for the usual days; the rest of the card one tap away.
+function qmenuHtml() {
+  const c = cards().find((x) => x.id === U.qmenu); if (!c) return "";
+  const tid = taskId(c), p = priOf(c), w = waitOf(c), due = dueOf(c);
+  const pos = U.qpos || { x: 16, y: 120 };
+  const seg = (attr, list, cur) => `<div class="ccsegs" role="group">${list.map(([k, n]) => `<button type="button" class="ccseg${cur === k ? " on" : ""}${attr === "data-qpri" && k === "high" ? " hi" : ""}" ${attr}="${esc(k)}" aria-pressed="${cur === k}">${esc(n)}</button>`).join("")}</div>`;
+  const day = (n) => { const d = new Date(Date.parse(D.today + "T00:00:00Z") + n * 864e5); return [d.toISOString().slice(0, 10), n === 0 ? "Today" : n === 1 ? "Tomorrow" : DNAME[d.getUTCDay()] + " " + d.getUTCDate()]; };
+  const canSet = !!tid || c.kind === "own";
+  return `<div class="ccqscrim" data-act="qclose"></div><div class="ccqmenu" role="dialog" aria-label="Edit ${esc(shownTitle(c))}" style="left:${pos.x}px;top:${pos.y}px;max-height:calc(100vh - ${pos.y + 12}px)">
+    <div class="ccqh"><b>${esc(short(c.kind === "class" ? c.c.code + " Class Kit" : shownTitle(c), 48))}</b><button class="ccicon sm" type="button" data-act="qclose" aria-label="Close (Esc)">${ic("x", 14)}</button></div>
+    ${canSet ? `<p class="cceyebrow">Priority</p>${seg("data-qpri", PRI, p)}` : ""}
+    ${canSet ? `<p class="cceyebrow">Waits on <span class="ccqhint">shows on the card in Waits on you</span></p>${seg("data-qwait", WAITS.map((x) => [x[0], x[1]]), w)}` : ""}
+    ${c.kind !== "class" && c.col !== "done" ? `<p class="cceyebrow">Due</p><div class="ccsegs" role="group">${[0, 1, 3, 6].map(day).map(([iso, n]) => `<button type="button" class="ccseg${due === iso ? " on" : ""}" data-qdue="${iso}">${esc(n)}</button>`).join("")}${due ? `<button type="button" class="ccseg" data-qdue="">No date</button>` : ""}</div>` : ""}
+    <div class="ccqlist">
+      ${c.kind !== "class" ? `<button type="button" data-qgo="edit">${ic("pen", 14)}<span>Edit everything<em>title, project, level, class, due, scope${c.session ? ", session number" : ""}</em></span></button>` : `<button type="button" data-qgo="details">${ic("pen", 14)}<span>Session number and details</span></button>`}
+      <button type="button" data-qgo="comments">${ic("note", 14)}<span>Notes and comments</span></button>
+      ${canSet ? `<button type="button" data-qgo="link">${ic("link", 14)}<span>Link a chat<em>launched, open on EX-44, the Mac, cloud, or a pasted link</em></span></button>` : ""}
+      <button type="button" data-qgo="open">${ic("layers", 14)}<span>Open the card</span></button>
+    </div></div>`;
+}
+function setDue(id, v) {
+  const c = cards().find((x) => x.id === id); if (!c) return;
+  const tid = taskId(c), old = dueOf(c);
+  if (old === v) return;
+  S.edits[id] = Object.assign({}, S.edits[id], { due: v }); save(); draw();
+  if (!LIVEM() || !tid || c.kind === "own") { toast(v ? `Due ${fd(v)}.` : "No due date."); return; }
+  ship(v ? `Due ${fd(v)}: "${shownTitle(c)}"` : `No due date: "${shownTitle(c)}"`, [{ action: "task", op: "due", task: tid, due: v || "none", target: tid }],
+    { key: "due:" + id, test: () => { const t = dTask(tid); return t && (t.due || "") === v; }, clear: () => { if (S.edits[id]) delete S.edits[id].due; } }, id,
+    { reqs: [{ action: "task", op: "due", task: tid, due: old || "none", target: tid }], local: () => { S.edits[id] = Object.assign({}, S.edits[id], { due: old }); } });
 }
 
 // ---------- mentor view ----------
@@ -2240,7 +2830,9 @@ function mentorHtml(all) {
   const open = all.filter((c) => c.col !== "done" && !isMerged(c) && visible(c));
   const groups = {}; open.forEach((c) => { const g = c.project ? (parentOf(c.project) || c.project) : "Single tasks"; (groups[g] = groups[g] || []).push(c); });
   const order = tops().filter((g) => groups[g]).concat(groups["Single tasks"] ? ["Single tasks"] : []);
-  return `<div style="display:flex;flex-direction:column;gap:16px"><div style="text-align:center;display:flex;flex-direction:column;gap:6px;padding-top:6px"><h2 style="margin:0;font:600 26px/1.1 var(--id);letter-spacing:-.02em">This week</h2><p style="margin:0;color:var(--ink2)">${open.length} open, grouped by project. Tap a row to open it together.</p></div>
+  // lesson status panel: where every subject stands, on top of everything in the mentor view (lessons.js, data from cc.json)
+  const ls = window.EX44LS ? window.EX44LS.html(D.lessons, !!(host && host.clientWidth < 760)) : "";
+  return `<div style="display:flex;flex-direction:column;gap:16px">${ls}<div style="text-align:center;display:flex;flex-direction:column;gap:6px;padding-top:6px"><h2 style="margin:0;font:600 26px/1.1 var(--id);letter-spacing:-.02em">This week</h2><p style="margin:0;color:var(--ink2)">${open.length} open, grouped by project. Tap a row to open it together.</p></div>
     ${order.map((g) => `<section class="panel"><div class="phead"><span class="fold" style="cursor:default"><h2>${esc(g)}</h2></span><span class="ccnum">${groups[g].length}</span></div>${groups[g].map(row).join("")}</section>`).join("")}</div>`;
 }
 
@@ -2252,7 +2844,7 @@ let host = null;
 // on the home): unchanged parts stay as they are, cards keep their element (key = card id) and glide to their new place
 // (FLIP, 220 ms), new cards fade in, and what Ali has typed in a field that the page does not hold itself is kept.
 const REDUCED = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } };
-const BOUND = "[data-q],[data-comment],[data-nreply],[data-ptitle],[data-prename-in],[data-psub-in],[data-trename-in]";   // fields the page keeps in U itself
+const BOUND = "[data-linkq],[data-q],[data-comment],[data-nreply],[data-ptitle],[data-prename-in],[data-psub-in],[data-trename-in]";   // fields the page keeps in U itself
 function typedKeep(from, to) {
   if (!from._typed) return true;
   const tg = from.tagName;
@@ -2303,10 +2895,10 @@ function draw() {
     ${weekHtml(all, phone)}
     ${toolbarHtml(all, marks)}
     <div class="ccmain">${main}</div>
-    ${openC ? drawerHtml(openC, marks) : ""}${U.form ? formOut(U.form) : ""}
+    ${openC ? drawerHtml(openC, marks) : ""}${U.form ? formOut(U.form) : ""}${U.qmenu ? qmenuHtml() : ""}
     ${U.toast ? `<div class="toast" role="status"><span>${esc(U.toast)}</span>${U.toastUndo && UNDO[U.toastUndo] ? `<button type="button" class="btn ghost ccundo" data-undo="${esc(U.toastUndo)}">${ic("undo")}Undo</button>` : ""}</div>` : ""}</div>`, true);
   glide(host); U.slideFrom = null;
-  if (U.view === "projects") { wireLines(host); setTimeout(() => wireLines(host), 250); if (document.fonts && !wireLines.f) { wireLines.f = 1; document.fonts.ready.then(() => wireLines(host)); } }
+  if (U.view === "projects") { fitMap(host); wireLines(host); setTimeout(() => { fitMap(host); wireLines(host); }, 250); if (document.fonts && !wireLines.f) { wireLines.f = 1; document.fonts.ready.then(() => { fitMap(host); wireLines(host); }); } }
   if (host.querySelector(".cctl2")) U.weekFrom = Math.round((all.filter((c) => !isMerged(c) && c.col === "done").length) * 100 / (all.filter((c) => !isMerged(c)).length || 1));
   if (keepC) { const c2 = host.querySelector("[data-comment]"); if (c2 && document.activeElement !== c2) { c2.focus(); c2.setSelectionRange(c2.value.length, c2.value.length); } }
   nav();
@@ -2539,16 +3131,24 @@ function saveForm() {
   }
   let project = o.project;
   if (project === "__new") { project = (o.newproj || "").trim(); if (!project) { toast("Type the new project's name."); return; } if (!allProjects().includes(project)) S.pnew.push({ name: project, levels: o.levels }); }
+  if (!(o.title || "").trim() && !f.id && o.fromchat) { try { o.title = JSON.parse(o.fromchat)[2]; } catch (e) {} }
   if (!(o.title || "").trim()) { toast("A card needs a title."); return; }
   if (f.id) {
-    S.edits[f.id] = Object.assign({}, S.edits[f.id], { title: o.title.trim(), levels: o.levels, project, klass: o.klass, due: o.due, scope: o.scope });
+    const c0 = cards().find((x) => x.id === f.id);
+    // 27 Nov notes: the weekly deck's session number is edited as its own field and kept in the title as (MS-0nn)
+    let sesNew = null;
+    if (o.session !== undefined) { const sv = (o.session || "").trim().toUpperCase(); if (sv && !/^MS-\d{3}$/.test(sv)) { toast("A session number looks like MS-007."); return; } sesNew = sv; }
+    const oldP = c0 ? priOf(c0) : "", oldW = c0 ? waitOf(c0) : "";
+    S.edits[f.id] = Object.assign({}, S.edits[f.id], { title: o.title.trim(), levels: o.levels, project, klass: o.klass, due: o.due, scope: o.scope, priority: o.priority || "", wait: o.wait || "" });
     const c = cards().find((x) => x.id === f.id); U.form = null; save();
     if (c && c.kind === "task" && LIVEM()) {
       const T = (field, value) => ({ action: "task", op: "set", task: f.id, field, value, target: f.id });
       // the weekly deck keeps its session number (MS-0nn) in its title: a rename keeps it unless Ali typed another
-      const ses = c.session && !/\((?:MS|S)-\d{2,3}\)/.test(o.title) && !o.title.includes(c.session) ? " (" + c.session + ")" : "";
+      const sesUse = sesNew !== null ? sesNew : c.session;
+      const ses = sesUse && !/\((?:MS|S)-\d{2,3}\)/.test(o.title) && !(o.title.trim() === sesUse && sesNew === null) ? " (" + sesUse + ")" : "";
       const rq = [T("title", o.title.trim() + ses), T("level", o.levels), T("project", project || ""), T("class", o.klass || ""), T("scope", o.scope || ""),
-        { action: "task", op: "due", task: f.id, due: o.due || "none", target: f.id }].concat(c.col !== o.col ? [{ action: "task", op: "move", task: f.id, state: o.col, target: f.id }] : []);
+        { action: "task", op: "due", task: f.id, due: o.due || "none", target: f.id }].concat(c.col !== o.col ? [{ action: "task", op: "move", task: f.id, state: o.col, target: f.id }] : [])
+        .concat((o.priority || "") !== oldP ? [T("priority", o.priority || "none")] : []).concat((o.wait || "") !== oldW ? [T("wait", o.wait || "none")] : []);
       if (c.col !== o.col) S.pos[f.id] = { col: o.col, order: 999 };
       const t0 = c.t || {}, oldCol = c.col;
       // Undo sends back only what this save changed (a field left as it was is not touched)
@@ -2558,7 +3158,8 @@ function saveForm() {
         !same((o.levels || []).slice().sort(), oldLv.slice().sort()) && (t0.levels || []).length ? [T("level", t0.levels.slice())] : [],
         !same(project || "", t0.project || "") ? [T("project", t0.project || "")] : [], !same(o.klass || "", t0.klass || "") ? [T("class", t0.klass || "")] : [],
         !same(o.scope || "", t0.next || "") ? [T("scope", t0.scope_raw || "")] : [], !same(o.due || "", t0.due || "") ? [{ action: "task", op: "due", task: f.id, due: t0.due || "none", target: f.id }] : [],
-        c.col !== o.col ? [{ action: "task", op: "move", task: f.id, state: oldCol, target: f.id }] : []);
+        c.col !== o.col ? [{ action: "task", op: "move", task: f.id, state: oldCol, target: f.id }] : [],
+        (o.priority || "") !== oldP ? [T("priority", oldP || "none")] : [], (o.wait || "") !== oldW ? [T("wait", oldW || "none")] : []);
       ship(`Save the card "${o.title.trim()}"`, rq, { key: "edit:" + f.id, test: () => { const t = dTask(f.id); return t && t.title === o.title.trim().replace(/\s*\((?:PC|SC|PC & SC|P & S)\)/, "") && (t.due || "") === (o.due || "") && (c.col === o.col || t.col === o.col); },
         clear: () => { delete S.edits[f.id]; delete S.pos[f.id]; } }, f.id,
         { reqs: back, pend: () => ({ key: "edit:" + f.id, test: () => { const t = dTask(f.id); return t && (t.due || "") === (t0.due || "") && t.col === oldCol; }, clear: () => {} }) });
@@ -2568,7 +3169,12 @@ function saveForm() {
     toast("Saved."); return;
   }
   const id = "own-" + Date.now().toString(36);
-  S.added.push({ id, title: o.title.trim(), col: o.col, levels: o.levels, project, klass: o.klass, due: o.due, scope: o.scope, at: nowStamp() });
+  // 27 Nov notes: a new card from a chat (picked from the list, or a pasted claude.ai link)
+  let fc = null; try { fc = o.fromchat ? JSON.parse(o.fromchat) : null; } catch (e) { fc = null; }
+  const fsid = sidOf(o.fromurl || "");
+  if ((o.fromurl || "").trim() && !fsid) { toast("That is not a claude.ai chat link."); return; }
+  const fromReq = fc && (fc[0] === "launched" || (fc[0] === "loose" && fc[1])) ? { chat: fc[1] } : fc ? { remote: { name: fc[2], kind: fc[0], sid: "", seen: fc[3] || "" } } : fsid ? { remote: { name: "Pasted chat " + fsid.slice(-6), kind: "link", sid: fsid, seen: "" } } : {};
+  S.added.push({ id, priority: o.priority || "", wait: o.wait || "", title: o.title.trim(), col: o.col, levels: o.levels, project, klass: o.klass, due: o.due, scope: o.scope, at: nowStamp() });
   if (LIVEM()) {
     const steps0 = (o.steps || "").split("\n").map((x) => x.trim()).filter(Boolean);
     const scope = (o.scope || "") + (steps0.length ? (o.scope ? "\n" : "") + "First steps:\n" + steps0.map((x, i) => (i + 1) + ". " + x).join("\n") : "");
@@ -2577,7 +3183,7 @@ function saveForm() {
     const newUndo = { reqs: (reason) => { const m = /added (\S+)/.exec(reason || ""), t = m ? { id: m[1] } : (D.tasks || []).find((x) => x.title === title);
         return (t ? [{ action: "task", op: "shelve", task: t.id, target: t.id }] : []).concat(pnew ? [{ action: "task", op: "unproject", project, target: "new" }] : []); },
       local: (reason) => { const m = /added (\S+)/.exec(reason || ""); if (m) S.removed[m[1]] = 1; } };
-    ship(`New task "${title}"`, (pnew ? [{ action: "task", op: "project", project, value: "", level: pnew.levels || [], target: "new" }] : []).concat([{ action: "task", op: "add", title, state: o.col, level: o.levels, project: project || "", class: o.klass || "", scope, due: o.due || "", target: "new" }]),
+    ship(`New task "${title}"`, (pnew ? [{ action: "task", op: "project", project, value: "", level: pnew.levels || [], target: "new" }] : []).concat([Object.assign({ action: "task", op: "add", title, state: o.col, level: o.levels, project: project || "", class: o.klass || "", scope, due: o.due || "", priority: o.priority || "", wait: o.wait || "", target: "new" }, fromReq)]),
       { key: "add:" + id, test: () => (D.tasks || []).some((t) => t.title === title), clear: () => { S.added = S.added.filter((x) => x.id !== id); delete S.pos[id];
         // QA pass: the card EX-44 made takes over from this browser's copy: its steps, the open drawer, and it stays in view
         const t = (D.tasks || []).find((x) => x.title === title); if (!t) return;
@@ -2599,6 +3205,24 @@ function wire(h) {
     const v = t.closest("[data-view]"); if (v) { U.view = v.dataset.view; draw(); return; }
     const tb = t.closest("[data-tab]"); if (tb) { U.tab = tb.dataset.tab; draw(); if (U.tab === "comments") { const ta = host.querySelector("[data-comment]"); if (ta) ta.focus(); } return; }
     const un = t.closest("[data-undo]"); if (un) { runUndo(un.dataset.undo); return; }
+    // 27 Nov notes: priority, waits on, the quick edit, linking any chat
+    const pr = t.closest("[data-pri]"); if (pr) { const c0 = cards().find((x) => x.id === pr.dataset.pri); if (c0) setField(c0.id, "priority", priOf(c0) === "high" ? "" : "high"); return; }
+    const wc = t.closest("[data-waitcycle]"); if (wc) { const c0 = cards().find((x) => x.id === wc.dataset.waitcycle); if (c0) { const i = WAITS.findIndex((x) => x[0] === waitOf(c0)); setField(c0.id, "wait", WAITS[(i + 1) % WAITS.length][0]); } return; }
+    const qm = t.closest("[data-qmenu]"); if (qm) { const r = qm.getBoundingClientRect(), W0 = window.innerWidth, H0 = window.innerHeight, mw = Math.min(340, W0 - 24);
+      U.qmenu = U.qmenu === qm.dataset.qmenu ? null : qm.dataset.qmenu; U.qpos = { x: Math.max(12, Math.min(r.right - mw, W0 - mw - 12)), y: Math.max(12, Math.min(r.bottom + 6, H0 - 500)) }; draw(); return; }
+    const qp = t.closest("[data-qpri]"); if (qp) { setField(U.qmenu, "priority", qp.dataset.qpri); return; }
+    const qw = t.closest("[data-qwait]"); if (qw) { setField(U.qmenu, "wait", qw.dataset.qwait); return; }
+    const qd = t.closest("[data-qdue]"); if (qd) { setDue(U.qmenu, qd.dataset.qdue); return; }
+    const dp2 = t.closest("[data-dpri]"); if (dp2) { setField(U.open, "priority", dp2.dataset.dpri); return; }
+    const dw = t.closest("[data-dwait]"); if (dw) { setField(U.open, "wait", dw.dataset.dwait); return; }
+    const qg = t.closest("[data-qgo]"); if (qg) { const id0 = U.qmenu, g = qg.dataset.qgo; U.qmenu = null; const c0 = cards().find((x) => x.id === id0);
+      if (g === "edit") { U.form = { mode: "task", id: id0 }; draw(); const ti = host.querySelector('.ccform [data-f="title"]'); if (ti) ti.focus(); return; }
+      U.open = id0; U.tab = g === "comments" ? "comments" : g === "details" ? "details" : "overview"; if (g === "link") { U.linkOpen = id0; U.linkQ = ""; } draw();
+      if (g === "comments") { const ta = host.querySelector("[data-comment]"); if (ta) ta.focus(); }
+      if (g === "link") { const el = host.querySelector("#cclink-" + CSS.escape(id0)); if (el) el.scrollIntoView({ block: "start" }); const i = host.querySelector("[data-linkq]"); if (i) i.focus({ preventScroll: true }); }
+      return; }
+    const lp = t.closest("[data-linkpick]"); if (lp) { const [kind, key, name, seen] = JSON.parse(lp.dataset.linkpick); const c0 = cards().find((x) => x.id === U.open); if (c0) linkChat(c0, kind, key, name, seen, ""); return; }
+    const ur = t.closest("[data-unremote]"); if (ur) { const c0 = cards().find((x) => x.id === U.open); if (c0) unlinkRemote(c0, ur.dataset.unremote); return; }
     const au = t.closest("[data-autoundo]"); if (au) { const c0 = cards().find((x) => x.id === au.dataset.autoundo), a0 = c0 && (c0.t ? c0.t.auto : c0.c ? c0.c.auto : null);
       if (c0 && a0) moveCard(c0.id, a0.from, null, "Undo the move by its chat: "); return; }
     const fo = t.closest("[data-follow]"); if (fo) { const id0 = U.follow; U.follow = null; if (fo.dataset.follow === "yes" && id0) moveCard(id0, "done", null); else draw(); return; }
@@ -2622,10 +3246,10 @@ function wire(h) {
     const trn = t.closest("[data-trename]"); if (trn) { U.trename = trn.dataset.trename; U.trenameText = null; draw(); const i = host.querySelector("[data-trename-in]"); if (i) { i.focus(); i.select(); } return; }
     const prn = t.closest("[data-prename]"); if (prn) { U.prename = prn.dataset.prename; U.prenameText = U.prename; draw(); const i = host.querySelector("[data-prename-in]"); if (i) { i.focus(); i.select(); } return; }
     const pf = t.closest("[data-pfold]"); if (pf) { const p0 = pf.dataset.pfold; if (S.pfold[p0]) delete S.pfold[p0]; else S.pfold[p0] = 1; save(); draw(); return; }
-    const psb = t.closest("[data-psub]"); if (psb) { U.psub = psb.dataset.psub; if (S.pfold[U.psub]) delete S.pfold[U.psub]; draw(); const i = host.querySelector("[data-psub-in]"); if (i) i.focus(); return; }
-    const pp = t.closest("[data-pplus]"); if (pp) { U.ptitle = pp.dataset.pplus; U.ptext = ""; draw(); const i = host.querySelector("[data-ptitle]"); if (i) i.focus(); return; }
+    const psb = t.closest("[data-psub]"); if (psb) { U.pmenu = null; U.psub = psb.dataset.psub; if (S.pfold[U.psub]) delete S.pfold[U.psub]; draw(); const i = host.querySelector("[data-psub-in]"); if (i) i.focus(); return; }
+    const pp = t.closest("[data-pplus]"); if (pp) { U.pmenu = null; U.ptitle = pp.dataset.pplus; U.ptext = ""; draw(); const i = host.querySelector("[data-ptitle]"); if (i) i.focus(); return; }
     const pa = t.closest("[data-padd]"); if (pa) { U.form = { mode: "task", project: pa.dataset.padd, col: "planned" }; draw(); return; }
-    const pe = t.closest("[data-pedit]"); if (pe) { U.form = { mode: "project", name: pe.dataset.pedit }; draw(); return; }
+    const pe = t.closest("[data-pedit]"); if (pe) { U.pmenu = null; U.form = { mode: "project", name: pe.dataset.pedit }; draw(); return; }
     const cp = t.closest("[data-copy]"); if (cp) { try { navigator.clipboard.writeText(cp.dataset.copy); toast("Folder copied: paste it into File Explorer on la57."); } catch (x) { toast(cp.dataset.copy); } return; }
     const pkm = t.closest("[data-pkm]"); if (pkm) { pkNow().model = pkm.dataset.pkm; draw(); return; }
     const pke = t.closest("[data-pke]"); if (pke) { pkNow().effort = pke.dataset.pke; draw(); return; }
@@ -2636,7 +3260,14 @@ function wire(h) {
     const ds = t.closest("[data-delstep]"); if (ds) { e.preventDefault(); (S.steps[U.open] || []).splice(+ds.dataset.delstep, 1); save(); draw(); return; }
     const a = t.closest("[data-act]");
     if (a) { const k = a.dataset.act;
-      if (k === "close") { U.open = null; draw(); return; }
+      if (k === "close") { U.open = null; U.linkOpen = null; draw(); return; }
+      if (k === "qclose") { U.qmenu = null; draw(); return; }
+      if (k === "editclass") { U.tab = "details"; draw(); const i = host.querySelector("[data-session]"); if (i) i.focus(); return; }
+      if (k === "linkopen") { U.linkOpen = U.linkOpen === U.open ? null : U.open; U.linkQ = ""; draw(); const i = host.querySelector("[data-linkq]"); if (i) i.focus({ preventScroll: true }); return; }
+      if (k === "linkpaste") { const box = a.closest(".cclinkp"), u = box.querySelector("[data-linkurl]"), nmI = box.querySelector("[data-linkname]"), sid = sidOf(u.value);
+        if (!sid) { u.focus(); toast("Paste the chat's claude.ai link (it starts with https://claude.ai/code/)."); return; }
+        const c0 = cards().find((x) => x.id === U.open); if (c0) linkChat(c0, "link", "", (nmI.value || "").trim().slice(0, 80) || "Pasted chat " + sid.slice(-6), "", sid); return; }
+      if (k === "fromchat") { U.more = false; U.form = { mode: "task", project: U.project, col: "doing", fromFocus: true }; draw(); const se = host.querySelector('.ccform [data-f="fromchat"]'); if (se) se.focus(); return; }
       if (k === "pick") { const p = pkNow(); p.open = !p.open; draw(); return; }
       if (k === "fclose") { U.form = null; draw(); return; }
       if (k === "fsave" || k === "psave") { saveForm(); return; }
@@ -2647,6 +3278,7 @@ function wire(h) {
         if (c0 && c0.kind === "task") ship(`Take "${shownTitle(c0)}" off the board`, [{ action: "task", op: "shelve", task: id, target: id }], { key: "hide:" + id, test: () => !dTask(id), clear: () => { delete S.removed[id]; } }, id,
           { reqs: [{ action: "task", op: "unshelve", task: id, target: id }], local: () => { delete S.removed[id]; }, pend: () => ({ key: "unhide:" + id, test: () => !!dTask(id), clear: () => {} }) }); } return; }
       if (k === "sbreset") { if (confirm("Throw away this arrangement and start again from EX-44's list as it was copied here?")) { const keep = { pfold: S.pfold }; S = Object.assign({ sessions: {}, pos: {}, added: [], comments: {}, steps: {}, ticks: {}, due: {}, proj: {}, removed: {}, late: {}, cleared: {}, answers: {}, edits: {}, ptree: {}, porder: null, pnew: [], followAsked: {}, ren: {} }, keep); save(); location.reload(); } return; }
+      if (k === "fopen") { U.fopen = !U.fopen; draw(); return; }
       if (k === "allplanned") { U.allPlanned = !U.allPlanned; draw(); return; }
       if (k === "more") { U.more = !U.more; draw(); return; }
       if (k === "lanes") { U.lanes = !U.lanes; U.more = false; draw(); return; }
@@ -2693,7 +3325,7 @@ function wire(h) {
   const typed = (e) => { const t = e.target; if (t.matches && t.matches("input,textarea,select") && !t.matches(BOUND)) t._typed = true; };
   h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-trename-in]") && U.trename === e.target.dataset.trenameIn) renameTask(e.target.dataset.trenameIn, e.target.value); }, true);
   h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-prename-in]") && U.prename === e.target.dataset.prenameIn) renameProject(e.target.dataset.prenameIn, e.target.value); }, true);
-  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-trename-in]")) { U.trenameText = e.target.value; return; } if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); } });
+  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-trename-in]")) { U.trenameText = e.target.value; return; } if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); return; } if (e.target.matches("[data-linkq]")) { U.linkQ = e.target.value; draw(); } });
   h.addEventListener("change", (e) => {
     const t = e.target; typed(e);
     if (t.closest && t.closest(".ccform")) {
@@ -2705,6 +3337,9 @@ function wire(h) {
     }
     if (t.matches("[data-project]")) { U.project = t.value; draw(); return; }
     if (t.matches("[data-levelsel]")) { U.level = t.value; draw(); return; }
+    if (t.matches("[data-prisel]")) { U.pri = t.value; draw(); return; }
+    if (t.matches("[data-waitsel]")) { U.wait = t.value; draw(); return; }
+    if (t.matches("[data-sortsel]")) { U.sort = t.value; draw(); return; }
     if (t.matches("[data-step]")) { const s = (S.steps[U.open] || [])[+t.dataset.step]; if (s) { s.d = t.checked; save(); draw(); } return; }
   });
   h.addEventListener("submit", (e) => {
@@ -2762,7 +3397,7 @@ function wire(h) {
   new ResizeObserver(() => { const ph = h.clientWidth < 760; if (ph !== h._ph) { h._ph = ph; if (h === host) draw(); } }).observe(h);
 }
 // Esc closes the form, then an opened item, from anywhere on the page
-document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; if (U.pk && U.pk.open && U.open) { U.pk.open = false; draw(); } else if (U.more) { U.more = false; draw(); } else if (U.pmenu || U.ptitle != null || U.psub != null || U.prename != null) { U.pmenu = null; U.ptitle = null; U.psub = null; U.prename = null; draw(); } else if (U.form) { U.form = null; draw(); } else if (U.nopen) { U.nopen = null; drawNeeds(); } else if (U.open && host && document.contains(host)) { U.open = null; draw(); } });
+document.addEventListener("keydown", (e) => { if (e.key !== "Escape") return; if (U.qmenu) { U.qmenu = null; draw(); } else if (U.linkOpen) { U.linkOpen = null; draw(); } else if (U.pk && U.pk.open && U.open) { U.pk.open = false; draw(); } else if (U.more) { U.more = false; draw(); } else if (U.pmenu || U.ptitle != null || U.psub != null || U.prename != null) { U.pmenu = null; U.ptitle = null; U.psub = null; U.prename = null; draw(); } else if (U.form) { U.form = null; draw(); } else if (U.nopen) { U.nopen = null; drawNeeds(); } else if (U.open && host && document.contains(host)) { U.open = null; draw(); } });
 
 // ---------- QA pass: Back and Forward (the brief: "back and forward"; the page had none, so Back left the home) ----------
 // Each tab of the home, each opened card and each Command Centre view is a step in the browser's history, with an
@@ -2792,7 +3427,7 @@ if (window.__CCLIVE) {
   if (first && first !== "home") { navFirst = first; const tryGo = (n) => { if ((D.tasks || []).length || n > 40) { navFirst = ""; navGo(first); try { history.replaceState({ k: first }, "", location.pathname + location.search + "#" + first); } catch (e) {} } else setTimeout(() => tryGo(n + 1), 250); }; setTimeout(() => tryGo(0), 0); }
 }
 
-window.EX44CC = { marks: false, nav, mount(h) { if (host === h) return; host = h; wire(h); draw(); },
+window.EX44CC = { marks: false, nav, mount(h) { if (host === h) return; host = h; wire(h); if (window.EX44LS) window.EX44LS.bind(h, draw); draw(); },
   needCount: () => NEEDS.filter((n) => !isCleared(n)).length, needTickets, clearNeed: (chat, text) => clearNeed(chat, text), openNeed: (chat) => { U.nopen = chat; drawNeeds(); },
   needOldest: () => { const o = NEEDS.filter((n) => !isCleared(n)); return o.length ? o[o.length - 1].age : ""; },
   needChips: () => { const o = NEEDS.filter((n) => !isCleared(n)); const c = o.filter((n) => n.task).length, u = o.filter((n) => n.unsent).length, f = o.length - c;
