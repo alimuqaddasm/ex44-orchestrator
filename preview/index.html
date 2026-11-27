@@ -997,6 +997,13 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .ccpicks .ccnrow.on > span:first-of-type{color:var(--ink)}
 .ex .ccpickt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
+/* Round 17: words not sent yet (only in this browser) */
+.ex .ccunsent{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--amber)}
+.ex .ccunsentb{border:1px dashed var(--amber);border-radius:10px;padding:10px 12px;background:var(--g1)}
+.ex .ccunsentb > .lab{display:inline-flex;align-items:center;gap:5px;color:var(--amber)}
+.ex .ccunsentr{font-size:14px;overflow-wrap:anywhere;padding:2px 0}
+.ex .ccunsentp{flex:none;margin-left:auto;font-size:11px;background:var(--g2);color:var(--amber)}
+
 /* Lesson status panel (25 Nov 2026), top of the mentor view. Home tokens only, plus one teal for "revised / made from" */
 .ex-light .lsp{--lsM:oklch(52% 0.09 190 / .28);--lsT:oklch(52% 0.09 190);--lsTd:oklch(60% 0.09 190 / .13);--lsF:oklch(52% 0.09 190);--lsH:oklch(52% 0.09 190 / .45);--lsE:var(--g3)}
 .ex-dark .lsp{--lsM:oklch(74% 0.09 190 / .3);--lsT:oklch(80% 0.09 190);--lsTd:oklch(80% 0.09 190 / .14);--lsF:oklch(74% 0.09 190);--lsH:oklch(74% 0.09 190 / .4);--lsE:var(--g3)}
@@ -2037,7 +2044,7 @@ const mono = (t, i) => `<span class="ccmono">${i ? ic(i, 11) : ""}${esc(t)}</spa
 const projq = (p) => (p ? `<span class="ccproj">${ic("layers", 11)}${esc(pathOf(p))}</span>` : "");
 
 // ---------- state (this browser) ----------
-let S = { sessions: {}, pos: {}, added: [], comments: {}, steps: {}, ticks: {}, due: {}, proj: {}, removed: {}, late: {}, cleared: {}, answers: {}, edits: {}, ptree: {}, porder: null, pnew: [] };
+let S = { drafts: {}, sessions: {}, pos: {}, added: [], comments: {}, steps: {}, ticks: {}, due: {}, proj: {}, removed: {}, late: {}, cleared: {}, answers: {}, edits: {}, ptree: {}, porder: null, pnew: [] };
 try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && typeof v === "object") S = Object.assign(S, v); } catch (e) {}
 ["steps", "cleared", "answers", "edits", "ptree", "sessions", "followAsked", "pfold"].forEach((k) => { S[k] = S[k] || {}; }); S.pnew = S.pnew || [];
 if (window.__CCLIVE) { S.pos = {}; S.due = {}; S.edits = {}; S.comments = {}; S.added = []; S.removed = {}; S.late = {}; S.answers = {}; }   // EX-44 holds these; only a change in flight is kept here
@@ -2107,8 +2114,10 @@ function ship(label, reqs, pend, cid, undo) {
   app.comp.act(label, (reason) => { if (pend) pend.done = Date.now();
       if (undo && undo.reqs) { UNDO[cid] = { label, undo, reason: reason || "", at: Date.now() }; toast("Done: " + label + ".", cid); }
       else if (undo && undo.no) toast("Done. " + undo.no);
+      if (undo && undo.then) { try { undo.then(reason); } catch (e) {} save(); }
       mark(cid, "done"); }, null,
-    (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); } mark(cid, why ? "failed" : "undone", why, label); toast(why ? "Not done: " + why + ". The card is back as it was." : "Taken back."); });
+    (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); }
+      if (undo && undo.fail) { try { undo.fail(why); } catch (e) {} save(); } mark(cid, why ? "failed" : "undone", why, label); toast(why ? "Not done: " + why + ". The card is back as it was." : "Taken back."); });
   return true;
 }
 function sbDo(label, fn) {   // arranging copy: do it here only, with Undo (a snapshot of the whole arrangement)
@@ -2141,7 +2150,7 @@ function reconcile() {
   save();
 }
 const dTask = (id) => (D.tasks || []).find((t) => t.id === id);
-let U = { pri: "all", wait: "all", sort: "board", qmenu: null, linkOpen: null, linkQ: "", showMergedSb: true, nopen: null, form: null, draft: {}, level: "all", project: "", lanes: false, q: "", open: null, view: "board", tab: "overview", phoneCol: "waiting on Ali", toast: "", showMerged: false, dragP: null };
+let U = { draft: Object.assign({}, S.drafts || {}), pri: "all", wait: "all", sort: "board", qmenu: null, linkOpen: null, linkQ: "", showMergedSb: true, nopen: null, form: null, level: "all", project: "", lanes: false, q: "", open: null, view: "board", tab: "overview", phoneCol: "waiting on Ali", toast: "", showMerged: false, dragP: null };
 
 // ---------- projects: a tree Ali can rearrange ----------
 const rawParentOf = (p) => (p in S.ptree ? S.ptree[p] : (D.tree || {})[p] || "");
@@ -2768,7 +2777,7 @@ function drawerHtml(c, marks) {
   let body = "";
   if (U.tab === "comments") {
     body = `<section class="dsec"><label class="srch ccnote"><textarea data-comment rows="3" placeholder="Write a comment, it is kept exactly as you type it (Ctrl Enter posts)" aria-label="New comment">${esc(U.draft[c.id] || "")}</textarea></label>
-      <div><button class="btn" type="button" data-act="post">${ic("note")}Post comment</button></div></section>
+      <div class="ccrow"><button class="btn" type="button" data-act="post">${ic("note")}Post comment</button><span class="ccunsent" data-draftmark${(U.draft[c.id] || "").trim() && LIVEM() ? "" : " hidden"}>${ic("clock", 12)}Not sent yet: only in this browser until you press Post comment</span></div></section>
       ${coms.map((m) => `<div class="cccm"><p>${esc(m.text)}</p><span class="lab num">You${m.at ? ", " + esc(m.at) : ""} · from ${esc(m.from)}</span></div>`).join("") || `<div class="sempty">No comments yet.</div>`}`;
   } else if (U.tab === "details") {
     body = c.kind === "class" ? `<section class="dsec"><span class="lab">Session number</span><div style="display:flex;gap:6px"><label class="srch" style="flex:1"><input type="text" data-session value="${esc(c.session === "S-00x" ? "" : c.session)}" placeholder="S-00x until you know it, for example S-012" aria-label="Session number"></label><button class="btn" type="button" data-act="session">Save</button></div><p class="lab" style="margin:0">Each class counts its own sessions. Set it once; the next week's kit counts on from it.</p></section>` : `<section class="dsec"><div class="ccrow"><button class="btn" type="button" data-act="edit">${ic("pen")}Edit the card</button>${c.kind !== "class" ? `<button class="btn ghost" type="button" data-act="hide">${ic("x")}Take off the board</button>` : ""}</div></section>`;
@@ -2809,6 +2818,7 @@ function drawerHtml(c, marks) {
       body += `<section class="askbox ccask"><span class="cceyebrow" style="color:var(--amber)">It asks you</span><p class="ccq">${esc(nd && !isCleared(nd) ? nd.ask : D.asks[c.id])}</p>
         <div class="ccrow">${opts.map((o, i) => `<button class="btn${i === 0 ? " you" : ""}" type="button" data-canswer="${esc(o)}"><span class="num">${i + 1}</span>&nbsp;${esc(o)}</button>`).join("")}<button class="btn ghost" type="button" data-tab="comments">${ic("note")}Answer in words</button></div></section>`;
     }
+    body += unsentBlock(c);
     if (ch && !isMerged(c)) body += nowBlock(c);
     if (!done) body += summaryBlock(c, null);
     if (ch && !done && !isMerged(c)) {
@@ -2819,7 +2829,7 @@ function drawerHtml(c, marks) {
       const stp = ownSteps(c);
       body += `<section class="dsec"><span class="lab">Scope</span>${scopeOf(c) ? `<p style="margin:0;font-size:14px">${esc(scopeOf(c))}</p>` : `<div><button class="btn ghost" type="button" data-act="edit">${ic("pen")}Write its scope</button></div>`}</section>
         <section class="dsec"><span class="lab">Steps${stp.length ? num(`${stp.filter((s) => s.d).length} of ${stp.length}`) : ""}</span>
-        ${stp.map((s, i) => `<label class="ccck${s.d ? " on" : ""}"><input type="checkbox" data-step="${i}"${s.d ? " checked" : ""}><span>${esc(s.t)}</span><button class="btn ghost" type="button" data-delstep="${i}" aria-label="Remove step" style="height:24px;padding:0 6px;margin-left:auto">${ic("x", 12)}</button></label>`).join("")}
+        ${stp.map((s, i) => `<label class="ccck${s.d ? " on" : ""}"><input type="checkbox" data-step="${i}"${s.d ? " checked" : ""}><span>${esc(s.t)}</span>${!s.sent && liveTask(c.id) ? `<span class="pill tgx ccunsentp" title="Only in this browser: press Send to EX-44 as notes above">Not sent yet</span>` : ""}<button class="btn ghost" type="button" data-delstep="${i}" aria-label="Remove step" style="height:24px;padding:0 6px;margin-left:auto">${ic("x", 12)}</button></label>`).join("")}
         <div style="display:flex;gap:6px"><label class="srch" style="flex:1">${ic("plus")}<input type="text" data-newstep placeholder="Add a step" aria-label="Add a step"></label><button class="btn" type="button" data-act="step">Add step</button></div>
         ${startGroup("Start a chat for this")}</section>`;
     }
@@ -3064,6 +3074,31 @@ function wireNeeds(h) {
 // on those notes alone; the bookmark of Act on my notes does not move. The home's 2 s undo before it sends; a refusal
 // or failure stays as a red box under the button.
 const PICKS = {};
+// Round 17 (Ali, 27 Nov: a note typed on the Persian Final L04 Practice card never reached EX-44): every box that holds
+// Ali's words goes to EX-44 as a note of the task. A step becomes a note when it is added; a comment draft not posted is
+// kept in this browser with a "Not sent yet" mark; starting a chat sends anything not sent first, in the same request.
+const liveTask = (cid) => { const c = cards().find((x) => x.id === cid); return LIVEM() && c && c.kind === "task" ? c : null; };
+function unsentOf(cid) {
+  if (!liveTask(cid)) return { steps: [], draft: "" };
+  return { steps: (S.steps[cid] || []).filter((x) => !x.sent).map((x) => x.t), draft: ((S.drafts || {})[cid] || U.draft[cid] || "").trim() ? ((S.drafts || {})[cid] || U.draft[cid]) : "" };
+}
+function sendWords(cid, steps, comments, what) {
+  const c = liveTask(cid); if (!c || (!steps.length && !comments.length)) return false;
+  const reqs = steps.map((t) => ({ action: "task", op: "note", kind: "step", task: cid, text: "Step: " + t, target: cid })).concat(comments.map((t) => ({ action: "task", op: "note", task: cid, text: t, target: cid })));
+  const n = steps.length + comments.length;
+  return ship(`${what} "${shownTitle(c)}" (${n === 1 ? "1 note" : n + " notes"})`, reqs, null, "words:" + cid, {
+    reqs: steps.map((t) => ({ action: "task", op: "unnote", task: cid, text: "Step: " + t, target: cid })).concat(comments.map((t) => ({ action: "task", op: "unnote", task: cid, text: t, target: cid }))),
+    local: () => { (S.steps[cid] || []).forEach((x) => { if (steps.includes(x.t)) delete x.sent; }); },
+    then: () => { (S.steps[cid] || []).forEach((x) => { if (steps.includes(x.t)) x.sent = 1; });
+      if (comments.length) { const dv = ((S.drafts || {})[cid] || "").trim(); if (comments.some((t) => t.trim() === dv)) { delete S.drafts[cid]; U.draft[cid] = ""; } } draw(); } });
+}
+const markDraft = () => { const m = host && host.querySelector("[data-draftmark]"); if (m) m.hidden = !((U.draft[U.open] || "").trim() && LIVEM()); };
+function unsentBlock(c) {
+  const uw = unsentOf(c.id); if (!uw.steps.length && !uw.draft) return "";
+  return `<section class="dsec ccunsentb" role="status"><span class="lab">${ic("clock", 12)}Not sent yet: only in this browser</span>
+    ${uw.steps.map((t) => `<div class="ccunsentr">Step: ${esc(short(t, 160))}</div>`).join("")}${uw.draft ? `<div class="ccunsentr">Comment not posted: ${esc(short(uw.draft, 160))}</div>` : ""}
+    <div class="ccrow"><button class="btn you" type="button" data-act="flush">${ic("bolt")}Send to EX-44 as notes</button><span class="lab">Starting a chat sends them first by itself.</span></div>${failBox("words:" + c.id)}</section>`;
+}
 const pickNotes = (c) => ((c.t && c.t.comments) || []).filter((m) => m.n).slice().reverse();
 function pickBlock(c, ch) {
   const ns = pickNotes(c); if (!ns.length) return "";
@@ -3084,9 +3119,11 @@ function machine(label, el) {
     if (c.kind !== "task") { toast("Save the card first: it is still on its way to EX-44."); return true; }
     const p = pkNow(), r = pkAccts().find((x) => x.tag === p.acct);
     if (!r || r.pz || r.out) { toast(r && r.pz ? `${p.acct} is paused (${r.pz}): pick another account.` : `${p.acct} cannot take a chat now: pick another account.`); return true; }
-    const col0 = c.col;
-    ship(`Start a chat for "${shownTitle(c)}" on ${p.acct} with ${pkName(p.model)}, ${p.effort} effort`, [{ action: "task-chat", task: c.id, account: p.acct, model: p.model, effort: p.effort, target: c.id }], null, c.id,
-      { reqs: (reason) => { const m = /started (\S+)/.exec(reason || ""); return m ? [{ action: "close", target: m[1] }, { action: "task", op: "unlink", task: c.id, chat: m[1], target: c.id }].concat(col0 !== "doing" ? [{ action: "task", op: "move", task: c.id, state: col0, target: c.id }] : []) : []; } });
+    const col0 = c.col, uw = unsentOf(c.id);   // Round 17: words not sent yet go first, in the same request, so the brief has them
+    const flush = uw.steps.map((t) => ({ kind: "step", text: "Step: " + t })).concat(uw.draft ? [{ kind: "comment", text: uw.draft }] : []);
+    ship(`Start a chat for "${shownTitle(c)}" on ${p.acct} with ${pkName(p.model)}, ${p.effort} effort`, [Object.assign({ action: "task-chat", task: c.id, account: p.acct, model: p.model, effort: p.effort, target: c.id }, flush.length ? { flush } : {})], null, c.id,
+      { then: () => { (S.steps[c.id] || []).forEach((x) => { if (uw.steps.includes(x.t)) x.sent = 1; }); if (uw.draft && S.drafts) { delete S.drafts[c.id]; U.draft[c.id] = ""; } },
+        reqs: (reason) => { const m = /started (\S+)/.exec(reason || ""); return m ? [{ action: "close", target: m[1] }, { action: "task", op: "unlink", task: c.id, chat: m[1], target: c.id }].concat(col0 !== "doing" ? [{ action: "task", op: "move", task: c.id, state: col0, target: c.id }] : []) : []; } });
     U.pk = null;
     toast(`Sent: EX-44 starts a ${pkName(p.model)} chat (${p.effort} effort) for this task on ${p.acct}, links it here and moves the card to Doing.`); return true; }
   if (label === "Send") {
@@ -3250,7 +3287,7 @@ function saveForm() {
         FRESH[t.id] = Date.now(); if (U.open === id) U.open = t.id; if (STAT[id]) { STAT[t.id] = STAT[id]; delete STAT[id]; } if (UNDO[id]) { UNDO[t.id] = UNDO[id]; delete UNDO[id]; } } }, id, newUndo);
   }
   S.pos[id] = { col: o.col, order: 999 };
-  const steps = (o.steps || "").split("\n").map((x) => x.trim()).filter(Boolean); if (steps.length) S.steps[id] = steps.map((t) => ({ t, d: false }));
+  const steps = (o.steps || "").split("\n").map((x) => x.trim()).filter(Boolean); if (steps.length) S.steps[id] = steps.map((t) => ({ t, d: false, sent: 1 }));   // they went in the scope
   save(); U.form = null; draw(); toast("Card made.");
 }
 
@@ -3321,6 +3358,7 @@ function wire(h) {
     const a = t.closest("[data-act]");
     if (a) { const k = a.dataset.act;
       if (k === "close") { U.open = null; U.linkOpen = null; draw(); return; }
+      if (k === "flush") { const uw = unsentOf(U.open); if (!uw.steps.length && !uw.draft) return; sendWords(U.open, uw.steps, uw.draft ? [uw.draft] : [], "Words kept on"); return; }
       if (k === "unpick") { delete PICKS[U.open]; draw(); return; }
       if (k === "picks") { const c = cards().find((x) => x.id === U.open), o = PICKS[U.open] || {}, ch = c && c.t && c.t.chats[0];
         const picks = Object.keys(o).filter((x) => o[x]).map(Number).sort((x, y) => x - y); if (!c || !ch || !picks.length) return;
@@ -3364,12 +3402,14 @@ function wire(h) {
           { key: "link:" + id + ":" + nm, test: () => { const t2 = dTask(id); return !!(t2 && t2.chats.includes(nm)); }, clear: () => {} }, id,
           { reqs: [{ action: "task", op: "unlink", task: id, chat: nm, target: id }] }); draw(); }
         return; }
-      if (k === "step") { const i = host.querySelector("[data-newstep]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.steps[U.open] = S.steps[U.open] || []).push({ t: v2, d: false }); i.value = ""; i._typed = false; save(); draw(); const n2 = host.querySelector("[data-newstep]"); if (n2) n2.focus(); return; }
-      if (k === "post") { const ta = host.querySelector("[data-comment]"); const v2 = ta && ta.value.trim(); if (!v2) { ta && ta.focus(); return; } (S.comments[U.open] = S.comments[U.open] || []).push({ text: ta.value, at: nowStamp() }); U.draft[U.open] = ""; save(); draw();
+      if (k === "step") { const i = host.querySelector("[data-newstep]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.steps[U.open] = S.steps[U.open] || []).push({ t: v2, d: false }); i.value = ""; i._typed = false; save(); draw(); const n2 = host.querySelector("[data-newstep]"); if (n2) n2.focus();
+        sendWords(U.open, [v2], [], `Step on`); return; }
+      if (k === "post") { const ta = host.querySelector("[data-comment]"); const v2 = ta && ta.value.trim(); if (!v2) { ta && ta.focus(); return; } (S.comments[U.open] = S.comments[U.open] || []).push({ text: ta.value, at: nowStamp() }); U.draft[U.open] = ""; if (S.drafts) delete S.drafts[U.open]; save(); draw();
         const oid = U.open, txt = ta.value, cc0 = cards().find((x) => x.id === oid);
         if (cc0 && cc0.kind === "task" && ship(`Comment on "${shownTitle(cc0)}"`, [{ action: "task", op: "note", task: oid, text: txt, target: oid }],
           { key: "com:" + oid + ":" + Date.now(), test: () => { const t = dTask(oid); return t && t.comments.some((m) => m.text === txt); }, clear: () => { S.comments[oid] = (S.comments[oid] || []).filter((m) => m.text !== txt); } }, oid,
-          { reqs: [{ action: "task", op: "unnote", task: oid, text: txt, target: oid }], local: () => { S.comments[oid] = (S.comments[oid] || []).filter((m) => m.text !== txt); } })) { return; }
+          { reqs: [{ action: "task", op: "unnote", task: oid, text: txt, target: oid }], local: () => { S.comments[oid] = (S.comments[oid] || []).filter((m) => m.text !== txt); },
+            fail: () => { if (!(U.draft[oid] || "").trim()) { U.draft[oid] = txt; S.drafts = S.drafts || {}; S.drafts[oid] = txt; } } })) { return; }
         toast("Comment kept, word for word."); return; }
     }
     const card = t.closest("[data-card]"); if (card && !t.closest("button,input,select,textarea,label")) openCard(card.dataset.card);
@@ -3391,7 +3431,7 @@ function wire(h) {
   const typed = (e) => { const t = e.target; if (t.matches && t.matches("input,textarea,select") && !t.matches(BOUND)) t._typed = true; };
   h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-trename-in]") && U.trename === e.target.dataset.trenameIn) renameTask(e.target.dataset.trenameIn, e.target.value); }, true);
   h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-prename-in]") && U.prename === e.target.dataset.prenameIn) renameProject(e.target.dataset.prenameIn, e.target.value); }, true);
-  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-trename-in]")) { U.trenameText = e.target.value; return; } if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); return; } if (e.target.matches("[data-linkq]")) { U.linkQ = e.target.value; draw(); } });
+  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-trename-in]")) { U.trenameText = e.target.value; return; } if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; S.drafts = S.drafts || {}; if (e.target.value.trim()) S.drafts[U.open] = e.target.value; else delete S.drafts[U.open]; save(); markDraft(); return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); return; } if (e.target.matches("[data-linkq]")) { U.linkQ = e.target.value; draw(); } });
   h.addEventListener("change", (e) => {
     const t = e.target; typed(e);
     if (t.closest && t.closest(".ccform")) {
