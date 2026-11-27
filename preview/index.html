@@ -3119,9 +3119,9 @@ function machine(label, el) {
     if (c.kind !== "task") { toast("Save the card first: it is still on its way to EX-44."); return true; }
     const p = pkNow(), r = pkAccts().find((x) => x.tag === p.acct);
     if (!r || r.pz || r.out) { toast(r && r.pz ? `${p.acct} is paused (${r.pz}): pick another account.` : `${p.acct} cannot take a chat now: pick another account.`); return true; }
-    const col0 = c.col, uw = unsentOf(c.id);   // Round 17: words not sent yet go first, in the same request, so the brief has them
+    const col0 = c.col, uw = unsentOf(c.id);   // Round 17: words not sent yet go first, as notes in the same press, so the chat's brief has them
     const flush = uw.steps.map((t) => ({ kind: "step", text: "Step: " + t })).concat(uw.draft ? [{ kind: "comment", text: uw.draft }] : []);
-    ship(`Start a chat for "${shownTitle(c)}" on ${p.acct} with ${pkName(p.model)}, ${p.effort} effort`, [Object.assign({ action: "task-chat", task: c.id, account: p.acct, model: p.model, effort: p.effort, target: c.id }, flush.length ? { flush } : {})], null, c.id,
+    ship(`Start a chat for "${shownTitle(c)}" on ${p.acct} with ${pkName(p.model)}, ${p.effort} effort`, flush.map((x) => Object.assign({ action: "task", op: "note", task: c.id, text: x.text, target: c.id }, x.kind === "step" ? { kind: "step" } : {})).concat([Object.assign({ action: "task-chat", task: c.id, account: p.acct, model: p.model, effort: p.effort, target: c.id }, flush.length ? { flush } : {})]), null, c.id,
       { then: () => { (S.steps[c.id] || []).forEach((x) => { if (uw.steps.includes(x.t)) x.sent = 1; }); if (uw.draft && S.drafts) { delete S.drafts[c.id]; U.draft[c.id] = ""; } },
         reqs: (reason) => { const m = /started (\S+)/.exec(reason || ""); return m ? [{ action: "close", target: m[1] }, { action: "task", op: "unlink", task: c.id, chat: m[1], target: c.id }].concat(col0 !== "doing" ? [{ action: "task", op: "move", task: c.id, state: col0, target: c.id }] : []) : []; } });
     U.pk = null;
