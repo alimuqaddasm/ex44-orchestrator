@@ -2044,7 +2044,7 @@ const mono = (t, i) => `<span class="ccmono">${i ? ic(i, 11) : ""}${esc(t)}</spa
 const projq = (p) => (p ? `<span class="ccproj">${ic("layers", 11)}${esc(pathOf(p))}</span>` : "");
 
 // ---------- state (this browser) ----------
-let S = { drafts: {}, sessions: {}, pos: {}, added: [], comments: {}, steps: {}, ticks: {}, due: {}, proj: {}, removed: {}, late: {}, cleared: {}, answers: {}, edits: {}, ptree: {}, porder: null, pnew: [] };
+let S = { stepDraft: {}, drafts: {}, sessions: {}, pos: {}, added: [], comments: {}, steps: {}, ticks: {}, due: {}, proj: {}, removed: {}, late: {}, cleared: {}, answers: {}, edits: {}, ptree: {}, porder: null, pnew: [] };
 try { const v = JSON.parse(localStorage.getItem(KEY)); if (v && typeof v === "object") S = Object.assign(S, v); } catch (e) {}
 ["steps", "cleared", "answers", "edits", "ptree", "sessions", "followAsked", "pfold"].forEach((k) => { S[k] = S[k] || {}; }); S.pnew = S.pnew || [];
 if (window.__CCLIVE) { S.pos = {}; S.due = {}; S.edits = {}; S.comments = {}; S.added = []; S.removed = {}; S.late = {}; S.answers = {}; }   // EX-44 holds these; only a change in flight is kept here
@@ -2705,7 +2705,7 @@ function formHtml(f) {
       ${c && (c.session || /weekly deck|^MS-\d/i.test(c.title)) ? field("Session number", `<label class="srch"><input type="text" data-f="session" value="${esc(v.session)}" placeholder="MS-007" aria-label="Session number"></label>`, "the weekly deck's MS number") : ""}
       ${c ? "" : field("From a chat", `<label class="srch"><select data-f="fromchat" aria-label="Chat to link"><option value="">None</option>${SEEN().map((r) => `<option value="${esc(JSON.stringify([r.kind, r.key || "", r.name, r.seen || ""]))}"${U.form && U.form.fromchat && U.form.fromchat[2] === r.name ? " selected" : ""}>${esc(r.name)} (${esc({ launched: "launched", loose: "open on EX-44", remote: "other machine", cloud: "cloud" }[r.kind] || r.kind)})</option>`).join("")}</select></label><label class="srch">${ic("link")}<input type="url" data-f="fromurl" placeholder="or paste its claude.ai link" aria-label="claude.ai link of the chat"></label>`, "the new card is linked to that chat")}</div>
     ${field("Scope", `<textarea data-f="scope" rows="3" placeholder="What it is, and what done looks like. For example: read the PDF, list the issues, write a one-page analysis for the mentor">${esc(v.scope)}</textarea>`, "what it is, and what done looks like", "wide")}
-    ${c ? "" : field("First steps", `<div class="ccsteplist">${stepRows}</div><label class="ccaddstep">${ic("plus", 12)}<input data-addstep placeholder="Add a step, then Enter" aria-label="Add a step"></label>`, "a checklist on the card; tick them as you go", "wide")}
+    ${c ? "" : field("First steps", `<div class="ccsteplist">${stepRows}</div><label class="ccaddstep">${ic("plus", 12)}<input data-addstep placeholder="Add a step, then Enter" aria-label="Add a step"></label><span class="ccunsent" data-addstepmark hidden>${ic("clock", 12)}Not added yet: it goes on the card with the rest when you put it on the board</span>`, "a checklist on the card; tick them as you go", "wide")}
     <footer class="ccmf"><span class="lab"><span class="cckbd">Esc</span> closes · <span class="cckbd">Ctrl Enter</span> ${c ? "saves" : "puts it on the board"}</span><span style="flex:1"></span>${c && c.kind === "own" ? `<button class="btn risk" type="button" data-act="remove">${ic("trash")}Remove</button>` : ""}<button class="btn ghost" type="button" data-act="fclose">Cancel</button><button class="btn you" type="button" data-act="fsave">${ic("check")}${c ? "Save" : "Put it on the board"}</button></footer></div>`;
 }
 function readForm() {
@@ -2830,7 +2830,8 @@ function drawerHtml(c, marks) {
       body += `<section class="dsec"><span class="lab">Scope</span>${scopeOf(c) ? `<p style="margin:0;font-size:14px">${esc(scopeOf(c))}</p>` : `<div><button class="btn ghost" type="button" data-act="edit">${ic("pen")}Write its scope</button></div>`}</section>
         <section class="dsec"><span class="lab">Steps${stp.length ? num(`${stp.filter((s) => s.d).length} of ${stp.length}`) : ""}</span>
         ${stp.map((s, i) => `<label class="ccck${s.d ? " on" : ""}"><input type="checkbox" data-step="${i}"${s.d ? " checked" : ""}><span>${esc(s.t)}</span>${!s.sent && liveTask(c.id) ? `<span class="pill tgx ccunsentp" title="Only in this browser: press Send to EX-44 as notes above">Not sent yet</span>` : ""}<button class="btn ghost" type="button" data-delstep="${i}" aria-label="Remove step" style="height:24px;padding:0 6px;margin-left:auto">${ic("x", 12)}</button></label>`).join("")}
-        <div style="display:flex;gap:6px"><label class="srch" style="flex:1">${ic("plus")}<input type="text" data-newstep placeholder="Add a step" aria-label="Add a step"></label><button class="btn" type="button" data-act="step">Add step</button></div>
+        <span class="ccunsent" data-stepmark${((S.stepDraft || {})[c.id] || "").trim() && liveTask(c.id) ? "" : " hidden"}>${ic("clock", 12)}Not added yet: press Add step, or it goes with Save or Start a chat</span>
+        <div style="display:flex;gap:6px"><label class="srch" style="flex:1">${ic("plus")}<input type="text" data-newstep placeholder="Add a step" aria-label="Add a step" value="${esc((S.stepDraft || {})[c.id] || "")}"></label><button class="btn" type="button" data-act="step">Add step</button></div>
         ${startGroup("Start a chat for this")}</section>`;
     }
     if (!isMerged(c)) body += chatsBlock(c);
@@ -3080,7 +3081,14 @@ const PICKS = {};
 const liveTask = (cid) => { const c = cards().find((x) => x.id === cid); return LIVEM() && c && c.kind === "task" ? c : null; };
 function unsentOf(cid) {
   if (!liveTask(cid)) return { steps: [], draft: "" };
-  return { steps: (S.steps[cid] || []).filter((x) => !x.sent).map((x) => x.t), draft: ((S.drafts || {})[cid] || U.draft[cid] || "").trim() ? ((S.drafts || {})[cid] || U.draft[cid]) : "" };
+  const sd = ((S.stepDraft || {})[cid] || "").trim();   // Round 17b: a step typed but never added (no Enter) waits here too
+  return { pending: sd, steps: (S.steps[cid] || []).filter((x) => !x.sent).map((x) => x.t).concat(sd ? [sd] : []), draft: ((S.drafts || {})[cid] || U.draft[cid] || "").trim() ? ((S.drafts || {})[cid] || U.draft[cid]) : "" };
+}
+function wordsSent(cid, steps, comments) {
+  const sd = ((S.stepDraft || {})[cid] || "").trim();
+  if (sd && steps.includes(sd)) { (S.steps[cid] = S.steps[cid] || []).push({ t: sd, d: false, sent: 1 }); delete S.stepDraft[cid]; }
+  (S.steps[cid] || []).forEach((x) => { if (steps.includes(x.t)) x.sent = 1; });
+  if (comments.length && S.drafts) { const dv = (S.drafts[cid] || "").trim(); if (comments.some((t) => t.trim() === dv)) { delete S.drafts[cid]; U.draft[cid] = ""; } }
 }
 function sendWords(cid, steps, comments, what) {
   const c = liveTask(cid); if (!c || (!steps.length && !comments.length)) return false;
@@ -3089,14 +3097,13 @@ function sendWords(cid, steps, comments, what) {
   return ship(`${what} "${shownTitle(c)}" (${n === 1 ? "1 note" : n + " notes"})`, reqs, null, "words:" + cid, {
     reqs: steps.map((t) => ({ action: "task", op: "unnote", task: cid, text: "Step: " + t, target: cid })).concat(comments.map((t) => ({ action: "task", op: "unnote", task: cid, text: t, target: cid }))),
     local: () => { (S.steps[cid] || []).forEach((x) => { if (steps.includes(x.t)) delete x.sent; }); },
-    then: () => { (S.steps[cid] || []).forEach((x) => { if (steps.includes(x.t)) x.sent = 1; });
-      if (comments.length) { const dv = ((S.drafts || {})[cid] || "").trim(); if (comments.some((t) => t.trim() === dv)) { delete S.drafts[cid]; U.draft[cid] = ""; } } draw(); } });
+    then: () => { wordsSent(cid, steps, comments); draw(); } });
 }
 const markDraft = () => { const m = host && host.querySelector("[data-draftmark]"); if (m) m.hidden = !((U.draft[U.open] || "").trim() && LIVEM()); };
 function unsentBlock(c) {
   const uw = unsentOf(c.id); if (!uw.steps.length && !uw.draft) return "";
   return `<section class="dsec ccunsentb" role="status"><span class="lab">${ic("clock", 12)}Not sent yet: only in this browser</span>
-    ${uw.steps.map((t) => `<div class="ccunsentr">Step: ${esc(short(t, 160))}</div>`).join("")}${uw.draft ? `<div class="ccunsentr">Comment not posted: ${esc(short(uw.draft, 160))}</div>` : ""}
+    ${uw.steps.map((t) => `<div class="ccunsentr">${t === uw.pending ? "Step typed, not added yet" : "Step"}: ${esc(short(t, 160))}</div>`).join("")}${uw.draft ? `<div class="ccunsentr">Comment not posted: ${esc(short(uw.draft, 160))}</div>` : ""}
     <div class="ccrow"><button class="btn you" type="button" data-act="flush">${ic("bolt")}Send to EX-44 as notes</button><span class="lab">Starting a chat sends them first by itself.</span></div>${failBox("words:" + c.id)}</section>`;
 }
 const pickNotes = (c) => ((c.t && c.t.comments) || []).filter((m) => m.n).slice().reverse();
@@ -3122,7 +3129,7 @@ function machine(label, el) {
     const col0 = c.col, uw = unsentOf(c.id);   // Round 17: words not sent yet go first, as notes in the same press, so the chat's brief has them
     const flush = uw.steps.map((t) => ({ kind: "step", text: "Step: " + t })).concat(uw.draft ? [{ kind: "comment", text: uw.draft }] : []);
     ship(`Start a chat for "${shownTitle(c)}" on ${p.acct} with ${pkName(p.model)}, ${p.effort} effort`, flush.map((x) => Object.assign({ action: "task", op: "note", task: c.id, text: x.text, target: c.id }, x.kind === "step" ? { kind: "step" } : {})).concat([Object.assign({ action: "task-chat", task: c.id, account: p.acct, model: p.model, effort: p.effort, target: c.id }, flush.length ? { flush } : {})]), null, c.id,
-      { then: () => { (S.steps[c.id] || []).forEach((x) => { if (uw.steps.includes(x.t)) x.sent = 1; }); if (uw.draft && S.drafts) { delete S.drafts[c.id]; U.draft[c.id] = ""; } },
+      { then: () => wordsSent(c.id, uw.steps, uw.draft ? [uw.draft] : []),
         reqs: (reason) => { const m = /started (\S+)/.exec(reason || ""); return m ? [{ action: "close", target: m[1] }, { action: "task", op: "unlink", task: c.id, chat: m[1], target: c.id }].concat(col0 !== "doing" ? [{ action: "task", op: "move", task: c.id, state: col0, target: c.id }] : []) : []; } });
     U.pk = null;
     toast(`Sent: EX-44 starts a ${pkName(p.model)} chat (${p.effort} effort) for this task on ${p.acct}, links it here and moves the card to Doing.`); return true; }
@@ -3237,6 +3244,7 @@ function saveForm() {
     const oldP = c0 ? priOf(c0) : "", oldW = c0 ? waitOf(c0) : "";
     S.edits[f.id] = Object.assign({}, S.edits[f.id], { title: o.title.trim(), levels: o.levels, project, klass: o.klass, due: o.due, scope: o.scope, priority: o.priority || "", wait: o.wait || "" });
     const c = cards().find((x) => x.id === f.id); U.form = null; save();
+    if (c && c.kind === "task" && LIVEM()) { const uw0 = unsentOf(f.id); if (uw0.steps.length || uw0.draft) setTimeout(() => sendWords(f.id, uw0.steps, uw0.draft ? [uw0.draft] : [], "Words kept on"), 0); }   // Round 17b: Save sends what waits
     if (c && c.kind === "task" && LIVEM()) {
       const T = (field, value) => ({ action: "task", op: "set", task: f.id, field, value, target: f.id });
       // the weekly deck keeps its session number (MS-0nn) in its title: a rename keeps it unless Ali typed another
@@ -3402,7 +3410,7 @@ function wire(h) {
           { key: "link:" + id + ":" + nm, test: () => { const t2 = dTask(id); return !!(t2 && t2.chats.includes(nm)); }, clear: () => {} }, id,
           { reqs: [{ action: "task", op: "unlink", task: id, chat: nm, target: id }] }); draw(); }
         return; }
-      if (k === "step") { const i = host.querySelector("[data-newstep]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.steps[U.open] = S.steps[U.open] || []).push({ t: v2, d: false }); i.value = ""; i._typed = false; save(); draw(); const n2 = host.querySelector("[data-newstep]"); if (n2) n2.focus();
+      if (k === "step") { const i = host.querySelector("[data-newstep]"); const v2 = i && i.value.trim(); if (!v2) { i && i.focus(); return; } (S.steps[U.open] = S.steps[U.open] || []).push({ t: v2, d: false }); if (S.stepDraft) delete S.stepDraft[U.open]; i.value = ""; i._typed = false; save(); draw(); const n2 = host.querySelector("[data-newstep]"); if (n2) n2.focus();
         sendWords(U.open, [v2], [], `Step on`); return; }
       if (k === "post") { const ta = host.querySelector("[data-comment]"); const v2 = ta && ta.value.trim(); if (!v2) { ta && ta.focus(); return; } (S.comments[U.open] = S.comments[U.open] || []).push({ text: ta.value, at: nowStamp() }); U.draft[U.open] = ""; if (S.drafts) delete S.drafts[U.open]; save(); draw();
         const oid = U.open, txt = ta.value, cc0 = cards().find((x) => x.id === oid);
@@ -3431,7 +3439,9 @@ function wire(h) {
   const typed = (e) => { const t = e.target; if (t.matches && t.matches("input,textarea,select") && !t.matches(BOUND)) t._typed = true; };
   h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-trename-in]") && U.trename === e.target.dataset.trenameIn) renameTask(e.target.dataset.trenameIn, e.target.value); }, true);
   h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-prename-in]") && U.prename === e.target.dataset.prenameIn) renameProject(e.target.dataset.prenameIn, e.target.value); }, true);
-  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-trename-in]")) { U.trenameText = e.target.value; return; } if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; S.drafts = S.drafts || {}; if (e.target.value.trim()) S.drafts[U.open] = e.target.value; else delete S.drafts[U.open]; save(); markDraft(); return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); return; } if (e.target.matches("[data-linkq]")) { U.linkQ = e.target.value; draw(); } });
+  h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-trename-in]")) { U.trenameText = e.target.value; return; } if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-addstep]")) { const m = host.querySelector("[data-addstepmark]"); if (m) m.hidden = !e.target.value.trim(); }
+    if (e.target.matches("[data-newstep]")) { S.stepDraft = S.stepDraft || {}; if (e.target.value.trim()) S.stepDraft[U.open] = e.target.value; else delete S.stepDraft[U.open]; save(); const m = host.querySelector("[data-stepmark]"); if (m) m.hidden = !(e.target.value.trim() && liveTask(U.open)); }
+    if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; S.drafts = S.drafts || {}; if (e.target.value.trim()) S.drafts[U.open] = e.target.value; else delete S.drafts[U.open]; save(); markDraft(); return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); return; } if (e.target.matches("[data-linkq]")) { U.linkQ = e.target.value; draw(); } });
   h.addEventListener("change", (e) => {
     const t = e.target; typed(e);
     if (t.closest && t.closest(".ccform")) {
