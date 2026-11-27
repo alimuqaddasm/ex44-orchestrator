@@ -971,6 +971,18 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .ccfxbtn{display:none;cursor:pointer;font:inherit}
 @media (max-width:760px){.ex .cctools .ccfx{display:none}.ex .cctools.fopen .ccfx{display:inline-flex}.ex .ccfxbtn{display:inline-flex}}
 
+/* Round 15 (Ali, 27 Nov): a failed press stays in the panel where it happened, red, with the exact reason,
+   until Ali dismisses it or the next press there succeeds */
+.ex .ccfail,.ex .failnote{display:flex;align-items:flex-start;gap:10px;margin-top:10px;padding:10px 12px;border-radius:10px;
+  background:var(--bad-d);color:var(--bad);border:1px solid color-mix(in srgb,var(--bad) 40%,transparent);font-size:13.5px;line-height:1.4}
+.ex .ccfail > svg,.ex .failnote > svg{flex:none;margin-top:2px}
+.ex .ccfailb,.ex .fnb{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0;overflow-wrap:anywhere}
+.ex .ccfailb b,.ex .fnb b{font-weight:600}
+.ex .ccfailb span,.ex .fnb span{color:var(--ink)}
+.ex .ccfailb .ccfailt,.ex .fnb .fnt{color:var(--ink3);font-size:12px}
+.ex .ccfail .ccfailx,.ex .failnote .fnx{flex:none;height:28px;padding:0 10px;color:var(--bad)}
+.ex .ccstat.s-failed{cursor:help}
+
 /* Lesson status panel (25 Nov 2026), top of the mentor view. Home tokens only, plus one teal for "revised / made from" */
 .ex-light .lsp{--lsM:oklch(52% 0.09 190 / .28);--lsT:oklch(52% 0.09 190);--lsTd:oklch(60% 0.09 190 / .13);--lsF:oklch(52% 0.09 190);--lsH:oklch(52% 0.09 190 / .45);--lsE:var(--g3)}
 .ex-dark .lsp{--lsM:oklch(74% 0.09 190 / .3);--lsT:oklch(80% 0.09 190);--lsTd:oklch(80% 0.09 190 / .14);--lsF:oklch(74% 0.09 190);--lsH:oklch(74% 0.09 190 / .4);--lsE:var(--g3)}
@@ -1298,6 +1310,7 @@ body{background:var(--page-bg);margin:0}
                           <sc-if value="{{it.sentShown}}" hint-placeholder-val="{{ false }}"><span class="pill" style="background:var(--amber-d);color:var(--amber);height:30px;padding:0 10px">Sent. Undo below</span></sc-if>
                           <sc-if value="{{it.notSent}}" hint-placeholder-val="{{ true }}"><span class="bw" title="{{it.pzWhy}}"><button class="btn you" type="button" onClick="{{it.send}}" disabled="{{it.pzDis}}">{{it.primary}}</button></span><span class="bw" title="{{it.pzWhy}}"><button class="btn" type="button" onClick="{{it.later}}" disabled="{{it.pzDis}}">{{it.secondary}}</button></span><button class="btn ghost" type="button" onClick="{{it.open}}" title="Open the chat" aria-label="Open the chat"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M19 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h5"></path></svg></button></sc-if>
                         </div>
+                        <sc-if value="{{it.fl.on}}" hint-placeholder-val="{{ false }}"><div class="failnote" role="alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg><div class="fnb"><b>Not done: {{it.fl.what}}</b><span>{{it.fl.why}}</span><span class="fnt">{{it.fl.at}}</span></div><button class="btn ghost fnx" type="button" onClick="{{it.fl.x}}">Dismiss</button></div></sc-if>
                       </div>
                     </div></div>
                   </div>
@@ -1683,6 +1696,7 @@ body{background:var(--page-bg);margin:0}
           <button class="btn ghost" type="button" onClick="{{dr.whenFree}}">Send "go" when free</button>
         </div>
         <div style="display:flex;gap:6px"><label class="srch" style="flex:1"><input id="ft" placeholder="Type anything to send to this chat" autocomplete="off"></label><button class="btn" type="button" onClick="{{dr.sendText}}">Send</button></div>
+        <sc-if value="{{dr.fTell.on}}" hint-placeholder-val="{{ false }}"><div class="failnote" role="alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg><div class="fnb"><b>Not done: {{dr.fTell.what}}</b><span>{{dr.fTell.why}}</span><span class="fnt">{{dr.fTell.at}}</span></div><button class="btn ghost fnx" type="button" onClick="{{dr.fTell.x}}">Dismiss</button></div></sc-if>
       </section>
       <sc-if value="{{dr.hasBranch}}" hint-placeholder-val="{{ true }}">
         <section class="dsec"><span class="lab">Its work</span>
@@ -1691,6 +1705,7 @@ body{background:var(--page-bg);margin:0}
             <button class="btn" type="button" onClick="{{dr.hold}}">{{dr.holdLabel}}</button>
           </div>
           <span class="lab">{{dr.flowNote}}</span>
+          <sc-if value="{{dr.fWork.on}}" hint-placeholder-val="{{ false }}"><div class="failnote" role="alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg><div class="fnb"><b>Not done: {{dr.fWork.what}}</b><span>{{dr.fWork.why}}</span><span class="fnt">{{dr.fWork.at}}</span></div><button class="btn ghost fnx" type="button" onClick="{{dr.fWork.x}}">Dismiss</button></div></sc-if>
         </section>
       </sc-if>
       <section class="dsec"><span class="lab">The chat</span>
@@ -1702,6 +1717,7 @@ body{background:var(--page-bg);margin:0}
         </div>
         <sc-if value="{{dr.moveOpen}}" hint-placeholder-val="{{ false }}"><div class="sprout"><sc-for list="{{dr.moves}}" as="m" hint-placeholder-count="3"><button type="button" onClick="{{m.run}}" title="Move to {{m.a}}"><svg class="lg" viewBox="0 0 32 32" aria-hidden="true"><g transform="rotate({{m.lg.r}} 16 16)"><path d="M15.5 15.5H2A13.5 13.5 0 0 1 15.5 2Z" fill="{{m.lg.l}}"></path><circle cx="23.25" cy="8.75" r="6.75" fill="{{m.lg.dk}}"></circle><rect x="2" y="16.5" width="13.5" height="13.5" rx="2.5" fill="{{m.lg.dk}}"></rect><path d="M16.5 16.5H30A13.5 13.5 0 0 1 16.5 30Z" fill="{{m.lg.m}}"></path></g></svg>{{m.a}}</button></sc-for></div></sc-if>
         <span class="lab">{{dr.protNote}}</span>
+        <sc-if value="{{dr.fChat.on}}" hint-placeholder-val="{{ false }}"><div class="failnote" role="alert"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg><div class="fnb"><b>Not done: {{dr.fChat.what}}</b><span>{{dr.fChat.why}}</span><span class="fnt">{{dr.fChat.at}}</span></div><button class="btn ghost fnx" type="button" onClick="{{dr.fChat.x}}">Dismiss</button></div></sc-if>
       </section>
     </div>
   </aside>
@@ -2051,7 +2067,15 @@ const fresh = (c) => c.kind === "own" || (FRESH[c.id] && Date.now() - FRESH[c.id
 let soonH = 0;
 const soon = () => { if (!soonH) soonH = requestAnimationFrame(() => { soonH = 0; draw(); }); };   // one redraw per frame at most
 const UNDO_MS = 20000;   // sync round: after Done, Undo stays offered for 20 s (on the card and in the toast)
-function mark(cid, st, why) { if (!cid) return; STAT[cid] = { st, why: why || "", at: Date.now() }; soon();
+// Ali, 27 Nov: "failure stays where it happened". A failed press leaves FAIL[card id] = {label, why, at}: a red box in that
+// card's panel, right under the buttons, with the exact reason, until Ali dismisses it or the next press on it succeeds.
+const FAIL = {};
+const failBox = (cid) => { const f = FAIL[cid]; if (!f) return "";
+  return `<div class="ccfail" role="alert">${ic("x", 14)}<div class="ccfailb"><b>Not done: ${esc(f.label)}</b><span>${esc(f.why)}</span><span class="ccfailt">At ${esc(f.t)}. Nothing changed; the card is as it was.</span></div><button type="button" class="btn ghost ccfailx" data-faildismiss="${esc(cid)}">Dismiss</button></div>`; };
+function mark(cid, st, why, label) { if (!cid) return; STAT[cid] = { st, why: why || "", at: Date.now() }; soon();
+  if (st === "failed") FAIL[cid] = { label: label || "the last press", why: why || "no reason given", t: new Date().toTimeString().slice(0, 5) };
+  if (st === "done") delete FAIL[cid];
+  if (st === "failed") return;   // the Not done chip stays with the red box
   const ms = st === "done" ? (UNDO[cid] ? UNDO_MS : 3000) : 7000;
   if (st !== "sending") setTimeout(() => { const x = STAT[cid]; if (x && x.st === st && Date.now() - x.at >= ms - 50) { delete STAT[cid]; if (UNDO[cid] && Date.now() - UNDO[cid].at >= UNDO_MS - 50) delete UNDO[cid]; soon(); } }, ms); }
 // sync round (Ali 25 Nov: "should have an undo option"): before sending, the home's 2 s undo; after Done, Undo sends the
@@ -2070,7 +2094,7 @@ function ship(label, reqs, pend, cid, undo) {
       if (undo && undo.reqs) { UNDO[cid] = { label, undo, reason: reason || "", at: Date.now() }; toast("Done: " + label + ".", cid); }
       else if (undo && undo.no) toast("Done. " + undo.no);
       mark(cid, "done"); }, null,
-    (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); } mark(cid, why ? "failed" : "undone", why); toast(why ? "Not done: " + why + ". The card is back as it was." : "Taken back."); });
+    (why) => { if (pend) { try { pend.clear(); } catch (e) {} delete LP[pend.key]; save(); } mark(cid, why ? "failed" : "undone", why, label); toast(why ? "Not done: " + why + ". The card is back as it was." : "Taken back."); });
   return true;
 }
 function sbDo(label, fn) {   // arranging copy: do it here only, with Undo (a snapshot of the whole arrangement)
@@ -2281,7 +2305,8 @@ function setField(id, k, v) {
   const tid = taskId(c), old = k === "priority" ? priOf(c) : waitOf(c);
   if (old === v) return;
   S.edits[id] = Object.assign({}, S.edits[id], { [k]: v }); FRESH[id] = Date.now(); save(); draw();
-  const word = k === "priority" ? (v === "high" ? "High priority" : v === "low" ? "Low priority" : "Normal priority") : "Waits on " + WNAME[v];
+  let word = k === "priority" ? (v === "high" ? "High priority" : v === "low" ? "Low priority" : "Normal priority") : "Waits on " + WNAME[v];
+  if (k === "priority" && v !== old) word += v === "high" ? ", now at the top of its column" : v === "low" ? ", now under the normal cards" : ", back among the normal cards";
   if (!LIVEM() || !tid || c.kind === "own") { toast(`${word}: "${shownTitle(c)}".`); return; }
   const same = (want) => () => { const t = dTask(tid); return t && (t[k] || "") === want; };
   ship(`${word}: "${shownTitle(c)}"`, [{ action: "task", op: "set", task: tid, field: k, value: v || "none", target: tid }],
@@ -2356,7 +2381,9 @@ function visible(c) {
 }
 // 27 Nov notes: Sort by priority (high first) or by due date (soonest first); the board order breaks ties
 const dueKey = (c) => dueOf(c) || "9999";
-const colCards = (col, all) => all.filter((c) => c.col === col).sort((a, b) => (U.sort === "priority" ? PRANK[priOf(a)] - PRANK[priOf(b)] : 0) || (U.sort === "due" ? dueKey(a).localeCompare(dueKey(b)) : 0) || (a.order - b.order) || a.title.localeCompare(b.title));
+// Ali, 27 Nov: a high card rises to the top of its column, then normal, then low; inside each level his own drag order
+// stays. "Due date" sorts by due first, priority next.
+const colCards = (col, all) => all.filter((c) => c.col === col).sort((a, b) => (U.sort === "due" ? dueKey(a).localeCompare(dueKey(b)) : 0) || (PRANK[priOf(a)] - PRANK[priOf(b)]) || (a.order - b.order) || a.title.localeCompare(b.title));
 const allComments = (c) => (S.comments[c.id] || []).map((m) => ({ text: m.text, at: m.at, from: "this page" })).reverse()
   .concat((c.t ? c.t.comments : c.c ? c.c.comments : []).slice().reverse())
   .concat(c.t && c.t.carried ? c.t.carried.map((m) => Object.assign({}, m, { from: `the merged card "${m.was}"` })) : []);
@@ -2502,7 +2529,7 @@ function projectsHtml(all) {
   // stays until EX-44 has it, and has Undo.
   const rank = { "waiting on Ali": 0, doing: 1, planned: 2, done: 3 };
   const shown = all.filter(visible);
-  const sorted0 = (cs) => cs.slice().sort((a, b) => rank[a.col] - rank[b.col] || a.order - b.order);
+  const sorted0 = (cs) => cs.slice().sort((a, b) => rank[a.col] - rank[b.col] || PRANK[priOf(a)] - PRANK[priOf(b)] || a.order - b.order);
   // arranging copy: a layer's tasks stand in the order Ali gave them (S.torder), the rest after, as before
   const sortedIn = (p, cs) => { const o = (S.torder || {})[p] || (D.torder || {})[p]; if (!o || !o.length) return sorted0(cs); const base = sorted0(cs); return base.slice().sort((a, b) => { const i = o.indexOf(a.id), j = o.indexOf(b.id); return (i < 0 ? 1e6 + base.indexOf(a) : i) - (j < 0 ? 1e6 + base.indexOf(b) : j); }); };
   const sorted = sorted0;
@@ -2604,8 +2631,8 @@ function toolbarHtml(all, marks) {
     <label class="ccfilter${U.project ? " on" : ""}">${ic("layers", 13)}Project<b>${esc(U.project ? pathOf(U.project).split(" › ").pop() : "All")}</b>${ic("chev", 12)}<select data-project aria-label="Project"><option value="">All projects</option>${projs}</select></label>
     <label class="ccfilter ccfx${U.pri !== "all" ? " on" : ""}">${ic("flag", 13)}Priority<b>${esc(U.pri === "all" ? "All" : (PRI.find((x) => x[0] === U.pri) || PRI[1])[1])}</b>${ic("chev", 12)}<select data-prisel aria-label="Priority"><option value="all">All (${live.length})</option>${PRI.map(([k, n]) => `<option value="${k}"${U.pri === k ? " selected" : ""}>${n} (${live.filter((c) => priOf(c) === k).length})</option>`).join("")}</select></label>
     <label class="ccfilter ccfx${U.wait !== "all" ? " on" : ""}">${ic("users", 13)}Waits on<b>${esc(U.wait === "all" ? "All" : (WAITS.find((x) => x[0] === U.wait) || WAITS[0])[1])}</b>${ic("chev", 12)}<select data-waitsel aria-label="Waits on"><option value="all">All</option>${WAITS.map(([k, n]) => `<option value="${k}"${U.wait === k ? " selected" : ""}>${n} (${live.filter((c) => c.col === "waiting on Ali" && waitOf(c) === k).length})</option>`).join("")}</select></label>
-    <button type="button" class="ccfilter ccfxbtn${U.fopen ? " on" : ""}" data-act="fopen" aria-expanded="${!!U.fopen}">${ic("filter", 13)}Priority, waits on, sort${(U.pri !== "all") + (U.wait !== "all") + (U.sort !== "board") ? `<b>${(U.pri !== "all") + (U.wait !== "all") + (U.sort !== "board")} on</b>` : ""}${ic("chev", 12)}</button>
-    <label class="ccfilter ccfx${U.sort !== "board" ? " on" : ""}">${ic("sort", 13)}Sort<b>${esc({ board: "Board order", priority: "Priority", due: "Due date" }[U.sort])}</b>${ic("chev", 12)}<select data-sortsel aria-label="Sort cards"><option value="board"${U.sort === "board" ? " selected" : ""}>Board order</option><option value="priority"${U.sort === "priority" ? " selected" : ""}>Priority, high first</option><option value="due"${U.sort === "due" ? " selected" : ""}>Due date, soonest first</option></select></label>
+    <button type="button" class="ccfilter ccfxbtn${U.fopen ? " on" : ""}" data-act="fopen" aria-expanded="${!!U.fopen}">${ic("filter", 13)}Priority, waits on, sort${(U.pri !== "all") + (U.wait !== "all") + (U.sort === "due") ? `<b>${(U.pri !== "all") + (U.wait !== "all") + (U.sort === "due")} on</b>` : ""}${ic("chev", 12)}</button>
+    <label class="ccfilter ccfx${U.sort === "due" ? " on" : ""}">${ic("sort", 13)}Sort<b>${esc({ board: "Priority, then your order", priority: "Priority, then your order", due: "Due date" }[U.sort])}</b>${ic("chev", 12)}<select data-sortsel aria-label="Sort cards"><option value="board"${U.sort !== "due" ? " selected" : ""}>Priority, then your order</option><option value="due"${U.sort === "due" ? " selected" : ""}>Due date, soonest first</option></select></label>
     <label class="srch ccsearch">${ic("search")}<input type="search" data-q placeholder="Search cards" aria-label="Search cards" value="${esc(U.q)}"></label>${marks ? tm(10) : ""}
     <div class="ccmore"><button class="btn ghost" type="button" data-act="more" aria-expanded="${!!U.more}" aria-label="More" title="More" style="width:32px;padding:0;justify-content:center">${ic("more", 16)}</button>
     ${U.more ? `<div class="ccmenu" role="menu">
@@ -2784,7 +2811,7 @@ function drawerHtml(c, marks) {
     if (!isMerged(c)) body += chatsBlock(c);
     if (coms.length) body += `<section class="dsec"><span class="lab">Latest comment</span><div class="cccm"><p>${esc(short(coms[0].text, 280))}</p><span class="lab num">You${coms[0].at ? ", " + esc(coms[0].at) : ""} · <button type="button" class="cclink" data-tab="comments">all ${coms.length} comments</button></span></div></section>`;
   }
-  const sx = STAT[c.id], sline = sx ? `<div class="ccstatline">${statChip(c.id)}<span class="lab">${esc(sx.st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 5 seconds." : sx.st === "done" ? "EX-44 has it." : sx.st === "failed" ? "Not done: " + sx.why : "Taken back.")}</span></div>` : "";
+  const sx = STAT[c.id], sline = (sx && sx.st !== "failed" ? `<div class="ccstatline">${statChip(c.id)}<span class="lab">${esc(sx.st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 5 seconds." : sx.st === "done" ? "EX-44 has it." : sx.st === "failed" ? "Not done: " + sx.why : "Taken back.")}</span></div>` : "") + failBox(c.id);
   return `<div class="scrim" data-act="close"></div><aside class="drawer ccdrw" aria-label="Card opened"><header class="dhd">${head}${sline}</header>
     <div class="dbd" id="ccdbd-${esc(c.id)}-${esc(U.tab)}">${body}<p class="lab" style="margin:0">${LIVEM() ? "Every change here goes to EX-44 and shows in What you pressed. Steps, session numbers and the order of top projects stay in this browser." : "Buttons with a dotted edge ask a chat or la57 to act, so they work on the real EX-44 home. Everything else works here and is kept in this browser."}</p></div></aside>`;
 }
@@ -2970,7 +2997,7 @@ function needDrawer(n) {
   if (n.unsent) b += `<section class="dsec nywarn"><span class="lab" style="color:var(--bad)">You typed this in the chat but did not press Enter</span><div class="cccm"><p>${esc(n.unsent)}</p></div><div class="ccrow">${machine("Send it now", "bolt", true)}</div></section>`;
   b += summaryBlock(card, n);
   b += `<section class="dsec"><span class="lab">Your answer</span><label class="srch ccnote"><textarea data-nreply rows="3" placeholder="Type your answer" aria-label="Your answer">${esc(U.draft["n:" + n.chat] || "")}</textarea></label>
-    <div class="ccrow">${machine("Send to the chat", "bolt", true)}${card ? `<button class="btn" type="button" data-act="nkeep">${ic("note")}Keep as a comment on its card</button>` : ""}<button class="btn ghost" type="button" data-act="nclear">${ic("check")}I answered elsewhere, clear it</button></div></section>`;
+    <div class="ccrow">${machine("Send to the chat", "bolt", true)}${card ? `<button class="btn" type="button" data-act="nkeep">${ic("note")}Keep as a comment on its card</button>` : ""}<button class="btn ghost" type="button" data-act="nclear">${ic("check")}I answered elsewhere, clear it</button></div>${failBox(n.task || "n:" + n.chat)}</section>`;
   b += `<section class="dsec"><span class="lab">Its chat</span><div class="ccrow"><button type="button" class="btn" data-chat="${esc(n.chat)}"><span class="dot" style="background:var(--amber);width:8px;height:8px"></span>${esc(n.chat)}</button><span class="lab">${esc(n.account)} · ${esc(n.why)}</span>${machine("Open the chat", "chat")}</div></section>`;
   return `<div class="scrim" data-act="nclose"></div><aside class="drawer ccdrw" aria-label="Needs you item"><header class="dhd">${head}</header><div class="dbd">${b}</div></aside>`;
 }
@@ -2995,6 +3022,7 @@ function clearNeed(chat, text) { const n = NEEDS.find((x) => x.chat === chat); i
 function wireNeeds(h) {
   h.addEventListener("click", (e) => {
     const t = e.target;
+    const fx = t.closest && t.closest("[data-faildismiss]"); if (fx) { const k = fx.dataset.faildismiss; delete FAIL[k]; if (STAT[k] && STAT[k].st === "failed") delete STAT[k]; draw(); drawNeeds(); return; }
     const un = t.closest("[data-undo]"); if (un) { runUndo(un.dataset.undo); return; }
     const a = t.closest("[data-nanswer]"); if (a) { const n0 = NEEDS.find((x) => x.chat === U.nopen); if (LIVEM() && n0) { sendAnswer(n0, a.dataset.nanswer.replace(/ \(its pick\)$/, "")); return; } clearNeed(U.nopen, a.dataset.nanswer); toast(`Answer "${a.dataset.nanswer}" kept and the row cleared. On the real home it goes to the chat as a ready reply.`); return; }
     const cg = t.closest("[data-cardgo]"); if (cg) { U.nopen = null; U.open = cg.dataset.cardgo; U.tab = "overview"; drawNeeds(); if (window.__ex44) window.__ex44.comp.setState({ view: "cc" }); return; }
@@ -3200,6 +3228,7 @@ function wire(h) {
   h.addEventListener("toggle", (e) => { if (e.target.matches && e.target.matches(".ccbrief")) U.briefOpen = e.target.open ? U.open : null; }, true);
   h.addEventListener("click", (e) => {
     const t = e.target;
+    const fx = t.closest && t.closest("[data-faildismiss]"); if (fx) { const k = fx.dataset.faildismiss; delete FAIL[k]; if (STAT[k] && STAT[k].st === "failed") delete STAT[k]; draw(); drawNeeds(); return; }
     if (U.more && !t.closest(".ccmore")) { U.more = false; draw(); }
     const f = t.closest("[data-level]"); if (f) { U.level = f.dataset.level; draw(); return; }
     const v = t.closest("[data-view]"); if (v) { U.view = v.dataset.view; draw(); return; }
@@ -3433,7 +3462,7 @@ window.EX44CC = { marks: false, nav, mount(h) { if (host === h) return; host = h
   needChips: () => { const o = NEEDS.filter((n) => !isCleared(n)); const c = o.filter((n) => n.task).length, u = o.filter((n) => n.unsent).length, f = o.length - c;
     return [["you", "On a card", c, "layers"], ["park", "Not on the board", f, ""]].concat(u ? [["you", "Typed, not sent", u, "clock"]] : []); },
   mountNeeds(h) { if (hostN === h) return; hostN = h; wireNeeds(h); drawNeeds(); }, redraw: draw, ui: (o) => { Object.assign(U, o || {}); draw(); }, _state: () => S,
-  setData, reqFor, pending: PEND, _lp: () => LP, _data: () => D, _marks: { STAT, UNDO, FRESH } };   // _marks: the canvas capture sets a state to draw it
+  setData, reqFor, pending: PEND, _lp: () => LP, _data: () => D, _marks: { STAT, UNDO, FRESH, FAIL } };   // _marks: the canvas capture sets a state to draw it
 })();
 
 </script>
@@ -5479,18 +5508,36 @@ class Component extends DCLogic {
     this.setState({ log: [{id, text, st:"sent", at}].concat(this.state.log), toastT: {id, text, tid}, sent: tid ? Object.assign({}, this.state.sent, {[tid]: true}) : this.state.sent });
     this._t = this._t || {}; this._fx = this._fx || {}; if (fail) this._fx[id] = fail;
     const mark = (st, why) => this.setState({ log: this.state.log.map(l => l.id === id ? Object.assign({}, l, {st, why: why || ""}) : l) });
+    const fk = this._failKey(text, tid);
     this._t[id] = setTimeout(async () => {
       const t = this.state.toastT;
       this.setState({ toastT: t && t.id === id ? null : t });
       if (rq.local) { if (apply) apply(); mark("done", "on this page only"); return; }
       mark("working");
       const res = await LX.file(rq);
-      if (res.status === "done") { if (apply) apply(res.reason || ""); mark("done"); }   // sync round: EX-44's answer goes to the card (its Undo needs it)
+      if (res.status === "done") { if (apply) apply(res.reason || ""); mark("done"); if (fk) this._failClear(fk); }   // sync round: EX-44's answer goes to the card (its Undo needs it)
       else if (res.status === "waiting") mark("waiting", res.reason);
-      else { mark("failed", res.status + (res.reason ? ": " + res.reason : "")); this.flash("Not done: " + (res.reason || res.status)); if (fail) fail(res.reason || res.status);
+      else { mark("failed", res.status + (res.reason ? ": " + res.reason : "")); this.flash("Not done: " + (res.reason || res.status)); if (fk) this._failSet(fk, text, res.reason || res.status); if (fail) fail(res.reason || res.status);
         if (tid) { const s2 = Object.assign({}, this.state.sent); delete s2[tid]; this.setState({ sent: s2 }); } }
     }, 2000);   // the undo window: 2 s (Ali, 2026-11-21; was 5 s)
   }
+  _failKey(text, tid){
+    if (tid) return "t:" + tid;
+    let m;
+    if ((m = /^Send "[\s\S]*" to (\S+)( when it is free)?$/.exec(text)) || (m = /^Press Enter in (\S+)$/.exec(text))) return "c:" + m[1] + ":tell";
+    if ((m = /^Save (\S+) into main/.exec(text)) || (m = /^(?:Hold|Release) (\S+)$/.exec(text))) return "c:" + m[1] + ":work";
+    if ((m = /^Move (\S+) to \w+$/.exec(text)) || (m = /^Quiet (?:on|off) for (\S+)$/.exec(text)) || (m = /^Lift protection on (\S+)$/.exec(text)) || (m = /^(?:Protect|Close) (\S+)$/.exec(text))) return "c:" + m[1] + ":chat";
+    if (/^Launch \S+ on \w+$/.test(text)) return "launch";
+    return null;
+  }
+  _failSet(k, text, why){ const f = Object.assign({}, this.state.fails || {}), w = why || "no reason given";
+    f[k] = { what: text.length > 90 ? text.slice(0, 88) + "..." : text, why: w, at: new Date().toTimeString().slice(0, 5) };
+    this.setState(k === "launch" ? { fails: f, launch: true, lerr: "Not done: " + w + " Fill it in again and press Launch." } : { fails: f }); }
+  _failClear(k){ const pre = k.startsWith("c:") ? k.split(":").slice(0, 2).join(":") + ":" : k + "\u0000"; const f = Object.assign({}, this.state.fails || {});
+    Object.keys(f).forEach(x => { if (x === k || x.startsWith(pre)) delete f[x]; }); this.setState({ fails: f }); }
+  _failView(k){ const f = (this.state.fails || {})[k];
+    return f ? { on: true, what: f.what, why: f.why, at: "At " + f.at + ". Nothing was done; press again once it is fixed.", x: () => { const g = Object.assign({}, this.state.fails || {}); delete g[k]; this.setState({ fails: g }); } }
+             : { on: false, what: "", why: "", at: "", x: () => {} }; }
   undo(){ const t = this.state.toastT; if (!t) return; clearTimeout(this._t[t.id]); if (this._fx && this._fx[t.id]) { const f = this._fx[t.id]; delete this._fx[t.id]; f(""); } const sent = Object.assign({}, this.state.sent); if (t.tid) delete sent[t.tid];
     this.setState({ toastT: null, sent, log: this.state.log.map(l => l.id === t.id ? Object.assign({}, l, {st:"undone"}) : l) }); }
   flash(text){ this.setState({ note: text }); clearTimeout(this._n); this._n = setTimeout(() => this.setState({ note: "" }), 3200); }
@@ -5580,7 +5627,7 @@ class Component extends DCLogic {
     const QALL = ALLT.filter(t => t.k !== "held").concat(HELDT).filter(t => !af || t.acct === af || t.k === "decision");
     const tickets = QALL.map(t => { const s = !!shut[t.id], sp = split(t.chat); return Object.assign({}, t, K[t.k], I[t.k], sp, {
       tg: mkTags(t.tags), hue: HUE[t.acct], agec: /day/.test(t.age) ? "var(--bad)" : "var(--ink)", body: s ? "body shut" : "body", rot: s ? "rotate(-90deg)" : "none", exp: s ? "false" : "true", toggle: () => setShut(t.id, !s),
-      sentShown: !!this.state.sent[t.id], notSent: !this.state.sent[t.id], pzDis: PZ[t.acct] ? "disabled" : null, pzWhy: pzWhy(t.acct),
+      sentShown: !!this.state.sent[t.id], notSent: !this.state.sent[t.id], pzDis: PZ[t.acct] ? "disabled" : null, pzWhy: pzWhy(t.acct), fl: this._failView("t:" + t.id),
       send: () => PZ[t.acct] ? this.flash(pzWhy(t.acct)) : this.act(t.primary + ": " + t.chat, () => this.setState(t.id.startsWith("h-") ? { savedHeld: Object.assign({}, this.state.savedHeld, {[t.chat]: true}) } : { done: Object.assign({}, this.state.done, {[t.id]: true}) }), t.id),
       later: () => PZ[t.acct] ? this.flash(pzWhy(t.acct)) : this.act(t.secondary + ": " + t.chat, () => this.setState({ done: Object.assign({}, this.state.done, {[t.id]: true}) }), t.id),
       acctName: t.k === "decision" ? "Decision" : t.acct, lg: t.k === "decision" ? { r:0, l:"#9aa0a6", m:"#7c8288", dk:"#5f6368" } : undefined,
@@ -5714,6 +5761,7 @@ class Component extends DCLogic {
         sendPhrase: () => { const el = document.getElementById("ph"); const v = el ? el.value : "go"; this.act("Send \"" + v + "\" to " + n); },
         openChat: () => sj.rc ? window.open(RCURL(sj.rc), "_blank", "noopener") : this.flash("No link: open " + n + " in the Claude app on " + sj.a),
         enter: () => this.act("Press Enter in " + n), whenFree: () => this.act("Send \"go\" to " + n + " when it is free"),
+        fTell: this._failView("c:" + n + ":tell"), fWork: this._failView("c:" + n + ":work"), fChat: this._failView("c:" + n + ":chat"),
         hasBranch: !!sj.br, save: () => this.act("Save " + n + " into main", () => setJ(n, {pc:0})),
         hold: () => this.act((held ? "Release " : "Hold ") + n, () => setJ(n, {flow: held ? "flowing" : "held"})), holdLabel: held ? "Release (let it flow)" : "Hold",
         flowNote: held ? "Held: nothing goes into main until you say save." : "Flowing: each clean piece goes into main by itself.",
