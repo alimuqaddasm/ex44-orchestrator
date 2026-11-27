@@ -983,6 +983,20 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .ccfail .ccfailx,.ex .failnote .fnx{flex:none;height:28px;padding:0 10px;color:var(--bad)}
 .ex .ccstat.s-failed{cursor:help}
 
+/* Round 16: Act on these (tick any of Ali's notes, only those go to the chat) */
+.ex .ccpicks .ccpick{align-items:flex-start;border:1px solid var(--g2);padding:7px 8px}
+.ex .ccpicks .ccpick.on{border-color:var(--ok);background:var(--g1)}
+.ex .ccpicks .ccpick input{margin-top:2px}
+.ex .ccpickt{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.35}
+.ex .ccpickt b{font-weight:500;color:var(--ink2);margin-right:4px}
+.ex .ccpicks .pill{flex:none;font-size:11px}
+.ex .ccpicks .ccacted{background:var(--tn);color:var(--ink2)}
+.ex .ccpicks .ccnew{background:var(--g2);color:var(--ink)}
+.ex .ccpicks .btn[disabled]{opacity:.5;cursor:default}
+.ex .ccpicks .ccpick{flex:none;height:auto}
+.ex .ccpicks .ccpick.on > span:first-of-type{color:var(--ink)}
+.ex .ccpickt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
 /* Lesson status panel (25 Nov 2026), top of the mentor view. Home tokens only, plus one teal for "revised / made from" */
 .ex-light .lsp{--lsM:oklch(52% 0.09 190 / .28);--lsT:oklch(52% 0.09 190);--lsTd:oklch(60% 0.09 190 / .13);--lsF:oklch(52% 0.09 190);--lsH:oklch(52% 0.09 190 / .45);--lsE:var(--g3)}
 .ex-dark .lsp{--lsM:oklch(74% 0.09 190 / .3);--lsT:oklch(80% 0.09 190);--lsTd:oklch(80% 0.09 190 / .14);--lsF:oklch(74% 0.09 190);--lsH:oklch(74% 0.09 190 / .4);--lsE:var(--g3)}
@@ -2074,7 +2088,7 @@ const failBox = (cid) => { const f = FAIL[cid]; if (!f) return "";
   return `<div class="ccfail" role="alert">${ic("x", 14)}<div class="ccfailb"><b>Not done: ${esc(f.label)}</b><span>${esc(f.why)}</span><span class="ccfailt">At ${esc(f.t)}. Nothing changed; the card is as it was.</span></div><button type="button" class="btn ghost ccfailx" data-faildismiss="${esc(cid)}">Dismiss</button></div>`; };
 function mark(cid, st, why, label) { if (!cid) return; STAT[cid] = { st, why: why || "", at: Date.now() }; soon();
   if (st === "failed") FAIL[cid] = { label: label || "the last press", why: why || "no reason given", t: new Date().toTimeString().slice(0, 5) };
-  if (st === "done") delete FAIL[cid];
+  if (st === "done") { delete FAIL[cid]; if (cid.startsWith("pick:")) delete PICKS[cid.slice(5)]; }   // sent: the ticks clear; on a failure they stay
   if (st === "failed") return;   // the Not done chip stays with the red box
   const ms = st === "done" ? (UNDO[cid] ? UNDO_MS : 3000) : 7000;
   if (st !== "sending") setTimeout(() => { const x = STAT[cid]; if (x && x.st === st && Date.now() - x.at >= ms - 50) { delete STAT[cid]; if (UNDO[cid] && Date.now() - UNDO[cid].at >= UNDO_MS - 50) delete UNDO[cid]; soon(); } }, ms); }
@@ -2800,6 +2814,7 @@ function drawerHtml(c, marks) {
     if (ch && !done && !isMerged(c)) {
       body += `<section class="dsec"><span class="lab">Do</span><div class="ccrow">${machine("Open its chat", "chat")}</div>${startGroup("Start another chat")}${mk(5)}
         <div style="display:flex;gap:6px"><label class="srch" style="flex:1;min-width:0"><select aria-label="Ready phrase"><option>Act on my comments on this card</option><option>Continue</option><option>Say where you are</option></select></label>${machine("Send", "bolt")}${mk(3)}</div></section>`;
+      body += pickBlock(c, t.chats[0]);
     } else if (!ch && !done) {
       const stp = ownSteps(c);
       body += `<section class="dsec"><span class="lab">Scope</span>${scopeOf(c) ? `<p style="margin:0;font-size:14px">${esc(scopeOf(c))}</p>` : `<div><button class="btn ghost" type="button" data-act="edit">${ic("pen")}Write its scope</button></div>`}</section>
@@ -3042,6 +3057,22 @@ function wireNeeds(h) {
     else if (act === "nadd") { const n = NEEDS.find((x) => x.chat === U.nopen); U.nopen = null; drawNeeds(); U.view = "board"; U.form = { mode: "task", title: n.title, project: n.project, col: "waiting on Ali" }; if (window.__ex44) window.__ex44.comp.setState({ view: "cc" }); setTimeout(draw, 60); }
   });
   h.addEventListener("input", (e) => { if (e.target.matches("[data-nreply]")) U.draft["n:" + U.nopen] = e.target.value; });
+}
+
+// Round 16 (Ali, 27 Nov): "Act on these". Every note of Ali's on a task with a tick box, newest first, with its day and
+// first words; ones Act on my notes has had are marked. Only the ticked notes go to the chat, through the same GO check
+// on those notes alone; the bookmark of Act on my notes does not move. The home's 2 s undo before it sends; a refusal
+// or failure stays as a red box under the button.
+const PICKS = {};
+const pickNotes = (c) => ((c.t && c.t.comments) || []).filter((m) => m.n).slice().reverse();
+function pickBlock(c, ch) {
+  const ns = pickNotes(c); if (!ns.length) return "";
+  const on = PICKS[c.id] || {}, k = Object.keys(on).filter((x) => on[x]).length, pk = "pick:" + c.id;
+  const sx = STAT[pk] && STAT[pk].st !== "failed" ? `<div class="ccstatline">${statChip(pk)}<span class="lab">${STAT[pk].st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 5 seconds." : STAT[pk].st === "done" ? "Sent to " + esc(ch) + "." : "Taken back."}</span></div>` : "";
+  return `<section class="dsec ccpicks"><span class="lab">Pick notes to act on${num(`${ns.length}`)}</span>
+    <p class="lab" style="margin:0">Tick any notes, old or new, and only those go to ${esc(ch)}. Act on my notes above still sends all new ones.</p>
+    ${ns.map((m) => `<label class="ccck ccpick${on[m.n] ? " on" : ""}"><input type="checkbox" data-pick="${m.n}"${on[m.n] ? " checked" : ""}><span class="ccpickt"><b class="num">${esc((m.at || "").replace(/, .*$/, "") || "Undated")}</b> ${esc(short(m.text.replace(/\s+/g, " "), 70))}</span>${m.acted ? `<span class="pill tgx ccacted" title="Act on my notes has already sent this one">${ic("check", 11)}Acted on</span>` : `<span class="pill tgx ccnew">New</span>`}</label>`).join("")}
+    <div class="ccrow"><button class="btn${k ? " you" : ""}" type="button" data-act="picks"${k ? "" : " disabled"}>${ic("bolt")}Act on these${k ? ` (${k})` : ""}</button>${k ? `<button class="btn ghost" type="button" data-act="unpick">Clear ticks</button>` : ""}</div>${sx}${failBox(pk)}</section>`;
 }
 
 // the buttons that ask a chat or la57 to act (live only); true when handled
@@ -3290,6 +3321,12 @@ function wire(h) {
     const a = t.closest("[data-act]");
     if (a) { const k = a.dataset.act;
       if (k === "close") { U.open = null; U.linkOpen = null; draw(); return; }
+      if (k === "unpick") { delete PICKS[U.open]; draw(); return; }
+      if (k === "picks") { const c = cards().find((x) => x.id === U.open), o = PICKS[U.open] || {}, ch = c && c.t && c.t.chats[0];
+        const picks = Object.keys(o).filter((x) => o[x]).map(Number).sort((x, y) => x - y); if (!c || !ch || !picks.length) return;
+        const label = `Act on ${picks.length === 1 ? "1 ticked note" : picks.length + " ticked notes"}: ${ch}`;
+        if (!ship(label, [{ action: "notes-pick", task: c.id, target: ch, picks }], null, "pick:" + c.id, { no: "It was typed into the chat, so it cannot be taken back. Tell the chat in words if you need to." })) { toast("This button works on the real EX-44 home: it asks the chat to act."); return; }
+        draw(); return; }
       if (k === "qclose") { U.qmenu = null; draw(); return; }
       if (k === "editclass") { U.tab = "details"; draw(); const i = host.querySelector("[data-session]"); if (i) i.focus(); return; }
       if (k === "linkopen") { U.linkOpen = U.linkOpen === U.open ? null : U.open; U.linkQ = ""; draw(); const i = host.querySelector("[data-linkq]"); if (i) i.focus({ preventScroll: true }); return; }
@@ -3369,6 +3406,7 @@ function wire(h) {
     if (t.matches("[data-prisel]")) { U.pri = t.value; draw(); return; }
     if (t.matches("[data-waitsel]")) { U.wait = t.value; draw(); return; }
     if (t.matches("[data-sortsel]")) { U.sort = t.value; draw(); return; }
+    if (t.matches("[data-pick]")) { const o = PICKS[U.open] = PICKS[U.open] || {}; o[t.dataset.pick] = t.checked; draw(); return; }
     if (t.matches("[data-step]")) { const s = (S.steps[U.open] || [])[+t.dataset.step]; if (s) { s.d = t.checked; save(); draw(); } return; }
   });
   h.addEventListener("submit", (e) => {
