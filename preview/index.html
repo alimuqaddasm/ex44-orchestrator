@@ -984,17 +984,17 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .ccstat.s-failed{cursor:help}
 
 /* Round 16: Act on these (tick any of Ali's notes, only those go to the chat) */
-.ex .ccpicks .ccpick{align-items:flex-start;border:1px solid var(--g2);padding:7px 8px}
-.ex .ccpicks .ccpick.on{border-color:var(--ok);background:var(--g1)}
-.ex .ccpicks .ccpick input{margin-top:2px}
+.ex .ccpicks .ccnrow{align-items:flex-start;border:1px solid var(--g2);padding:7px 8px}
+.ex .ccpicks .ccnrow.on{border-color:var(--ok);background:var(--g1)}
+.ex .ccpicks .ccnrow input{margin-top:2px}
 .ex .ccpickt{flex:1;min-width:0;overflow-wrap:anywhere;line-height:1.35}
 .ex .ccpickt b{font-weight:500;color:var(--ink2);margin-right:4px}
 .ex .ccpicks .pill{flex:none;font-size:11px}
 .ex .ccpicks .ccacted{background:var(--tn);color:var(--ink2)}
 .ex .ccpicks .ccnew{background:var(--g2);color:var(--ink)}
 .ex .ccpicks .btn[disabled]{opacity:.5;cursor:default}
-.ex .ccpicks .ccpick{flex:none;height:auto}
-.ex .ccpicks .ccpick.on > span:first-of-type{color:var(--ink)}
+.ex .ccpicks .ccnrow{flex:none;height:auto}
+.ex .ccpicks .ccnrow.on > span:first-of-type{color:var(--ink)}
 .ex .ccpickt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 
 /* Lesson status panel (25 Nov 2026), top of the mentor view. Home tokens only, plus one teal for "revised / made from" */
@@ -3071,7 +3071,7 @@ function pickBlock(c, ch) {
   const sx = STAT[pk] && STAT[pk].st !== "failed" ? `<div class="ccstatline">${statChip(pk)}<span class="lab">${STAT[pk].st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 5 seconds." : STAT[pk].st === "done" ? "Sent to " + esc(ch) + "." : "Taken back."}</span></div>` : "";
   return `<section class="dsec ccpicks"><span class="lab">Pick notes to act on${num(`${ns.length}`)}</span>
     <p class="lab" style="margin:0">Tick any notes, old or new, and only those go to ${esc(ch)}. Act on my notes above still sends all new ones.</p>
-    ${ns.map((m) => `<label class="ccck ccpick${on[m.n] ? " on" : ""}"><input type="checkbox" data-pick="${m.n}"${on[m.n] ? " checked" : ""}><span class="ccpickt"><b class="num">${esc((m.at || "").replace(/, .*$/, "") || "Undated")}</b> ${esc(short(m.text.replace(/\s+/g, " "), 70))}</span>${m.acted ? `<span class="pill tgx ccacted" title="Act on my notes has already sent this one">${ic("check", 11)}Acted on</span>` : `<span class="pill tgx ccnew">New</span>`}</label>`).join("")}
+    ${ns.map((m) => `<label class="ccck ccnrow${on[m.n] ? " on" : ""}"><input type="checkbox" data-pick="${m.n}"${on[m.n] ? " checked" : ""}><span class="ccpickt"><b class="num">${esc((m.at || "").replace(/, .*$/, "") || "Undated")}</b> ${esc(short(m.text.replace(/\s+/g, " "), 70))}</span>${m.acted ? `<span class="pill tgx ccacted" title="Act on my notes has already sent this one">${ic("check", 11)}Acted on</span>` : `<span class="pill tgx ccnew">New</span>`}</label>`).join("")}
     <div class="ccrow"><button class="btn${k ? " you" : ""}" type="button" data-act="picks"${k ? "" : " disabled"}>${ic("bolt")}Act on these${k ? ` (${k})` : ""}</button>${k ? `<button class="btn ghost" type="button" data-act="unpick">Clear ticks</button>` : ""}</div>${sx}${failBox(pk)}</section>`;
 }
 
