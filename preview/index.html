@@ -1003,6 +1003,14 @@ a{color:var(--blue)}a:hover{color:var(--ink)}
 .ex .ccunsentb > .lab{display:inline-flex;align-items:center;gap:5px;color:var(--amber)}
 .ex .ccunsentr{font-size:14px;overflow-wrap:anywhere;padding:2px 0}
 .ex .ccunsentp{flex:none;margin-left:auto;font-size:11px;background:var(--g2);color:var(--amber)}
+/* every-course round (27 Nov): the Class Kit picker: subjects of the class's level, its layer, lessons, the real kinds, a tick per file */
+.ex .ccpick2 .cckpsubs,.ex .ccpick2 .cckples{flex-wrap:wrap;gap:4px}
+.ex .ccpick2 .ccqf{display:flex;flex-direction:column;gap:6px}
+.ex .ccpick2 .cckfiles{display:flex;flex-direction:column;gap:8px}
+.ex .ccpick2 .cckfrow{display:grid;grid-template-columns:15px 132px minmax(0,1fr) auto;align-items:center;border:1px solid var(--g2);padding:6px 8px}
+.ex .ccpick2 .cckfrow .cckfn{overflow-wrap:anywhere;font-size:13px}
+.ex .ccpick2 .cckfrow input:disabled{opacity:.6}
+@media (max-width:520px){.ex .ccpick2 .cckfrow{grid-template-columns:15px minmax(0,1fr) auto}.ex .ccpick2 .cckfrow .cckfn{grid-column:2 / 4}}
 
 /* Lesson status panel (25 Nov 2026), top of the mentor view. Home tokens only, plus one teal for "revised / made from" */
 .ex-light .lsp{--lsM:oklch(52% 0.09 190 / .28);--lsT:oklch(52% 0.09 190);--lsTd:oklch(60% 0.09 190 / .13);--lsF:oklch(52% 0.09 190);--lsH:oklch(52% 0.09 190 / .45);--lsE:var(--g3)}
@@ -2794,6 +2802,7 @@ function drawerHtml(c, marks) {
     const late = (S.late[c.id] || []).map((x) => `<div class="cccm"><p>${esc(x.text)}</p><span class="lab num">You, ${esc(x.at)} · added on this page</span></div>`).join("");
     body += `<section class="dsec"><span class="lab">1. The mentor's list${c.session ? " for " + esc(c.session) : ""} ${mk(7)}</span>${k ? `<div class="cccm"><p>${esc(k.said)}</p><span class="lab num">You, ${esc(k.at)}</span></div>` : `<div class="sempty">Empty until the mentor says what he needs.</div>`}
       <div style="display:flex;gap:6px"><label class="srch" style="flex:1">${ic("plus")}<input type="text" data-late placeholder="${k ? "Add a late ask: teacher copy L3 to L5" : "Type the mentor's list: ZM B1 L3; Makarim B1 S2"}" aria-label="Add to the list"></label><button class="btn" type="button" data-act="late">Add</button>${mk(8)}</div>${late}</section>`;
+    body += kitPickBlock(c);
     if (k) {
       body += `<section class="dsec"><span class="lab">2. Files found${num(`${k.files.length} of ${k.files.length + k.unplaced.length}`)} ${tm(7)}</span>`;
       if (k.unplaced.length) body += k.unplaced.map((u) => `<div class="ccatt bad">${ic("x", 16)}<div style="flex:1;min-width:0"><div style="font-weight:500">${esc(u[0])}</div><div class="lab">${esc(u[1])}. The kit never guesses: say which lesson in a late ask.</div></div></div>`).join("");
@@ -3117,6 +3126,67 @@ function pickBlock(c, ch) {
     <div class="ccrow"><button class="btn${k ? " you" : ""}" type="button" data-act="picks"${k ? "" : " disabled"}>${ic("bolt")}Act on these${k ? ` (${k})` : ""}</button>${k ? `<button class="btn ghost" type="button" data-act="unpick">Clear ticks</button>` : ""}</div>${sx}${failBox(pk)}</section>`;
 }
 
+// ---------- Class Kit picker (every-course round, Ali 27 Nov: "class kit should not be limited to maarif at all; it should check the
+// selected class level"). The class's level gives its subjects (hub course list, EX-44's kitfiles.json); pick a subject, its
+// layer and lessons, and every real file of the kinds that subject has shows with a tick box. The kit is built from the
+// ticks (classkit.py pick, then the same zip and la57 road). The picks are remembered per class for next week.
+let KF = null, KFerr = "", KFload = false;
+const KP = {};
+const LAYERN = { "class lesson": "Class lesson (B1 L1, L01)", "source unit": "Source unit (B1 S1, Z1-1)", "lesson": "Lesson", "range": "Lesson range (L10-L14)" };
+function kitFiles() {
+  if (KF) return KF;
+  if (D.kitfiles) { KF = D.kitfiles; return KF; }
+  const L = window.__ex44live;
+  if (!KFload && L && L.kitfiles) { KFload = true; L.kitfiles().then((d) => { KF = d; KFerr = ""; soon(); }).catch((e) => { KFerr = String(e.message || e); KFload = false; soon(); }); }
+  return null;
+}
+function kpOf(c) {
+  if (KP[c.id]) return KP[c.id];
+  const pk = c.c.picks || {};
+  return (KP[c.id] = { subject: pk.subject || "", layer: pk.layer || "", lessons: {}, kinds: null, ticks: {}, q: "", wantKeys: pk.lessons || [], wantKinds: pk.kinds || null });
+}
+function kitPickBlock(c) {
+  const lv = c.c.level, kf = kitFiles(), lvd = kf && kf.levels && kf.levels[lv];
+  const head = `<span class="lab">Or pick the files yourself ${mk(9)}</span>`;
+  if (!lv) return `<section class="dsec ccpick2">${head}<div class="sempty">This class has no level yet, so its subjects are not known.</div></section>`;
+  if (!kf) return `<section class="dsec ccpick2">${head}${KFerr ? `<div class="ccfail" role="alert">${ic("x", 14)}<div class="ccfailb"><b>Not read: the course files</b><span>${esc(KFerr)}</span></div></div>` : `<div class="sempty">Reading the course files…</div>`}</section>`;
+  if (!lvd || !lvd.subjects.length) return `<section class="dsec ccpick2">${head}<div class="sempty">No subjects with files are known for level ${esc(LNAME[lv] || lv)}.</div></section>`;
+  const p = kpOf(c), subs = lvd.subjects, sub = subs.find((x) => x.code === p.subject);
+  let h = `<section class="dsec ccpick2">${head}<p class="lab" style="margin:0">${esc(c.c.code)} is a ${esc(lvd.name)} class: ${subs.length} subjects. Pick one, then its lessons; tick the files that go in the kit.</p>
+    <div class="ccrow cckpsubs" role="group" aria-label="Subject">${subs.map((x) => `<button type="button" class="ccseg${x.code === p.subject ? " on" : ""}" data-kps="${esc(x.code)}" aria-pressed="${x.code === p.subject}">${esc(x.short)}</button>`).join("")}</div>`;
+  if (!sub) return h + `</section>`;
+  if (!p.layer || !sub.layers.includes(p.layer)) p.layer = sub.layers[0];
+  if (p.kinds === null) { p.kinds = {}; sub.kinds.forEach((k) => (p.kinds[k] = !p.wantKinds || p.wantKinds.includes(k))); }
+  if (p.wantKeys && p.wantKeys.length) { sub.lessons.filter((l) => l.layer === p.layer && p.wantKeys.includes(l.key)).forEach((l) => (p.lessons[l.id] = true)); p.wantKeys = null; }
+  if (sub.layers.length > 1) h += `<div class="ccqf"><span class="lab">${ic("layers", 12)}Layer</span><div class="ccsegs" role="group">${sub.layers.map((x) => `<button type="button" class="ccseg${x === p.layer ? " on" : ""}" data-kplay="${esc(x)}" aria-pressed="${x === p.layer}">${esc(LAYERN[x] || x)}</button>`).join("")}</div></div>`;
+  const all = sub.lessons.filter((l) => l.layer === p.layer), q = p.q.trim().toLowerCase().replace(/\s+/g, "");
+  const shown = all.filter((l) => !q || l.label.toLowerCase().replace(/\s+/g, "").includes(q) || l.key.toLowerCase().replace(/\s+/g, "") === q).slice(0, 60);
+  h += `<div class="ccqf"><span class="lab">${ic("file", 12)}Lessons${num(`${all.length}`)}</span>${all.length > 12 ? `<label class="srch">${ic("search")}<input type="text" data-kpq value="${esc(p.q)}" placeholder="Find a lesson, for example L6" aria-label="Find a lesson"></label>` : ""}
+    <div class="ccrow cckples">${shown.map((l) => `<button type="button" class="ccseg${p.lessons[l.id] ? " on" : ""}" data-kpl="${esc(l.id)}" aria-pressed="${!!p.lessons[l.id]}" title="${esc(l.sources ? "From " + l.sources.join(", ") : l.label)}">${esc(l.label)}</button>`).join("")}${all.length > shown.length ? `<span class="lab">${all.length - shown.length} more: type to find them</span>` : ""}</div></div>`;
+  h += `<div class="ccqf"><span class="lab">${ic("filter", 12)}Kinds this subject has</span><div class="ccrow" role="group">${sub.kinds.map((k) => `<button type="button" class="ccseg${p.kinds[k] ? " on" : ""}" data-kpk="${esc(k)}" aria-pressed="${!!p.kinds[k]}">${esc(k)}</button>`).join("")}</div></div>`;
+  const picked = all.filter((l) => p.lessons[l.id]);
+  const inKit = new Set(((c.c.kit && c.c.kit.files) || []).map((f) => (f[3] || "") + "|" + (f[4] || "")));
+  const rows = [];
+  picked.forEach((l) => l.files.forEach((f) => { if (p.kinds[f[0]]) rows.push({ l, kind: f[0], path: f[1], key: sub.repo + "|" + f[1] }); }));
+  if (!picked.length) h += `<div class="sempty">Pick a lesson to see its files.</div>`;
+  else if (!rows.length) h += `<div class="sempty">No file of the kinds picked in ${picked.length === 1 ? "this lesson" : "these lessons"}.</div>`;
+  else {
+    const n = rows.filter((r) => p.ticks[r.key] && !inKit.has(r.key)).length;
+    h += `<div class="cckfiles">${picked.map((l) => { const rs = rows.filter((r) => r.l === l); if (!rs.length) return "";
+      return `<div class="cckit"><div class="ccrow"><b>${esc(sub.short)} ${esc(l.label)}</b>${l.sources && l.sources.length ? `<span class="lab">from ${esc(l.sources.join(", "))}</span>` : ""}<span class="ccnum" style="margin-left:auto">${rs.length}</span></div>
+        ${rs.map((r) => { const ink = inKit.has(r.key); return `<label class="ccck cckfrow${p.ticks[r.key] || ink ? " on" : ""}"><input type="checkbox" data-kpf="${esc(r.key)}"${p.ticks[r.key] || ink ? " checked" : ""}${ink ? " disabled" : ""}><span class="lab cckind">${esc(r.kind)}</span><span class="num cckfn">${esc(r.path.split("/").pop())}</span>${ink ? `<span class="pill tgx ccacted">${ic("check", 11)}In the kit</span>` : ""}</label>`; }).join("")}</div>`; }).join("")}</div>
+      <div class="ccrow"><button class="btn${n ? " you" : ""}" type="button" data-act="kpbuild"${n ? "" : " disabled"}>${ic("bolt")}${n ? `Put ${n} ticked file${n === 1 ? "" : "s"} in the kit` : "Tick files to put in the kit"}</button>${n ? `<button class="btn ghost" type="button" data-act="kpclear">Clear ticks</button>` : `<button class="btn ghost" type="button" data-act="kpall">Tick all shown</button>`}</div>`;
+  }
+  const kk = "kpick:" + c.id, sx = STAT[kk] && STAT[kk].st !== "failed" ? `<div class="ccstatline">${statChip(kk)}<span class="lab">${STAT[kk].st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 5 seconds." : STAT[kk].st === "done" ? "In the kit, and the kit is on its way to la57." : "Taken back."}</span></div>` : "";
+  return h + sx + failBox(kk) + `</section>`;
+}
+function kpRows(c) {
+  const p = kpOf(c), lvd = KF && KF.levels[c.c.level], sub = lvd && lvd.subjects.find((x) => x.code === p.subject); if (!sub) return [];
+  const out = [];
+  sub.lessons.filter((l) => l.layer === p.layer && p.lessons[l.id]).forEach((l) => l.files.forEach((f) => { if (p.kinds[f[0]]) out.push({ repo: sub.repo, path: f[1], kind: f[0], label: l.label, key: sub.repo + "|" + f[1], lkey: l.key }); }));
+  return out;
+}
+
 // the buttons that ask a chat or la57 to act (live only); true when handled
 function machine(label, el) {
   const c = cards().find((x) => x.id === U.open); if (!c) return false;
@@ -3306,6 +3376,12 @@ function wire(h) {
     const t = e.target;
     const fx = t.closest && t.closest("[data-faildismiss]"); if (fx) { const k = fx.dataset.faildismiss; delete FAIL[k]; if (STAT[k] && STAT[k].st === "failed") delete STAT[k]; draw(); drawNeeds(); return; }
     if (U.more && !t.closest(".ccmore")) { U.more = false; draw(); }
+    const kps = t.closest("[data-kps],[data-kplay],[data-kpl],[data-kpk]"); if (kps) { const c = cards().find((x) => x.id === U.open); if (c) { const p = kpOf(c), d = kps.dataset;
+        if (d.kps) { if (p.subject !== d.kps) { p.subject = d.kps; p.layer = ""; p.lessons = {}; p.kinds = null; p.ticks = {}; p.q = ""; } }
+        else if (d.kplay) { p.layer = d.kplay; p.lessons = {}; p.ticks = {}; }
+        else if (d.kpl) { p.lessons[d.kpl] = !p.lessons[d.kpl]; }
+        else if (d.kpk) { p.kinds[d.kpk] = !p.kinds[d.kpk]; }
+        draw(); } return; }
     const f = t.closest("[data-level]"); if (f) { U.level = f.dataset.level; draw(); return; }
     const v = t.closest("[data-view]"); if (v) { U.view = v.dataset.view; draw(); return; }
     const tb = t.closest("[data-tab]"); if (tb) { U.tab = tb.dataset.tab; draw(); if (U.tab === "comments") { const ta = host.querySelector("[data-comment]"); if (ta) ta.focus(); } return; }
@@ -3368,6 +3444,15 @@ function wire(h) {
       if (k === "close") { U.open = null; U.linkOpen = null; draw(); return; }
       if (k === "flush") { const uw = unsentOf(U.open); if (!uw.steps.length && !uw.draft) return; sendWords(U.open, uw.steps, uw.draft ? [uw.draft] : [], "Words kept on"); return; }
       if (k === "unpick") { delete PICKS[U.open]; draw(); return; }
+      if (k === "kpclear" || k === "kpall") { const c = cards().find((x) => x.id === U.open); if (!c) return; const p = kpOf(c); if (k === "kpclear") p.ticks = {}; else kpRows(c).forEach((r) => (p.ticks[r.key] = true)); draw(); return; }
+      if (k === "kpbuild") { const c = cards().find((x) => x.id === U.open); if (!c) return; const p = kpOf(c);
+        const inKit = new Set(((c.c.kit && c.c.kit.files) || []).map((f) => (f[3] || "") + "|" + (f[4] || "")));
+        const rows = kpRows(c).filter((r) => p.ticks[r.key] && !inKit.has(r.key)); if (!rows.length) return;
+        const label = `Put ${rows.length} ticked file${rows.length === 1 ? "" : "s"} in the ${c.c.code} kit`;
+        const remember = { subject: p.subject, layer: p.layer, lessons: [...new Set(rows.map((r) => r.lkey))], kinds: Object.keys(p.kinds).filter((x) => p.kinds[x]) };
+        if (!ship(label, [{ action: "kit-pick", class: c.c.key, date: c.c.iso, files: rows.map((r) => ({ repo: r.repo, path: r.path, kind: r.kind, label: r.label })), remember, target: c.c.key }], null, "kpick:" + c.id,
+          { no: "The kit went to la57 with them; taking files off la57 needs your GO. Add a late ask that says what to drop." })) { toast("This button works on the real EX-44 home: it builds the kit on EX-44. Nothing was sent from this copy."); return; }
+        p.ticks = {}; draw(); return; }
       if (k === "picks") { const c = cards().find((x) => x.id === U.open), o = PICKS[U.open] || {}, ch = c && c.t && c.t.chats[0];
         const picks = Object.keys(o).filter((x) => o[x]).map(Number).sort((x, y) => x - y); if (!c || !ch || !picks.length) return;
         const label = `Act on ${picks.length === 1 ? "1 ticked note" : picks.length + " ticked notes"}: ${ch}`;
@@ -3441,7 +3526,7 @@ function wire(h) {
   h.addEventListener("focusout", (e) => { if (e.target.matches && e.target.matches("[data-prename-in]") && U.prename === e.target.dataset.prenameIn) renameProject(e.target.dataset.prenameIn, e.target.value); }, true);
   h.addEventListener("input", (e) => { typed(e); if (e.target.matches("[data-trename-in]")) { U.trenameText = e.target.value; return; } if (e.target.matches("[data-prename-in]")) { U.prenameText = e.target.value; return; } if (e.target.matches("[data-ptitle]")) { U.ptext = e.target.value; return; } if (e.target.matches("[data-addstep]")) { const m = host.querySelector("[data-addstepmark]"); if (m) m.hidden = !e.target.value.trim(); }
     if (e.target.matches("[data-newstep]")) { S.stepDraft = S.stepDraft || {}; if (e.target.value.trim()) S.stepDraft[U.open] = e.target.value; else delete S.stepDraft[U.open]; save(); const m = host.querySelector("[data-stepmark]"); if (m) m.hidden = !(e.target.value.trim() && liveTask(U.open)); }
-    if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; S.drafts = S.drafts || {}; if (e.target.value.trim()) S.drafts[U.open] = e.target.value; else delete S.drafts[U.open]; save(); markDraft(); return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); return; } if (e.target.matches("[data-linkq]")) { U.linkQ = e.target.value; draw(); } });
+    if (e.target.matches("[data-comment]")) { U.draft[U.open] = e.target.value; S.drafts = S.drafts || {}; if (e.target.value.trim()) S.drafts[U.open] = e.target.value; else delete S.drafts[U.open]; save(); markDraft(); return; } if (e.target.matches("[data-kpq]")) { const c = cards().find((x) => x.id === U.open); if (c) { kpOf(c).q = e.target.value; draw(); const i = host.querySelector("[data-kpq]"); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } } return; } if (e.target.matches("[data-q]")) { U.q = e.target.value; draw(); return; } if (e.target.matches("[data-linkq]")) { U.linkQ = e.target.value; draw(); } });
   h.addEventListener("change", (e) => {
     const t = e.target; typed(e);
     if (t.closest && t.closest(".ccform")) {
@@ -3457,6 +3542,7 @@ function wire(h) {
     if (t.matches("[data-waitsel]")) { U.wait = t.value; draw(); return; }
     if (t.matches("[data-sortsel]")) { U.sort = t.value; draw(); return; }
     if (t.matches("[data-pick]")) { const o = PICKS[U.open] = PICKS[U.open] || {}; o[t.dataset.pick] = t.checked; draw(); return; }
+    if (t.matches("[data-kpf]")) { const c = cards().find((x) => x.id === U.open); if (c) { kpOf(c).ticks[t.dataset.kpf] = t.checked; draw(); } return; }
     if (t.matches("[data-step]")) { const s = (S.steps[U.open] || [])[+t.dataset.step]; if (s) { s.d = t.checked; save(); draw(); } return; }
   });
   h.addEventListener("submit", (e) => {
@@ -5564,7 +5650,9 @@ async function mapData(){
 async function mapCards(){ try { LIVE.map = await mapRead("map-cards.json"); redraw(); } catch (e) { LIVE.mapErr = String(e.message || e); } }
 setInterval(() => { if (!document.hidden && getKey()) mapCards(); }, 600000);
 setTimeout(() => { if (getKey()) mapCards(); }, 1500);
-window.__ex44live = { mapData, mapCards, load, build, reqs, file, forget: () => { setKey(""); showConnect(""); } };
+// every-course round: the Class Kit picker's data (every subject's files by class level), read only when a class card opens; a free 304 when unchanged
+async function kitfiles(){ const r = await readCond("kitfiles.json", getKey()); return r.data; }
+window.__ex44live = { mapData, mapCards, load, build, reqs, file, kitfiles, forget: () => { setKey(""); showConnect(""); } };
 document.addEventListener("visibilitychange", () => { if (!document.hidden) load(true); });
 setInterval(() => { if (!document.hidden) load(); }, 5000);   // P8.7: 5 s; the old feed still reads once a minute inside load()
 setInterval(() => { paintAge(); if (Date.now() < FAST.until && !document.hidden) load(); }, 1000);   // the age line counts up by itself; fast reads after a press
