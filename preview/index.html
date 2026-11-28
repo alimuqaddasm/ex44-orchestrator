@@ -2007,7 +2007,7 @@ window.EX44LS = { html, bind, state: () => S, set: (o) => { Object.assign(S, o);
 (function () {
 "use strict";
 if (window.EX44CC) return;
-let D = ((window.__LIVE && window.__LIVE.cc) || {"tasks":[],"chats":{},"classes":[],"asks":{},"projects":[],"tree":{},"porder":[],"plevel":{},"needs":[],"today":"2026-11-27"});
+let D = ((window.__LIVE && window.__LIVE.cc) || {"tasks":[],"chats":{},"classes":[],"asks":{},"projects":[],"tree":{},"porder":[],"plevel":{},"needs":[],"today":"2026-11-28"});
 // The wiring pass (M3, M4): on the preview home (window.__CCLIVE) the data comes from EX-44's cc.json through live.js, and every
 // change Ali makes is sent to EX-44 through the home's own button road (act: sent at once, then done). What stays in
 // this browser: the project layout, steps ticks, session numbers. The canvas copy keeps working with baked data.
@@ -3131,7 +3131,7 @@ function pickBlock(c, ch) {
 // layer and lessons, and every real file of the kinds that subject has shows with a tick box. The kit is built from the
 // ticks (classkit.py pick, then the same zip and la57 road). The picks are remembered per class for next week.
 let KF = null, KFerr = "", KFload = false;
-const KP = {};
+const KP = {}, KPROW = {};   // KPROW: every file row drawn, so a tick keeps its file when the subject changes
 const LAYERN = { "class lesson": "Class lesson (B1 L1, L01)", "source unit": "Source unit (B1 S1, Z1-1)", "lesson": "Lesson", "range": "Lesson range (L10-L14)" };
 function kitFiles() {
   if (KF) return KF;
@@ -3165,25 +3165,40 @@ function kitPickBlock(c) {
     <div class="ccrow cckples">${shown.map((l) => `<button type="button" class="ccseg${p.lessons[l.id] ? " on" : ""}" data-kpl="${esc(l.id)}" aria-pressed="${!!p.lessons[l.id]}" title="${esc(l.sources ? "From " + l.sources.join(", ") : l.label)}">${esc(l.label)}</button>`).join("")}${all.length > shown.length ? `<span class="lab">${all.length - shown.length} more: type to find them</span>` : ""}</div></div>`;
   h += `<div class="ccqf"><span class="lab">${ic("filter", 12)}Kinds this subject has</span><div class="ccrow" role="group">${sub.kinds.map((k) => `<button type="button" class="ccseg${p.kinds[k] ? " on" : ""}" data-kpk="${esc(k)}" aria-pressed="${!!p.kinds[k]}">${esc(k)}</button>`).join("")}</div></div>`;
   const picked = all.filter((l) => p.lessons[l.id]);
-  const inKit = new Set(((c.c.kit && c.c.kit.files) || []).map((f) => (f[3] || "") + "|" + (f[4] || "")));
+  const inKit = kpInKit(c);
   const rows = [];
-  picked.forEach((l) => l.files.forEach((f) => { if (p.kinds[f[0]]) rows.push({ l, kind: f[0], path: f[1], key: sub.repo + "|" + f[1] }); }));
+  picked.forEach((l) => l.files.forEach((f) => { if (p.kinds[f[0]]) { const key = sub.repo + "|" + f[1]; rows.push({ l, kind: f[0], path: f[1], key }); KPROW[key] = { repo: sub.repo, path: f[1], kind: f[0], label: l.label, key, lkey: l.key, subject: sub.code, short: sub.short }; } }));
+  const tk = kpTicked(c, inKit), here = new Set(rows.map((r) => r.key)), away = tk.filter((r) => !here.has(r.key));
   if (!picked.length) h += `<div class="sempty">Pick a lesson to see its files.</div>`;
   else if (!rows.length) h += `<div class="sempty">No file of the kinds picked in ${picked.length === 1 ? "this lesson" : "these lessons"}.</div>`;
   else {
-    const n = rows.filter((r) => p.ticks[r.key] && !inKit.has(r.key)).length;
     h += `<div class="cckfiles">${picked.map((l) => { const rs = rows.filter((r) => r.l === l); if (!rs.length) return "";
       return `<div class="cckit"><div class="ccrow"><b>${esc(sub.short)} ${esc(l.label)}</b>${l.sources && l.sources.length ? `<span class="lab">from ${esc(l.sources.join(", "))}</span>` : ""}<span class="ccnum" style="margin-left:auto">${rs.length}</span></div>
         ${rs.map((r) => { const ink = inKit.has(r.key); return `<label class="ccck cckfrow${p.ticks[r.key] || ink ? " on" : ""}"><input type="checkbox" data-kpf="${esc(r.key)}"${p.ticks[r.key] || ink ? " checked" : ""}${ink ? " disabled" : ""}><span class="lab cckind">${esc(r.kind)}</span><span class="num cckfn">${esc(r.path.split("/").pop())}</span>${ink ? `<span class="pill tgx ccacted">${ic("check", 11)}In the kit</span>` : ""}</label>`; }).join("")}</div>`; }).join("")}</div>
-      <div class="ccrow"><button class="btn${n ? " you" : ""}" type="button" data-act="kpbuild"${n ? "" : " disabled"}>${ic("bolt")}${n ? `Put ${n} ticked file${n === 1 ? "" : "s"} in the kit` : "Tick files to put in the kit"}</button>${n ? `<button class="btn ghost" type="button" data-act="kpclear">Clear ticks</button>` : `<button class="btn ghost" type="button" data-act="kpall">Tick all shown</button>`}</div>`;
+`;
   }
+  const n = tk.length;
+  if (away.length) h += `<p class="lab" style="margin:0">Also ticked in ${new Set(away.map((r) => r.subject)).size === 1 ? esc(away[0].short) : "other subjects"}: ${away.map((r) => esc(`${r.short} ${r.label} ${r.kind}`)).join(", ")}. They go in the same kit.</p>`;
+  const nx = kpNext(c); if (nx && (rows.length || n)) h += `<p class="lab" style="margin:0">The ${esc(c.c.date)} kit is already sent, so these go into the ${esc(nx)} kit.</p>`;
+  if (rows.length || n) h += `<div class="ccrow"><button class="btn${n ? " you" : ""}" type="button" data-act="kpbuild"${n ? "" : " disabled"}>${ic("bolt")}${n ? `Put ${n} ticked file${n === 1 ? "" : "s"} in the ${nx ? esc(nx) + " " : ""}kit` : "Tick files to put in the kit"}</button>${n ? `<button class="btn ghost" type="button" data-act="kpclear">Clear ticks</button>` : `<button class="btn ghost" type="button" data-act="kpall">Tick all shown</button>`}</div>`;
   const kk = "kpick:" + c.id, sx = STAT[kk] && STAT[kk].st !== "failed" ? `<div class="ccstatline">${statChip(kk)}<span class="lab">${STAT[kk].st === "sending" ? "On its way to EX-44: 2 seconds to undo, then about 5 seconds." : STAT[kk].st === "done" ? "In the kit, and the kit is on its way to la57." : "Taken back."}</span></div>` : "";
   return h + sx + failBox(kk) + `</section>`;
+}
+function kpInKit(c) {   // a kit already sent takes no more files: the ticks go into the next class day's kit, so nothing is locked
+  const k = c.c.kit; return new Set(k && !k.sent ? (k.files || []).map((f) => (f[3] || "") + "|" + (f[4] || "")) : []);
+}
+function kpNext(c) {   // the class day after a sent kit, as "5 Dec"
+  const k = c.c.kit; if (!k || !k.sent || !c.c.iso) return ""; const d = new Date(c.c.iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + 7);
+  return d.getUTCDate() + " " + ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getUTCMonth()];
+}
+function kpTicked(c, inKit) {   // every ticked file of this class, in any subject, not in the kit yet
+  const p = kpOf(c); inKit = inKit || kpInKit(c);
+  return Object.values(p.ticks).filter((r) => r && typeof r === "object" && !inKit.has(r.key));
 }
 function kpRows(c) {
   const p = kpOf(c), lvd = KF && KF.levels[c.c.level], sub = lvd && lvd.subjects.find((x) => x.code === p.subject); if (!sub) return [];
   const out = [];
-  sub.lessons.filter((l) => l.layer === p.layer && p.lessons[l.id]).forEach((l) => l.files.forEach((f) => { if (p.kinds[f[0]]) out.push({ repo: sub.repo, path: f[1], kind: f[0], label: l.label, key: sub.repo + "|" + f[1], lkey: l.key }); }));
+  sub.lessons.filter((l) => l.layer === p.layer && p.lessons[l.id]).forEach((l) => l.files.forEach((f) => { if (p.kinds[f[0]]) out.push({ repo: sub.repo, path: f[1], kind: f[0], label: l.label, key: sub.repo + "|" + f[1], lkey: l.key, subject: p.subject, short: sub.short }); }));
   return out;
 }
 
@@ -3377,8 +3392,8 @@ function wire(h) {
     const fx = t.closest && t.closest("[data-faildismiss]"); if (fx) { const k = fx.dataset.faildismiss; delete FAIL[k]; if (STAT[k] && STAT[k].st === "failed") delete STAT[k]; draw(); drawNeeds(); return; }
     if (U.more && !t.closest(".ccmore")) { U.more = false; draw(); }
     const kps = t.closest("[data-kps],[data-kplay],[data-kpl],[data-kpk]"); if (kps) { const c = cards().find((x) => x.id === U.open); if (c) { const p = kpOf(c), d = kps.dataset;
-        if (d.kps) { if (p.subject !== d.kps) { p.subject = d.kps; p.layer = ""; p.lessons = {}; p.kinds = null; p.ticks = {}; p.q = ""; } }
-        else if (d.kplay) { p.layer = d.kplay; p.lessons = {}; p.ticks = {}; }
+        if (d.kps) { if (p.subject !== d.kps) { p.subject = d.kps; p.layer = ""; p.lessons = {}; p.kinds = null; p.q = ""; } }
+        else if (d.kplay) { p.layer = d.kplay; p.lessons = {}; }
         else if (d.kpl) { p.lessons[d.kpl] = !p.lessons[d.kpl]; }
         else if (d.kpk) { p.kinds[d.kpk] = !p.kinds[d.kpk]; }
         draw(); } return; }
@@ -3444,12 +3459,12 @@ function wire(h) {
       if (k === "close") { U.open = null; U.linkOpen = null; draw(); return; }
       if (k === "flush") { const uw = unsentOf(U.open); if (!uw.steps.length && !uw.draft) return; sendWords(U.open, uw.steps, uw.draft ? [uw.draft] : [], "Words kept on"); return; }
       if (k === "unpick") { delete PICKS[U.open]; draw(); return; }
-      if (k === "kpclear" || k === "kpall") { const c = cards().find((x) => x.id === U.open); if (!c) return; const p = kpOf(c); if (k === "kpclear") p.ticks = {}; else kpRows(c).forEach((r) => (p.ticks[r.key] = true)); draw(); return; }
+      if (k === "kpclear" || k === "kpall") { const c = cards().find((x) => x.id === U.open); if (!c) return; const p = kpOf(c); if (k === "kpclear") p.ticks = {}; else kpRows(c).forEach((r) => (p.ticks[r.key] = r)); draw(); return; }
       if (k === "kpbuild") { const c = cards().find((x) => x.id === U.open); if (!c) return; const p = kpOf(c);
-        const inKit = new Set(((c.c.kit && c.c.kit.files) || []).map((f) => (f[3] || "") + "|" + (f[4] || "")));
-        const rows = kpRows(c).filter((r) => p.ticks[r.key] && !inKit.has(r.key)); if (!rows.length) return;
+        const inKit = kpInKit(c);
+        const rows = kpTicked(c, inKit); if (!rows.length) return;
         const label = `Put ${rows.length} ticked file${rows.length === 1 ? "" : "s"} in the ${c.c.code} kit`;
-        const remember = { subject: p.subject, layer: p.layer, lessons: [...new Set(rows.map((r) => r.lkey))], kinds: Object.keys(p.kinds).filter((x) => p.kinds[x]) };
+        const mine = rows.filter((r) => r.subject === p.subject), remember = { subject: p.subject, layer: p.layer, lessons: [...new Set((mine.length ? mine : rows).map((r) => r.lkey))], kinds: Object.keys(p.kinds || {}).filter((x) => p.kinds[x]) };
         if (!ship(label, [{ action: "kit-pick", class: c.c.key, date: c.c.iso, files: rows.map((r) => ({ repo: r.repo, path: r.path, kind: r.kind, label: r.label })), remember, target: c.c.key }], null, "kpick:" + c.id,
           { no: "The kit went to la57 with them; taking files off la57 needs your GO. Add a late ask that says what to drop." })) { toast("This button works on the real EX-44 home: it builds the kit on EX-44. Nothing was sent from this copy."); return; }
         p.ticks = {}; draw(); return; }
@@ -3542,7 +3557,7 @@ function wire(h) {
     if (t.matches("[data-waitsel]")) { U.wait = t.value; draw(); return; }
     if (t.matches("[data-sortsel]")) { U.sort = t.value; draw(); return; }
     if (t.matches("[data-pick]")) { const o = PICKS[U.open] = PICKS[U.open] || {}; o[t.dataset.pick] = t.checked; draw(); return; }
-    if (t.matches("[data-kpf]")) { const c = cards().find((x) => x.id === U.open); if (c) { kpOf(c).ticks[t.dataset.kpf] = t.checked; draw(); } return; }
+    if (t.matches("[data-kpf]")) { const c = cards().find((x) => x.id === U.open); if (c) { const tk = kpOf(c).ticks, k = t.dataset.kpf; if (t.checked && KPROW[k]) tk[k] = KPROW[k]; else delete tk[k]; draw(); } return; }
     if (t.matches("[data-step]")) { const s = (S.steps[U.open] || [])[+t.dataset.step]; if (s) { s.d = t.checked; save(); draw(); } return; }
   });
   h.addEventListener("submit", (e) => {
